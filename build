@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+
+cat shim.js io.js  > iow.js
+uglifyjs -o async.min.js async.js
+uglifyjs -o io.min.js io.js
+uglifyjs -o iow.min.js iow.js
