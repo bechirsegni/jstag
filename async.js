@@ -1,6 +1,6 @@
 window.jstag = (function (c) {
   var l=false,w=window,d=document,src="/static/io",
-    as=Array.prototype.slice,sp=c.js||"";
+    as=Array.prototype.slice,sp=c.url||"";
   return w.jstag || {
     load:function(){
       var js,

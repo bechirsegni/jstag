@@ -284,6 +284,7 @@
   // the core page analysis
   var pipeline = {
     analyze: function(o){
+      o.data["_e"] = "pv"
       if (doc[l] && dref[l] > 1){
         o.data['_ref'] = dref.replace("http://","").replace("https://","");; 
       }  
