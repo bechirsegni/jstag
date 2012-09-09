@@ -1,8 +1,7 @@
-//JS Library for data collection Apache License.
+// JS Library for data collection. Apache License.
 // https://github.com/lyticsio/jstag
 (function(win,doc,context) {
   var dloc = doc.location
-    , $e
     , ckie = doc.cookie
     , jstag = win.jstag || {}
     , l = 'length'
@@ -17,18 +16,27 @@
   }
 
   /**
-   * the public config settings, can be set in advance 
+   * the public config object for io, can be set in advance
+   * or you can pass into the init constructor
    *
    * @cfg {Object} config just object of properties
+   * @cfg {Function} [config.serializer=toString]
+   * @cfg {Array} [config.pipeline='identity','analyze'] the methods to run on init
+   * @cfg {Number} [config.delay=200] in milliseconds
+   * @cfg {String} [config.cookie="seerid"] the default cookie name
    * @cfg {String} [config.url='http://c.yourdomain.com']
    * @cfg {String} [config.id=""] 
    */
   jstag.config = {
-    url:'',
-    Q:[],
-    id: jstag.id || undefined,
-    cid : undefined,
-    authu:null
+    url:''
+    , Q:[]
+    , id: undefined
+    , cid : undefined
+    , serializer:toString
+    , pipeline:['identity','analyze']
+    , delay:200
+    , cookie:"seerid"
+    , channel:'Form'//  Form,Gif,ws,cors,jsonp
   }
 
   function objType(it,oname) {
@@ -58,13 +66,13 @@
   }
 
   /**
-   * The connect function accepts
+   * The connect function accepts config object
    */
   function connect(opts,cb){
     extend(jstag.config,opts,true)
+    return jstag
   }
   if ('_c' in jstag) connect(jstag._c)
-
 
   jstag["init"] = jstag['connect'] = connect;
 
@@ -181,17 +189,6 @@
         ((secure) ? "; secure" : "");
   }
   jstag['ckieSet'] = ckieSet;
-
-  
-/*
-
-  var dloc = doc.location
-    , dref = doc.referrer
-    , context = this //window
-    , ckie = doc.cookie
-    , l = 'length'
-    , cache = {};
-*/
 
   function addQs(url, n, v) {
     if (url.indexOf("?") < 1) url += "?"
@@ -361,25 +358,6 @@
   }
   jstag['send'] = send
   
-  /**
-   * the public config object for io, can be set in advance
-   * or you can pass into the init constructor
-   *
-   * @cfg {Object} config just object of properties
-   * @cfg {Function} [config.serializer=toString]
-   * @cfg {Array} [config.pipeline='identity','analyze'] the methods to run on init
-   * @cfg {Number} [config.delay=200] in milliseconds
-   * @cfg {String} [config.cookie="seerid"] the default cookie name
-   */
-  Io.config = {
-    serializer:toString,
-    pipeline:['identity','analyze'],
-    delay:200,
-    cookie:"seerid", 
-    channel:'Form'//  Form,Gif,ws,cors,jsonp
-  }
-  
-  
   Io.prototype = function(){
 
     var _pipe = [],
@@ -390,8 +368,8 @@
     return {
       init: function(opts){
         self = this
-        extend(Io.config,jstag.config,true)
-        o = extend(opts ? opts : {}, Io.config);
+        //extend(Io.config,jstag.config,true)
+        o = extend(opts ? opts : {}, jstag.config);
         if (!jstag.config.url || !jstag.config.cid) throw new Error("Must have collection url and Account");
         if ('cid' in o && !jstag.config.cid) jstag.config.cid = o.cid;
 
@@ -482,9 +460,7 @@
   
 
   if (!("ready" in jstag)){
-    jstag.ready = function(){
-      
-    }
+    jstag.ready = function(){}
   }
   
   jstag['load'] = function() {return this}; 
