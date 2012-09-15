@@ -306,7 +306,9 @@
   }
 
   /**
-   * toString name=value&   serizlizer
+   * toString name=value&   serializer, converts objects to flat names
+   * ie {user:{id:12,name:"aaron"}} becomes user.id=12&user.name=aaron
+   * and {groups:["admin","api"]} becomes groups=[admin,api]
   */
   function toString(data, ns){
     var as = [], key = "";
@@ -322,6 +324,8 @@
         as.push(toString(data[p],p))
       } else if (isFn(data[p])) {
         as.push(key + '=' + data[p]())
+      } else if (isArray(data[p])) {
+        as.push(key + '=[' + data[p].join(",") + "]")
       } else {
         as.push(key + '=' + encode(data[p]))
       }
@@ -374,6 +378,7 @@
         if ('cid' in o && !jstag.config.cid) jstag.config.cid = o.cid;
 
         o.url = jstag.config.url + '/c/' + jstag.config.cid;
+        if (o.stream) o.url += "/" + o.stream
         this.config = o;
         this.serializer = o.serializer;
 

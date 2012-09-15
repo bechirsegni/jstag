@@ -5,6 +5,7 @@ A very simple javascript tag for collecting events from a browser to send to a s
 
 
 Simple inline implementation:
+----------------------------------
 ```html
     <!--[if lt IE 8]><script src="/static/shim.js"></script><![endif]-->
     <script src="/js/io.js" type="text/javascript" />
@@ -15,10 +16,17 @@ Simple inline implementation:
     </script>
 ```
 
-Async implementation.  This is better for performance, non-blocking page usage.   Use the http://github.com/lyticsio/jstag/async.js tag as a template and copy/paste (with edits) into a script block on page (do not reference the file or else the value of async is removed).  
+Async implementation.
+-------------------------
+This is better for performance, non-blocking page usage.   Use the http://github.com/lyticsio/jstag/async.js tag as a template and copy/paste (with edits) into a script block on page (do not reference the file or else the value of async is removed).  
+
+
 ```html
     <script type="text/javascript">
-      // async js tag include (not shown)
+      window.jstag=function(e){var t=!1,n=window,r=document,i="/static/io",s=Array.prototype.slice,o=e.url||"";return n.jstag||{load:function(){var e,s=r.getElementsByTagName("script")[0];return t=!0,"JSON"in n&&Array.prototype.forEach||(i+="w"),r.getElementById(i)?this:(e=r.createElement("script"),e.id=i,e.src=o+i+".min.js",s.parentNode.insertBefore(e,s),this)},_q:[],_c:e,bind:function(e){this._q.push([e,s.call(arguments,1)])},ready:function(){this._q.push(["ready",s.call(arguments)])},send:function(){return t||this.load(),this._q.push(["ready","send",s.call(arguments)]),this},ts:(new Date).getTime()}
+      }({cid:"CUSTOMER_ID",url:"//www.yourdomain.com"})
+      .send({category:"hello"});// this send is purely optional, it will send as soon as 
+      // the tag is loaded
     </script>
 
     <a href="#" id="testlink" >test link</a>
@@ -33,7 +41,9 @@ Async implementation.  This is better for performance, non-blocking page usage. 
 ```
 
 
-Advanced usage for event bindings.   Often when using a tag, you have a single *Include* of tag, and you have different portion's of your site, or different javascript libraries that need to collect different data.  In that situation, it is easy to utilize the event libraries.  
+Advanced usage for event bindings. 
+--------------------------------------
+Often when using a tag, you have a single *Include* of tag, and you have different portion's of your site, or different javascript libraries that need to collect different data.  In that situation, it is easy to utilize the event libraries.  
 ```html
     <script type="text/javascript">
       // async js tag include (not shown)
@@ -47,4 +57,18 @@ Advanced usage for event bindings.   Often when using a tag, you have a single *
       })
     </script>
 ```
-
+Data Format
+-----------------
+The data is formatted to name=value& format that can be used in querystrings, or form submission.   There are a couple specific formatting issues: 
+*  nested objects are flattened to period seperated name=value pairs
+*  arrays are sent as custom format
+```html
+    <script type="text/javascript">
+      jstag.send({user:{id:22,name:"aaron"}})
+      // would be sent as 
+      // user.id=22&user.name=aaron
+      jstag.send({user:{id:22,group:["admin","api"]}})
+      // would be sent as 
+      // user.id=22&user.group=[admin,api]
+    </script>
+```

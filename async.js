@@ -10,7 +10,7 @@ window.jstag = (function (c) {
       if (d.getElementById(src)) return this; 
       js=d.createElement("script"); 
       js.id=src;
-      js.src=sp+src+".js"; 
+      js.src=sp+src+".min.js"; 
       fjs.parentNode.insertBefore(js, fjs);
       return this;
     },
