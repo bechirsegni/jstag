@@ -3,6 +3,7 @@
 (function(win,doc,context) {
   var dloc = doc.location
     , ckie = doc.cookie
+    , dref = doc.referrer
     , jstag = win.jstag || {}
     , l = 'length'
     , cache = {}
@@ -36,6 +37,8 @@
     , pipeline:['identity','analyze']
     , delay:200
     , cookie:"seerid"
+    , sesname:"seerses"
+    , sessecs: 1800 
     , channel:'Form'//  Form,Gif,ws,cors,jsonp
   }
 
@@ -174,21 +177,19 @@
     }
     return null; 
   }
-  jstag['ckieGet'] = ckieGet;
 
   function ckieDel(name) {
     doc.cookie=name+"=; path=/; expires=Monday, 19-Aug-1996 05:00:00 GMT";
   }
-  jstag['ckieDel'] = ckieDel
 
   function ckieSet(name, value, expires, path, domain, secure) {
-    ckie = name + "=" + escape(value) +
+    var cv = name + "=" + escape(value) +
         ((expires) ? "; expires=" + expires.toGMTString() : "") +
         ((path) ? "; path=" + path : "") +
         ((domain) ? "; domain=" + domain : "") +
         ((secure) ? "; secure" : "");
+    doc.cookie = cv
   }
-  jstag['ckieSet'] = ckieSet;
 
   function addQs(url, n, v) {
     if (url.indexOf("?") < 1) url += "?"
@@ -278,21 +279,40 @@
     }
   }
 
+
   // the core page analysis
   var pipeline = {
     analyze: function(o){
       o.data["_e"] = "pv"
-      if (doc[l] && dref[l] > 1){
-        o.data['_ref'] = dref.replace("http://","").replace("https://","");; 
+      var ses = ckieGet(jstag.config.sesname)
+        , ref = undefined
+      if (!ses) {
+        var expires = new Date();
+            expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
+            ckieSet(jstag.config.sesname,"e", expires)
+        o.data['_sesstart'] = "1"
+      }
+      if (!("_ref" in o.data)) {
+        if (dref && dref[l] > 1){
+          var rh = dref.toString().match(/\/\/(.*)\//);
+          if (rh && rh[1].indexOf(dloc.host) == -1) {
+            o.data['_ref'] = dref.replace("http://","").replace("https://","");
+            if (!ses) {
+              o.data['_sesref'] = dref.replace("http://","").replace("https://","");
+            }
+          }
+        }
       }  
-      o.data['url'] = dloc.href.replace("http://","").replace("https://","");
+      if (!("url" in o.data)) {
+        o.data['url'] = dloc.href.replace("http://","").replace("https://","");
+      }
     },
     identity: function(o){
       if (!("_uid" in o.data)) { // don't replace uid if supplied
         var ckieid = "seerid"
           , sid
         if (o.config && o.config.cookie) ckieid = o.config.cookie
-        sid = jstag.ckieGet(ckieid);
+        sid = ckieGet(ckieid);
         o.config.url = addQs(o.config.url, "_uidn", ckieid)
         if (sid && sid[l]) o.data['_uid']=sid
       }
