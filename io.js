@@ -479,8 +479,8 @@
   }
 
 
-  if (win && 'AsyncInit' in win && isFn(win.AsyncInit)){
-    win.AsyncInit();
+  if (win && 'asyncInit' in win && isFn(win.asyncInit)){
+    win.asyncInit();
   }
   
 
