@@ -18,13 +18,13 @@ Simple inline implementation:
 
 Async implementation.
 -------------------------
-This is better for performance, non-blocking page usage.   Use the http://github.com/lyticsio/jstag/async.js tag as a template and copy/paste (with edits) into a script block on page (do not reference the file or else the value of async is removed).  
+This is better for performance, non-blocking page usage.   Use the http://github.com/lytics/jstag/async.js tag as a template and copy/paste (with edits) into a script block on page (do not reference the file or else the value of async is removed).  
 
 
 ```html
     <script type="text/javascript">
       window.jstag=function(e){var t=!1,n=window,r=document,i="/static/io",s=Array.prototype.slice,o=e.url||"";return n.jstag||{load:function(){var e,s=r.getElementsByTagName("script")[0];return t=!0,"JSON"in n&&Array.prototype.forEach||(i+="w"),r.getElementById(i)?this:(e=r.createElement("script"),e.id=i,e.src=o+i+".min.js",s.parentNode.insertBefore(e,s),this)},_q:[],_c:e,bind:function(e){this._q.push([e,s.call(arguments,1)])},ready:function(){this._q.push(["ready",s.call(arguments)])},send:function(){return t||this.load(),this._q.push(["ready","send",s.call(arguments)]),this},ts:(new Date).getTime()}
-      }({cid:"CUSTOMER_ID",url:"//www.yourdomain.com"})
+      }({cid:"CUSTOMER_ID",url:"//collector.domain.com"})
       .send({category:"hello"});// this send is purely optional, it will send as soon as 
       // the tag is loaded
     </script>
@@ -39,6 +39,12 @@ This is better for performance, non-blocking page usage.   Use the http://github
       });
     </script>
 ```
+
+Configuration Options
+-------------------------
+* *cid* Collection ID, info is posted to */c/cid* allowing 
+* *cookie* Name of the Cookie for userid
+* *stream* Node dissappears, Its claim on work is released (work is not deleted), others try to claim work
 
 
 Advanced usage for event bindings. 
@@ -57,6 +63,7 @@ Often when using a tag, you have a single *Include* of tag, and you have differe
       })
     </script>
 ```
+
 Data Format
 -----------------
 The data is formatted to name=value& format that can be used in querystrings, or form submission.   There are a couple specific formatting issues: 
@@ -72,3 +79,4 @@ The data is formatted to name=value& format that can be used in querystrings, or
       // user.id=22&user.group=[admin,api]
     </script>
 ```
+

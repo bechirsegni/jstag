@@ -1,10 +1,11 @@
-// JS Library for data collection. Apache License.
+// JS Library for data collection. MIT License.
 // https://github.com/lyticsio/jstag
 (function(win,doc,context) {
   var dloc = doc.location
     , ckie = doc.cookie
     , dref = doc.referrer
     , jstag = win.jstag || {}
+    , config = jstag.config || {}
     , l = 'length'
     , cache = {}
     , as = Array.prototype.slice
@@ -27,8 +28,9 @@
    * @cfg {String} [config.cookie="seerid"] the default cookie name
    * @cfg {String} [config.url='http://c.yourdomain.com']
    * @cfg {String} [config.id=""] 
+   * @cfg {String} stream = default = null, if exists will append to path /c/cid/stream
    */
-  jstag.config = {
+  jstag.config = extend(config, {
     url:''
     , Q:[]
     , id: undefined
@@ -36,11 +38,12 @@
     , serializer:toString
     , pipeline:['identity','analyze']
     , delay:200
+    , path: '/c/'
     , cookie:"seerid"
     , sesname:"seerses"
     , sessecs: 1800 
-    , channel:'Form'//  Form,Gif,ws,cors,jsonp
-  }
+    , channel:'Form'//  Form,Gif
+  })
 
   function objType(it,oname) {
     return otostr.call(it) === "[object " + oname + "]";
@@ -139,7 +142,10 @@
   jstag['emit'] = emit;
  
    /**
-   * Replace the temporary Q object
+   * Replace the temporary Q object, iterating through and
+   * calling the actual functions with arguments
+   * the async tag provides a set of stub's which actually don't work
+   * but instead get queued into Q.  
   **/
   function replaceTempQ(){
     // check for any temp events
@@ -208,7 +214,7 @@
      * @constructur
     */
     Gif: function(opts){
-      if (!(this instanceof Gif)) return new Gif(opts);
+      //if (!(this instanceof Gif)) return new Gif(opts);
       return {
         images:[],
         /**
@@ -227,24 +233,27 @@
             this.images.push(img);
             if (arguments.length === 2 && o && isFn(o.callback)){
               o.callback.hasRun=false;
-              img.onload = onFinish();
-              win.setTimeout(onFinish, Io.config.delay);
+              if (img.onload) img.onload = onFinish();
+              win.setTimeout(onFinish, jstag.config.delay);
             }
-            img.src=this.getUrl();
+            img.src=this.getUrl(data);
           }
         },
         /**
          * Creates the url to be sent to the collection server
          */
-        getUrl:function(){
-          
+        getUrl:function(data){
+          var url = opts.url;
+          if (url.indexOf("?") < 1) url += "?"
+          else url += "&"
+          return url + data
         }
         
       }
     },
     /**
      * @class channels.Form
-     * Gif:  uses an iframe to post values
+     * Form:  uses an iframe to post values
      * @constructur
     */
     Form: function(opts){
@@ -253,34 +262,41 @@
       var self = this;
       return {
         send: function(data,o){
-          var iframe = doc.createElement("iframe"),
-            form,
-            inp;
-          doc.body.appendChild(iframe);
-          iframe.style.display = "none";
-          setTimeout(function() {
-            form = iframe.contentWindow.document.createElement("form");
-            iframe.contentWindow.document.body.appendChild(form);
-            form.setAttribute("action", opts.url);
-            form.setAttribute("method", "post");
-            inp = iframe.contentWindow.document.createElement("input");
-            inp.setAttribute("type", "hidden");
-            inp.setAttribute("name", "_js");
-            inp.value = data;
-            form.appendChild(inp);
-            form.submit();
-            if (o && isFn(o.callback)) (o.callback(o));
-            setTimeout(function(){
-              doc.body.removeChild(iframe);
-            }, 2000);
-          }, 0);
+          try {
+            var iframe = doc.createElement("iframe"),
+              form,
+              inp;
+            doc.body.appendChild(iframe);
+            iframe.style.display = "none";
+            setTimeout(function() {
+              form = iframe.contentWindow.document.createElement("form");
+              iframe.contentWindow.document.body.appendChild(form);
+              form.setAttribute("action", opts.url);
+              form.setAttribute("method", "post");
+              inp = iframe.contentWindow.document.createElement("input");
+              inp.setAttribute("type", "hidden");
+              inp.setAttribute("name", "_js");
+              inp.value = data;
+              form.appendChild(inp);
+              form.submit();
+              if (o && isFn(o.callback)) (o.callback(o));
+              setTimeout(function(){
+                doc.body.removeChild(iframe);
+              }, 2000);
+            }, 0);
+          } catch(e) {
+            var g = new Gif(opts)
+            try {
+              g.send(data)
+            } catch (e){}
+          }
         }
       }
     }
   }
 
 
-  // the core page analysis
+  // the core page analysis functions, an array of options
   var pipeline = {
     analyze: function(o){
       o.data["_e"] = "pv"
@@ -395,9 +411,10 @@
         //extend(Io.config,jstag.config,true)
         o = extend(opts ? opts : {}, jstag.config);
         if (!jstag.config.url || !jstag.config.cid) throw new Error("Must have collection url and Account");
+        //if ('id' in o && !jstag.config.cid) jstag.config.cid = o.cid;
         if ('cid' in o && !jstag.config.cid) jstag.config.cid = o.cid;
 
-        o.url = jstag.config.url + '/c/' + jstag.config.cid;
+        o.url = jstag.config.url + jstag.config.path + jstag.config.cid;
         if (o.stream) o.url += "/" + o.stream
         this.config = o;
         this.serializer = o.serializer;
