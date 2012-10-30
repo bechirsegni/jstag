@@ -330,7 +330,7 @@
         if (o.config && o.config.cookie) ckieid = o.config.cookie
         sid = ckieGet(ckieid);
         o.config.url = addQs(o.config.url, "_uidn", ckieid)
-        if (sid && sid[l]) o.data['_uid']=sid
+        if (sid && sid[l] && sid != "undefined") o.data['_uid']=sid
       }
     }
   }

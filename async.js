@@ -1,6 +1,6 @@
 window.jstag = (function (c) {
   var tag={_q:[],_c:c,ts:(new Date()).getTime()},l=false,w=window,d=document,src="/static/io",
-    as=Array.prototype.slice,sp=c.url||"";
+    as=Array.prototype.slice,sp= c.js ? c.js : c.url||"";
   tag.load=function(){
     var js,
       fjs = d.getElementsByTagName("script")[0];
@@ -26,4 +26,4 @@ window.jstag = (function (c) {
   }
   w.jstag = tag;
   return tag
-}({cid:"CUSTOMER_ID",url:'//collect.domain.com'})).send({"category":"hello"});
+}({cid:"CUSTOMER_ID",url:'//collect.domain.com',js:'//static.domain.js'})).send({"category":"hello"});
