@@ -1,7 +1,7 @@
 JSTag - Javascript Analytics Collector Tag
 ===============================================
 
-A very simple javascript tag for collecting events from a browser to send to a server. 
+A very simple open-source javascript tag for collecting events from a browser to send to a server.  (like google analytics, but name/value pairs defined by you) 
 
 
 Simple inline implementation:
@@ -80,3 +80,7 @@ The data is formatted to name=value& format that can be used in querystrings, or
     </script>
 ```
 
+Development & Hacking
+---------------------------
+
+See 

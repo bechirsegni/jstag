@@ -1,5 +1,5 @@
 // JS Library for data collection. MIT License.
-// https://github.com/lyticsio/jstag
+// https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
     , ckie = doc.cookie
@@ -324,12 +324,16 @@
       }
     },
     identity: function(o){
+      if ("_uid" in o.data && o.data["_uid"] == undefined) {
+        delete o.data["_uid"]
+      }
       if (!("_uid" in o.data)) { // don't replace uid if supplied
-        var ckieid = "seerid"
-          , sid
+        var ckieid = "seerid", sid
         if (o.config && o.config.cookie) ckieid = o.config.cookie
         sid = ckieGet(ckieid);
-        o.config.url = addQs(o.config.url, "_uidn", ckieid)
+        if (o.config.url.indexOf("_uidn=") == -1) {
+          o.config.url = addQs(o.config.url, "_uidn", ckieid)
+        }
         if (sid && sid[l] && sid != "undefined") o.data['_uid']=sid
       }
     }

@@ -1,0 +1,20 @@
+{
+  "name": "jstag",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "2.5.x",
+    "ejs": "",
+    "buildr": "",
+    "glob": "",
+    "docpad-plugin-livereload": "~2.1.2",
+    "docpad-plugin-marked": "~2.1.0",
+    "docpad-plugin-eco": "~2.0.1",
+    "docpad-plugin-less": "~2.1.1",
+    "docpad-plugin-buildr": "",
+    "docpad-plugin-coffeescript": ""
+  },
+  "engines": {
+    "node": "0.6.x",
+    "npm": "1.1.4"
+  }
+}
