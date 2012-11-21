@@ -44,7 +44,7 @@ Configuration Options
 -------------------------
 * *cid* Collection ID, info is posted to */c/cid* allowing 
 * *cookie* Name of the Cookie for userid
-* *stream* Node dissappears, Its claim on work is released (work is not deleted), others try to claim work
+* *stream* send data to */c/cid/streamname* 
 
 
 Advanced usage for event bindings. 
@@ -69,6 +69,7 @@ Data Format
 The data is formatted to name=value& format that can be used in querystrings, or form submission.   There are a couple specific formatting issues: 
 *  nested objects are flattened to period seperated name=value pairs
 *  arrays are sent as custom format
+
 ```html
     <script type="text/javascript">
       jstag.send({user:{id:22,name:"aaron"}})

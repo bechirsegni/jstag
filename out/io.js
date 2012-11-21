@@ -8,6 +8,7 @@
     , config = jstag.config || {}
     , l = 'length'
     , cache = {}
+    , uidv = undefined
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString;
   
@@ -35,23 +36,23 @@
     , Q:[]
     , id: undefined
     , cid : undefined
+    , getid : jqgetid
     , serializer:toString
     , pipeline:['identity','analyze']
     , delay:200
     , path: '/c/'
+    , idpath: '/cid/'
     , cookie:"seerid"
     , sesname:"seerses"
+    , stream: undefined
     , sessecs: 1800 
     , channel:'Form'//  Form,Gif
   })
 
-  function objType(it,oname) {
-    return otostr.call(it) === "[object " + oname + "]";
-  }
-  function isFn(it){return objType(it,'Function')};
-  function isObject(it){return objType(it,'Object')};
-  function isString(it){return objType(it,'String')};
-  function isArray(it){return objType(it,'Array')};
+  function isFn(it){return otostr.call(it) === "[object Function]"}
+  function isObject(it){return otostr.call(it) === "[object Object]"}
+  function isString(it){return otostr.call(it) === "[object String]"}
+  function isArray(it){return otostr.call(it) === "[object Array]"}
 
   /**
    * the classic extend, nothing special about this
@@ -69,6 +70,25 @@
       }
     }
     return target;
+  }
+
+
+  /**
+   * the jquery get id
+  */
+  function jqgetid(cb){
+    if (jQuery) {
+      var idurl = config.url + config.idpath + config.cid;
+      jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
+        jstag.setid(json)
+        cb(json)
+      }});
+    }
+  }
+  // setid
+  jstag.setid = function(id){
+    uidv = id
+    ckieSet(config.cookie, id)
   }
 
   /**
@@ -243,7 +263,7 @@
          * Creates the url to be sent to the collection server
          */
         getUrl:function(data){
-          var url = opts.url;
+          var url = opts.sendurl;
           if (url.indexOf("?") < 1) url += "?"
           else url += "&"
           return url + data
@@ -254,7 +274,7 @@
     /**
      * @class channels.Form
      * Form:  uses an iframe to post values
-     * @constructur
+     * @constructor
     */
     Form: function(opts){
        // form based communication channel
@@ -271,7 +291,7 @@
             setTimeout(function() {
               form = iframe.contentWindow.document.createElement("form");
               iframe.contentWindow.document.body.appendChild(form);
-              form.setAttribute("action", opts.url);
+              form.setAttribute("action", opts.sendurl );
               form.setAttribute("method", "post");
               inp = iframe.contentWindow.document.createElement("input");
               inp.setAttribute("type", "hidden");
@@ -319,22 +339,24 @@
           }
         }
       }  
+    },
+    identity: function(o){
       if (!("url" in o.data)) {
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
       }
-    },
-    identity: function(o){
+
       if ("_uid" in o.data && o.data["_uid"] == undefined) {
         delete o.data["_uid"]
       }
       if (!("_uid" in o.data)) { // don't replace uid if supplied
-        var ckieid = "seerid", sid
-        if (o.config && o.config.cookie) ckieid = o.config.cookie
-        sid = ckieGet(ckieid);
-        if (o.config.url.indexOf("_uidn=") == -1) {
-          o.config.url = addQs(o.config.url, "_uidn", ckieid)
+        if (uidv){
+          o.data['_uid']=uidv
+        } else {
+          var sid = ckieGet(o.config.cookie);
+          if (sid && sid[l] && sid != "undefined") {
+            uidv=o.data['_uid']=sid
+          }
         }
-        if (sid && sid[l] && sid != "undefined") o.data['_uid']=sid
       }
     }
   }
@@ -389,15 +411,29 @@
    * @Function jstag.send
    * public function for send, note this send will overwrite 
    * the temporary one in the async function
+   * @param stream:  (string) optional name of stream to send to
+   * @param data:  the javascript object to be sent
+   * @param callback (optional):  the function to be called upon triggering elsewhere.
   */
-  function send(data,cb){
+  function send(){
+    var stream,data,cb, args=arguments
+    if (isString(args[0])){
+      stream = args[0]
+      data = args[1]
+      if (args.length===3) cb = args[2]
+    } else {
+      data = args[0]
+      if (args.length===2) cb = args[1]
+    }
     if ('io' in cache){
+      // it is possible to create more than 1 sender, send events multiple locations
+      //  TODO:  document
       cache['io'].forEach(function(io){
-        io.send(data,cb);
+        io.send(data,cb,stream);
       })
     } else {
       var io = new Io();// this will auto-cache
-      io.send(data,cb);
+      io.send(data,cb,stream);
     }
   }
   jstag['send'] = send
@@ -413,14 +449,10 @@
       init: function(opts){
         self = this
         //extend(Io.config,jstag.config,true)
-        o = extend(opts ? opts : {}, jstag.config);
+        this.config = config = o = extend(opts ? opts : {}, jstag.config);
         if (!jstag.config.url || !jstag.config.cid) throw new Error("Must have collection url and Account");
         //if ('id' in o && !jstag.config.cid) jstag.config.cid = o.cid;
         if ('cid' in o && !jstag.config.cid) jstag.config.cid = o.cid;
-
-        o.url = jstag.config.url + jstag.config.path + jstag.config.cid;
-        if (o.stream) o.url += "/" + o.stream
-        this.config = o;
         this.serializer = o.serializer;
 
         if (!('io' in cache)){
@@ -455,20 +487,8 @@
         }
         jstag.emit("io.ready",this)
       },
-      send : function(data,cb) {
-        data = data ? data : {};
-        this.data = data;
-        data["_ts"] = new Date().getTime();
-        // todo, support json or n/v serializer?
-        var opts = {data:data,callback:cb,config:this.config},
-          self = this;
-        // run pre-work
-        _pipe.forEach(function(fn){
-          fn(opts)
-        })
-        _pipe = _pipe.filter(function(fn){
-          return !fn.onetime
-        })
+      collect:function(opts,cb){
+        var self = this
 
         jstag.emit("send.before", opts)
 
@@ -480,8 +500,45 @@
           jstag.emit("send.finished",opts,self)
         }}); 
       },
+      send : function(data,cb,stream) {
+        data = data ? data : {};
+        this.data = data;
+        data["_ts"] = new Date().getTime();
+        // todo, support json or n/v serializer?
+        var opts = {data:data,callback:cb,config:this.config}
+          , self = this
+          , url = o.url + o.path + o.cid;
+        stream = stream || o.stream;
+        o.sendurl = stream ? url + "/" + stream  : url
+        if (o.sendurl.indexOf("_uidn=") == -1 && config.cookie != "seerid") {
+          o.sendurl = addQs(o.sendurl, "_uidn", config.cookie)
+        }
+        // run pre-work
+        _pipe.forEach(function(fn){
+          fn(opts)
+        })
+        _pipe = _pipe.filter(function(fn){
+          return !fn.onetime
+        })
+
+        // now for the actual collection
+        if (uidv) {
+          self.collect(opts,cb)
+        } else if (config.getid && isFn(config.getid)) {
+          config.getid(function(id){
+            if (id && !(data['_uid'])) {
+              data['_uid']=id
+            }
+            self.collect(opts,cb)
+          })
+        } else {
+          self.collect(opts,cb)
+        }
+        
+      },
       debug:function(){
-        return "<table><tr><th>field</th><th>value</th></tr>" + oToS(this.data) + "</table>"
+        return "<table><tr><th>field</th><th>value</th></tr>" + oToS(this.data) +
+          "<tr><th>config</th></tr><tr>" + oToS(config) + "</tr></table>"
       }
     }
   }()
@@ -492,6 +549,7 @@
     for (p in o){
       if (isObject(o[p])) {
         s += oToS(o[p], p + ".")
+      } else if (isFn(o[p])) {
       } else {
         s+="<tr><td>"+lead + p+"</td><td>"+o[p]+"</td></tr>"
       }

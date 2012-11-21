@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 echo "Create iow.js"
-cat shim.js io.js  > iow.js
-echo "minify async.min.js"
-uglifyjs -o async.min.js async.js
-echo "Making min io.js"
-uglifyjs -o io.min.js io.js
-echo "making iow.min.js "
-uglifyjs -o iow.min.js iow.js
+cat src/files/shim.js src/files/io.js  > src/files/iow.js
+echo "minify async.js"
+uglifyjs -o src/files/async.min.js src/files/async.js
+echo "Minify io.js"
+uglifyjs -o src/files/io.min.js src/files/io.js
+echo "Minify iow.js "
+uglifyjs -o src/files/iow.min.js src/files/iow.js

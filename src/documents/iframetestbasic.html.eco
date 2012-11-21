@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Async Tag Test page</title>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+  </head>
+<body>
+
+<div id="output"></div>
+
+<a href="#" id="linktest">Event Based Send</a>
+
+<!-- start jstag  -->
+<script type="text/javascript">
+  window.mytag=function(e){var t={_q:[],_c:e,ts:(new Date).getTime()},n=!1,r=window,i=document,s="/static/io",o=Array.prototype.slice,u=e.js?e.js:e.url||"";return t.load=function(){var e,t=i.getElementsByTagName("script")[0];return n=!0,"JSON"in r&&Array.prototype.forEach||(s+="w"),i.getElementById(s)?this:(e=i.createElement("script"),e.id=s,e.src=u+s+".min.js",t.parentNode.insertBefore(e,t),this)},t.bind=function(e){this._q.push([e,o.call(arguments,1)])},t.ready=function(){this._q.push(["ready",o.call(arguments)])},t.send=function(){return n||this.load(),this._q.push(["ready","send",o.call(arguments)]),this},r.jstag=t,t
+  }({cid:"12",channelx:"Gif", url:'<%= @site.collector %>',js:"<%= @site.collector %>"})
+  
+
+  mytag.send({"category":"hello","catid":6},function(o,io){
+    try{
+      console.log("hello, cb " + JSON.stringify(o))
+    } catch (e){}
+  });
+
+  mytag.bind("send.finished",function(o,io){
+    $("#output").append(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
+  
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    mytag.send({"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+    //mytag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
+  });
+</script>
+<!-- end jstag -->
+
+</body>
+</html>
+
+
+
