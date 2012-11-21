@@ -154,7 +154,8 @@ if (!Array.prototype.map) {
 
 
   /**
-   * the jquery get id
+   * the built in getid assumes you have jquery
+   * @param cb = callback function (mandatory)
   */
   function jqgetid(cb){
     if (jQuery) {
@@ -170,12 +171,27 @@ if (!Array.prototype.map) {
     uidv = id
     ckieSet(config.cookie, id)
   }
+  /**
+   * the getid forces the id to load in advance
+  */
+  jstag.getid = function(cb) {
+    if(config.getid && isFn(config.getid)){
+      cb = cb ? cb : function(){}
+      var sid = ckieGet(config.cookie);
+      if (sid && sid[l] && sid != "undefined") {
+        uidv=sid
+        cb()
+      } else {
+        config.getid(cb)
+      }
+    }
+  }
 
   /**
-   * The connect function accepts config object
+   * The connect/init function accepts config object
    */
-  function connect(opts,cb){
-    extend(jstag.config,opts,true)
+  function connect(opts){
+    config = extend(jstag.config,opts,true)
     return jstag
   }
   if ('_c' in jstag) connect(jstag._c)
@@ -528,11 +544,10 @@ if (!Array.prototype.map) {
     return {
       init: function(opts){
         self = this
-        //extend(Io.config,jstag.config,true)
-        this.config = config = o = extend(opts ? opts : {}, jstag.config);
-        if (!jstag.config.url || !jstag.config.cid) throw new Error("Must have collection url and Account");
+        o = config
+        if (!o.url || !o.cid) throw new Error("Must have collection url and Account");
         //if ('id' in o && !jstag.config.cid) jstag.config.cid = o.cid;
-        if ('cid' in o && !jstag.config.cid) jstag.config.cid = o.cid;
+        if ('cid' in o && !o.cid) jstag.config.cid = o.cid;
         this.serializer = o.serializer;
 
         if (!('io' in cache)){

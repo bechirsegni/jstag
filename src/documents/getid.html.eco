@@ -1,0 +1,32 @@
+---
+layout: default
+title: "JSTag test page"
+test_class: "active"
+---
+
+<div class="row">
+
+  <div class="span6">
+    
+  </div>
+
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+<!-- start jstag  -->
+<script src="<%= @site.collector %>/static/io.js"></script>
+<script type="text/javascript">
+  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",extx:".js"})
+
+  jstag.getid()
+
+
+</script>
+<!-- end jstag -->
+
+

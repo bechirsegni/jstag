@@ -57,7 +57,7 @@ Often when using a tag, you have a single *Include* of tag, and you have differe
 
     <script type="text/javascript" src="/js/ads.js">
       // lets maybe add information from our ad library
-      jstag.bind("before.send",function(o) {
+      jstag.bind("send.before",function(o) {
         o.data["my_id"] = "value"
         o.data["category"] = "value2"
       })
