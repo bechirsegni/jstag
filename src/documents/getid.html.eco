@@ -22,10 +22,8 @@ test_class: "active"
 <script src="<%= @site.collector %>/static/io.js"></script>
 <script type="text/javascript">
   jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",extx:".js"})
-
+  
   jstag.getid()
-
-
 </script>
 <!-- end jstag -->
 

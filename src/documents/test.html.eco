@@ -4,18 +4,16 @@ title: "JSTag test page"
 test_class: "active"
 ---
 
-<div class="row">
+<div class="row-fluid">
 
-  <div class="span4">
+  <div class="span6">
     <a href="#" id="linktest">Event Based Send</a>
-  </div>
 
-  <div class="span4">
     <h2>Jstag in iframe</h2>
     <iframe src="iframetestbasic.html" width="100%" height="500px"></iframe>
   </div>
 
-  <div class="span4">
+  <div class="span6">
     <h2>Debug Output</h2>
     <div id="output"></div>
   </div>
