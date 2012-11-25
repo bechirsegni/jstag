@@ -1,4 +1,4 @@
-// JS Library for data collection. MIT License.
+// v1.03 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -368,7 +368,7 @@
         if (uidv){
           o.data['_uid']=uidv
         } else {
-          var sid = ckieGet(o.config.cookie);
+          var sid = ckieGet(config.cookie);
           if (sid && sid[l] && sid != "undefined") {
             uidv=o.data['_uid']=sid
           }
