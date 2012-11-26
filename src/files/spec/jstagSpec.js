@@ -10,6 +10,7 @@ describe("JSTag", function() {
   }
   function deleteAllCookies() {
     var cookies = document.cookie.split(";");
+    var ct = cookies.length
     for (var i = 0; i < cookies.length; i++) {
       var cookie = cookies[i];
       var eqPos = cookie.indexOf("=");
@@ -70,7 +71,7 @@ describe("JSTag", function() {
 
     waitsFor(function() {
       return flag;
-    }, "The Send should have returned without timeout and callback data", 750);
+    }, "The Send should have returned without timeout and callback data", 1500);
 
     runs(function() {
       // make sure we got 
