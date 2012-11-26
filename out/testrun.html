@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title><%= @getPreparedTitle() %></title>
+  <title>Jasmine Test Specs | JSTag Open Source Javascript Event Collection Tag</title>
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
   <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js"></script><![endif]-->
@@ -33,9 +33,9 @@
         <a class="brand" href="#">JSTag</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
-            <li class="<%= @document.index_class %>"><a href="index.html">Home</a> </li>
-            <li class="<%= @document.test_class %>"><a href="test.html">Test</a></li>
-            <li class="<%= @document.testspec_class %>"><a href="testrun.html">Test Specs</a></li>
+            <li class=""><a href="index.html">Home</a> </li>
+            <li class=""><a href="test.html">Test</a></li>
+            <li class="active"><a href="testrun.html">Test Specs</a></li>
             <!--<li><a href="#contact">Contact</a></li>-->
           </ul>
         </div><!--/.nav-collapse -->
@@ -68,13 +68,32 @@
             </div><!--/.well -->
       </div>
       <div class="span12">
-        <%- @content %>
+        <!-- start jstag  -->
+<script type="text/javascript" src="async.js"></script>
+<script type="text/javascript">
+  
+  jstag.init({cid:"DELETEME",url:'//localhost:8133',js:"//localhost:8133",ext:".js"}).load()
+
+</script>
+<!-- end jstag -->
+
+<link rel="stylesheet" type="text/css" href="jasmine/jasmine.css">
+<script type="text/javascript" src="jasmine/jasmine.js"></script>
+<script type="text/javascript" src="jasmine/jasmine-html.js"></script>
+
+<script type="text/javascript" src="spec/specHelper.js"></script>
+<script type="text/javascript" src="spec/jstagSpec.js"></script>
+
+<script type="text/javascript" src="jasmine/runner.js"></script>
       </div>
     </div>
   </div>
   <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.1/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.1/underscore-min.js"></script>
-  <%- @getBlock('scripts').toHTML() %>
+  <script  src="/socket.io/socket.io.js"></script><script >var socket = io.connect('/docpad-live-reload');
+socket.on('regenerated',function(){
+	document.location.reload();
+});</script>
 </body>
 </html>

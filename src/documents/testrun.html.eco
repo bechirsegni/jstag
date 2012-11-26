@@ -1,0 +1,26 @@
+---
+title:  "Jasmine Test Specs"
+layout: default
+testspec_class: "active"
+---
+
+
+<!-- start jstag  -->
+<script type="text/javascript" src="async.js"></script>
+<script type="text/javascript">
+  
+  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",ext:".js"}).load()
+
+</script>
+<!-- end jstag -->
+
+<link rel="stylesheet" type="text/css" href="jasmine/jasmine.css">
+<script type="text/javascript" src="jasmine/jasmine.js"></script>
+<script type="text/javascript" src="jasmine/jasmine-html.js"></script>
+
+<script type="text/javascript" src="spec/specHelper.js"></script>
+<script type="text/javascript" src="spec/jstagSpec.js"></script>
+
+<script type="text/javascript" src="jasmine/runner.js"></script>
+
+

@@ -78,7 +78,7 @@ if (!Array.prototype.map) {
     return A;
   };      
 }
-// JS Library for data collection. MIT License.
+// v1.03 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -185,6 +185,7 @@ if (!Array.prototype.map) {
         config.getid(cb)
       }
     }
+    return uidv
   }
 
   /**
@@ -305,6 +306,7 @@ if (!Array.prototype.map) {
   }
 
   function ckieSet(name, value, expires, path, domain, secure) {
+    path = path || "/"
     var cv = name + "=" + escape(value) +
         ((expires) ? "; expires=" + expires.toGMTString() : "") +
         ((path) ? "; path=" + path : "") +
@@ -340,17 +342,17 @@ if (!Array.prototype.map) {
           if (doc.images){
             var gif = this,
               img = new Image(),
-              onFinish = function(){
+              onFinish = function(to){
                 if (!o.callback.hasRun){
                   o.callback.hasRun=true;
-                  o.callback(o);
+                  o.callback(to);
                 }
               };
             this.images.push(img);
             if (arguments.length === 2 && o && isFn(o.callback)){
               o.callback.hasRun=false;
               if (img.onload) img.onload = onFinish();
-              win.setTimeout(onFinish, jstag.config.delay);
+              win.setTimeout(function(){onFinish("timeout")}, jstag.config.delay);
             }
             img.src=this.getUrl(data);
           }
@@ -379,9 +381,15 @@ if (!Array.prototype.map) {
       return {
         send: function(data,o){
           try {
-            var iframe = doc.createElement("iframe"),
-              form,
-              inp;
+            var iframe = doc.createElement("iframe")
+              , form
+              , inp
+              , onFinish = function(to){
+                if (o && o.callback && !o.callback.hasRun){
+                  o.callback.hasRun=true;
+                  o.callback(to);
+                }
+              };
             doc.body.appendChild(iframe);
             iframe.style.display = "none";
             setTimeout(function() {
@@ -394,10 +402,17 @@ if (!Array.prototype.map) {
               inp.setAttribute("name", "_js");
               inp.value = data;
               form.appendChild(inp);
+              if ( window.addEventListener ) { 
+                iframe.addEventListener( "load", onFinish, false );
+              } else if ( window.attachEvent ) { 
+                iframe.attachEvent( "onload", onFinish );
+              } else if (iframe.onload) {
+                iframe.onload = onFinish;
+              } 
               form.submit();
-              if (o && isFn(o.callback)) (o.callback(o));
               setTimeout(function(){
                 doc.body.removeChild(iframe);
+                onFinish("timeout")
               }, 2000);
             }, 0);
           } catch(e) {
@@ -420,8 +435,8 @@ if (!Array.prototype.map) {
         , ref = undefined
       if (!ses) {
         var expires = new Date();
-            expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
-            ckieSet(jstag.config.sesname,"e", expires)
+        expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
+        ckieSet(jstag.config.sesname,"e", expires)
         o.data['_sesstart'] = "1"
       }
       if (!("_ref" in o.data)) {
@@ -448,7 +463,7 @@ if (!Array.prototype.map) {
         if (uidv){
           o.data['_uid']=uidv
         } else {
-          var sid = ckieGet(o.config.cookie);
+          var sid = ckieGet(config.cookie);
           if (sid && sid[l] && sid != "undefined") {
             uidv=o.data['_uid']=sid
           }
@@ -588,7 +603,8 @@ if (!Array.prototype.map) {
         jstag.emit("send.before", opts)
 
         // now send
-        this.channel.send(this.serializer(opts.data),{callback:function(){
+        this.channel.send(this.serializer(opts.data),{callback:function(to){
+          opts.data._timeout = to
           if (isFn(cb)){
             cb(opts,self);
           }

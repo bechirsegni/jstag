@@ -105,6 +105,7 @@
         config.getid(cb)
       }
     }
+    return uidv
   }
 
   /**
@@ -225,6 +226,7 @@
   }
 
   function ckieSet(name, value, expires, path, domain, secure) {
+    path = path || "/"
     var cv = name + "=" + escape(value) +
         ((expires) ? "; expires=" + expires.toGMTString() : "") +
         ((path) ? "; path=" + path : "") +
@@ -260,17 +262,17 @@
           if (doc.images){
             var gif = this,
               img = new Image(),
-              onFinish = function(){
+              onFinish = function(to){
                 if (!o.callback.hasRun){
                   o.callback.hasRun=true;
-                  o.callback(o);
+                  o.callback(to);
                 }
               };
             this.images.push(img);
             if (arguments.length === 2 && o && isFn(o.callback)){
               o.callback.hasRun=false;
               if (img.onload) img.onload = onFinish();
-              win.setTimeout(onFinish, jstag.config.delay);
+              win.setTimeout(function(){onFinish({timeout:true})}, jstag.config.delay);
             }
             img.src=this.getUrl(data);
           }
@@ -299,11 +301,19 @@
       return {
         send: function(data,o){
           try {
-            var iframe = doc.createElement("iframe"),
-              form,
-              inp;
+            var iframe = doc.createElement("iframe")
+              , form
+              , inp
+              , fid = 'f' + Math.floor(Math.random() * 99999)
+              , onFinish = function(to){
+                if (o && o.callback && !o.callback.hasRun){
+                  o.callback.hasRun=true;
+                  o.callback(to);
+                }
+              };
             doc.body.appendChild(iframe);
             iframe.style.display = "none";
+            iframe.id = fid
             setTimeout(function() {
               form = iframe.contentWindow.document.createElement("form");
               iframe.contentWindow.document.body.appendChild(form);
@@ -314,10 +324,17 @@
               inp.setAttribute("name", "_js");
               inp.value = data;
               form.appendChild(inp);
+              if ( window.addEventListener ) { 
+                iframe.addEventListener( "load", onFinish, false );
+              } else if ( window.attachEvent ) { 
+                iframe.attachEvent( "onload", onFinish );
+              } else if (iframe.onload) {
+                iframe.onload = onFinish;
+              } 
               form.submit();
-              if (o && isFn(o.callback)) (o.callback(o));
               setTimeout(function(){
                 doc.body.removeChild(iframe);
+                onFinish({timeout:true})
               }, 2000);
             }, 0);
           } catch(e) {
@@ -340,8 +357,8 @@
         , ref = undefined
       if (!ses) {
         var expires = new Date();
-            expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
-            ckieSet(jstag.config.sesname,"e", expires)
+        expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
+        ckieSet(jstag.config.sesname,"e", expires)
         o.data['_sesstart'] = "1"
       }
       if (!("_ref" in o.data)) {
@@ -508,7 +525,8 @@
         jstag.emit("send.before", opts)
 
         // now send
-        this.channel.send(this.serializer(opts.data),{callback:function(){
+        this.channel.send(this.serializer(opts.data),{callback:function(to){
+          opts.return = to
           if (isFn(cb)){
             cb(opts,self);
           }
@@ -543,6 +561,7 @@
           config.getid(function(id){
             if (id && !(data['_uid'])) {
               data['_uid']=id
+              uidv = id
             }
             self.collect(opts,cb)
           })

@@ -10,7 +10,7 @@
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
   <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js"></script><![endif]-->
-  <script src="////ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <style>
     body {padding-top: 60px;}
     .containerx {width:1100px;}
@@ -35,6 +35,7 @@
           <ul class="nav">
             <li class=""><a href="index.html">Home</a> </li>
             <li class="active"><a href="test.html">Test</a></li>
+            <li class=""><a href="testrun.html">Test Specs</a></li>
             <!--<li><a href="#contact">Contact</a></li>-->
           </ul>
         </div><!--/.nav-collapse -->
@@ -86,7 +87,7 @@
 <!-- start jstag  -->
 <script type="text/javascript">
   window.jstag=function(e){var t={_q:[],_c:e,ts:(new Date).getTime()},n=!1,r=window,i=document,s="/static/io",o=Array.prototype.slice,u=e.js?e.js:e.url||"";return e.ext=e.ext||".min.js",t.load=function(){var t,o=i.getElementsByTagName("script")[0];return n=!0,"JSON"in r&&Array.prototype.forEach||(s+="w"),i.getElementById(s)?this:(t=i.createElement("script"),t.id=s,t.src=u+s+e.ext,o.parentNode.insertBefore(t,o),this)},t.bind=function(e){this._q.push([e,o.call(arguments,1)])},t.ready=function(){this._q.push(["ready",o.call(arguments)])},t.send=function(){return n||this.load(),this._q.push(["ready","send",o.call(arguments)]),this},r.jstag=t,t
-  }({cid:"15",url:'//c.lytics.io',js:"//c.lytics.io",extx:".js"})
+  }({cid:"DELETEME",url:'//localhost:8133',js:"//localhost:8133",extx:".js"})
 
 
   jstag.send({"category":"hello","catid":6},function(o,io){
@@ -113,5 +114,9 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.1/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.1/underscore-min.js"></script>
+  <script  src="/socket.io/socket.io.js"></script><script >var socket = io.connect('/docpad-live-reload');
+socket.on('regenerated',function(){
+	document.location.reload();
+});</script>
 </body>
 </html>
