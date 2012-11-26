@@ -15,7 +15,7 @@ docpadConfig = {
 			url: ""
 
 			cid: "DELETEME"
-			collector: "//localhost:8133"# "//c.lytics.io"
+			collector: "//c.lytics.io"
 
 			# The default title of our website
 			title: "JSTag Open Source Javascript Event Collection Tag"
