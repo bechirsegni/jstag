@@ -383,8 +383,7 @@
       if (!("url" in o.data)) {
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
       }
-
-      o.data["_if"] = (win.location != win.parent.location) ? "t" : "f";
+      if (win.location != win.parent.location) o.data["_if"] =  "t";
 
       if ("_uid" in o.data && o.data["_uid"] == undefined) {
         delete o.data["_uid"]
