@@ -7,12 +7,17 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
   <title>JSTag test page | JSTag Open Source Javascript Event Collection Tag</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
   <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js"></script><![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <style>
-    body {padding-top: 60px;}
+    body {
+      padding-top: 60px;
+      color: #404040;
+      font: 13px/1.231 'Open Sans', sans-serif;
+    }
     .containerx {width:1100px;}
     #why .icon-large {
     font-size: 18px;
@@ -85,11 +90,15 @@
 </div>
 
 <!-- start jstag  -->
+<script type="text/javascript" src="async.js"></script>
 <script type="text/javascript">
-  window.jstag=function(e){var t={_q:[],_c:e,ts:(new Date).getTime()},n=!1,r=window,i=document,s="/static/io",o=Array.prototype.slice,u=e.js?e.js:e.url||"";return e.ext=e.ext||".min.js",t.load=function(){var t,o=i.getElementsByTagName("script")[0];return n=!0,"JSON"in r&&Array.prototype.forEach||(s+="w"),i.getElementById(s)?this:(t=i.createElement("script"),t.id=s,t.src=u+s+e.ext,o.parentNode.insertBefore(t,o),this)},t.bind=function(e){this._q.push([e,o.call(arguments,1)])},t.ready=function(){this._q.push(["ready",o.call(arguments)])},t.send=function(){return n||this.load(),this._q.push(["ready","send",o.call(arguments)]),this},r.jstag=t,t
-  }({cid:"DELETEME",url:'//localhost:8133',js:"//localhost:8133",extx:".js"})
+  
+  jstag.init({cid:"DELETEME",url:'//c.lytics.io',js:"//c.lytics.io",ext:".js"}) //.load()
 
+</script>
+<!-- end jstag -->
 
+<script type="text/javascript">
   jstag.send({"category":"hello","catid":6},function(o,io){
     try{
       console.log("hello, cb " + JSON.stringify(o))

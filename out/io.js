@@ -9,6 +9,7 @@
     , l = 'length'
     , cache = {}
     , uidv = undefined
+    , didGetId = undefined
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString;
   
@@ -82,6 +83,7 @@
       var idurl = config.url + config.idpath + config.cid;
       jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
         jstag.setid(json)
+        didGetId = "t"
         cb(json)
       }});
     }
@@ -265,7 +267,9 @@
               onFinish = function(to){
                 if (!o.callback.hasRun){
                   o.callback.hasRun=true;
-                  o.callback(to);
+                  try{
+                    o.callback(to);
+                  } catch (e){}
                 }
               };
             this.images.push(img);
@@ -324,6 +328,7 @@
               inp.setAttribute("name", "_js");
               inp.value = data;
               form.appendChild(inp);
+              /*
               if ( window.addEventListener ) { 
                 iframe.addEventListener( "load", onFinish, false );
               } else if ( window.attachEvent ) { 
@@ -331,11 +336,12 @@
               } else if (iframe.onload) {
                 iframe.onload = onFinish;
               } 
+              */
               form.submit();
               setTimeout(function(){
                 doc.body.removeChild(iframe);
                 onFinish({timeout:true})
-              }, 2000);
+              }, config.delay * 2);
             }, 0);
           } catch(e) {
             var g = new Gif(opts)
@@ -378,6 +384,8 @@
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
       }
 
+      o.data["_if"] = (win.location != win.parent.location) ? "t" : "f";
+
       if ("_uid" in o.data && o.data["_uid"] == undefined) {
         delete o.data["_uid"]
       }
@@ -390,6 +398,9 @@
             uidv=o.data['_uid']=sid
           }
         }
+      }
+      if (didGetId) {
+        o.data["_getid"] = "t"
       }
     }
   }
