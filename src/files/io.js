@@ -1,4 +1,4 @@
-// v1.03 JS Library for data collection. MIT License.
+// v1.04 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
