@@ -78,7 +78,7 @@ if (!Array.prototype.map) {
     return A;
   };      
 }
-// v1.03 JS Library for data collection. MIT License.
+// v1.04 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -89,6 +89,7 @@ if (!Array.prototype.map) {
     , l = 'length'
     , cache = {}
     , uidv = undefined
+    , didGetId = undefined
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString;
   
@@ -162,6 +163,7 @@ if (!Array.prototype.map) {
       var idurl = config.url + config.idpath + config.cid;
       jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
         jstag.setid(json)
+        didGetId = "t"
         cb(json)
       }});
     }
@@ -345,14 +347,16 @@ if (!Array.prototype.map) {
               onFinish = function(to){
                 if (!o.callback.hasRun){
                   o.callback.hasRun=true;
-                  o.callback(to);
+                  try{
+                    o.callback(to);
+                  } catch (e){}
                 }
               };
             this.images.push(img);
             if (arguments.length === 2 && o && isFn(o.callback)){
               o.callback.hasRun=false;
               if (img.onload) img.onload = onFinish();
-              win.setTimeout(function(){onFinish("timeout")}, jstag.config.delay);
+              win.setTimeout(function(){onFinish({timeout:true})}, jstag.config.delay);
             }
             img.src=this.getUrl(data);
           }
@@ -384,6 +388,7 @@ if (!Array.prototype.map) {
             var iframe = doc.createElement("iframe")
               , form
               , inp
+              , fid = 'f' + Math.floor(Math.random() * 99999)
               , onFinish = function(to){
                 if (o && o.callback && !o.callback.hasRun){
                   o.callback.hasRun=true;
@@ -392,6 +397,7 @@ if (!Array.prototype.map) {
               };
             doc.body.appendChild(iframe);
             iframe.style.display = "none";
+            iframe.id = fid
             setTimeout(function() {
               form = iframe.contentWindow.document.createElement("form");
               iframe.contentWindow.document.body.appendChild(form);
@@ -402,6 +408,7 @@ if (!Array.prototype.map) {
               inp.setAttribute("name", "_js");
               inp.value = data;
               form.appendChild(inp);
+              /*
               if ( window.addEventListener ) { 
                 iframe.addEventListener( "load", onFinish, false );
               } else if ( window.attachEvent ) { 
@@ -409,11 +416,12 @@ if (!Array.prototype.map) {
               } else if (iframe.onload) {
                 iframe.onload = onFinish;
               } 
+              */
               form.submit();
               setTimeout(function(){
                 doc.body.removeChild(iframe);
-                onFinish("timeout")
-              }, 2000);
+                onFinish({timeout:true})
+              }, config.delay * 2);
             }, 0);
           } catch(e) {
             var g = new Gif(opts)
@@ -456,6 +464,8 @@ if (!Array.prototype.map) {
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
       }
 
+      o.data["_if"] = (win.location != win.parent.location) ? "t" : "f";
+
       if ("_uid" in o.data && o.data["_uid"] == undefined) {
         delete o.data["_uid"]
       }
@@ -468,6 +478,9 @@ if (!Array.prototype.map) {
             uidv=o.data['_uid']=sid
           }
         }
+      }
+      if (didGetId) {
+        o.data["_getid"] = "t"
       }
     }
   }
@@ -604,7 +617,7 @@ if (!Array.prototype.map) {
 
         // now send
         this.channel.send(this.serializer(opts.data),{callback:function(to){
-          opts.data._timeout = to
+          opts.return = to
           if (isFn(cb)){
             cb(opts,self);
           }
@@ -639,6 +652,7 @@ if (!Array.prototype.map) {
           config.getid(function(id){
             if (id && !(data['_uid'])) {
               data['_uid']=id
+              uidv = id
             }
             self.collect(opts,cb)
           })
