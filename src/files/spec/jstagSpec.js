@@ -96,7 +96,7 @@ describe("JSTag", function() {
       expect(osent.data._uid).toBeDefined()
     });
     it("should have returned sending info", function() {
-      expect(osent.return).toBeDefined()
+      expect(osent.returndata).toBeDefined()
     });
     it("should have be able to getid() a userid", function() {
       uid = jstag.getid()

@@ -616,7 +616,7 @@ if (!Array.prototype.map) {
 
         // now send
         this.channel.send(this.serializer(opts.data),{callback:function(to){
-          opts.return = to
+          opts.returndata = to
           if (isFn(cb)){
             cb(opts,self);
           }
