@@ -571,6 +571,7 @@
           config.getid(function(id){
             if (id && !(data['_uid'])) {
               data['_uid']=id
+              didGetId = "t"
               uidv = id
             }
             self.collect(opts,cb)
