@@ -1,0 +1,39 @@
+---
+layout: default
+title: "JSTag test page"
+test_class: "active"
+---
+
+<div class="row-fluid">
+
+  <div class="span6">
+    <h2>Jstag Inline example</h2>
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+<!-- start jstag  -->
+<script type="text/javascript" src="<%= @site.collector %>/io.min.js"></script>
+<script type="text/javascript">
+  
+  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>"}) 
+  jstag.send({"category":"hello","catid":6});
+
+</script>
+<!-- end jstag -->
+
+
+<script type="text/javascript">
+  // for test purposes only to output what was sent, not needed for your implementation
+  jstag.bind("send.finished",function(o,io){
+    $("#output").html(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
+</script>
+
+

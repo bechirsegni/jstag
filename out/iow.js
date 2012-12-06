@@ -652,6 +652,7 @@ if (!Array.prototype.map) {
             if (id && !(data['_uid'])) {
               data['_uid']=id
               didGetId = "t"
+              data["_getid"] = "t"
               uidv = id
             }
             self.collect(opts,cb)
