@@ -18,7 +18,7 @@ test_class: "active"
 </div>
 
 <!-- start jstag  -->
-<script type="text/javascript" src="<%= @site.collector %>/io.min.js"></script>
+<script type="text/javascript" src="<%= @site.collector %>/static/io.min.js"></script>
 <script type="text/javascript">
   
   jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>"}) 
