@@ -16,4 +16,5 @@ uglifyjs -o src/files/iow.min.js src/files/iow.js
 cp src/files/iow.min.js out/iow.min.js
 
 # go ahead and run docpad generate just in case
-docpad generate
+# use the env=static to remove live-reload
+docpad generate --env static
