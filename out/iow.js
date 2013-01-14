@@ -78,12 +78,11 @@ if (!Array.prototype.map) {
     return A;
   };      
 }
-// v1.04 JS Library for data collection. MIT License.
+// v1.05 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
     , ckie = doc.cookie
-    , dref = doc.referrer
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
@@ -91,7 +90,8 @@ if (!Array.prototype.map) {
     , uidv = undefined
     , didGetId = undefined
     , as = Array.prototype.slice
-    , otostr = Object.prototype.toString;
+    , otostr = Object.prototype.toString
+    , dref = referrer()
   
   win['jstag'] = jstag;
 
@@ -128,6 +128,7 @@ if (!Array.prototype.map) {
     , stream: undefined
     , sessecs: 1800 
     , channel:'Form'//  Form,Gif
+    , ref: true
   })
 
   function isFn(it){return otostr.call(it) === "[object Function]"}
@@ -190,6 +191,29 @@ if (!Array.prototype.map) {
     return uidv
   }
 
+  /**
+   * the http referrer
+  */
+  function referrer(){
+    var r = '';
+    if (!config.ref) {
+        return r
+    }
+    config.ref = false
+    try {
+        r = top.document.referrer
+    } catch (e1) {
+        try {
+            r = parent.document.referrer
+        } catch (e2) {
+            r = ''
+        }
+    }
+    if (r == '') {
+        r = doc.referrer
+    }
+    return r
+  }
   /**
    * The connect/init function accepts config object
    */
@@ -449,9 +473,6 @@ if (!Array.prototype.map) {
       var ses = ckieGet(jstag.config.sesname)
         , ref = undefined
       if (!ses) {
-        var expires = new Date();
-        expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
-        ckieSet(jstag.config.sesname,"e", expires)
         o.data['_sesstart'] = "1"
       }
       if (!("_ref" in o.data)) {
@@ -467,17 +488,24 @@ if (!Array.prototype.map) {
       }  
     },
     identity: function(o){
+      // set mobile flags
       if (isMobile()) {
         o.data["_mob"] = "t"
       } else {
         o.data["_nmob"] = "t"
       }
+      // update the session time
+      var expires = new Date();
+      expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
+      ckieSet(jstag.config.sesname,"e", expires)
+      // get location
       if (!("url" in o.data)) {
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
       }
+      // determine if we are in an iframe
       if (win.location != win.parent.location) o.data["_if"] =  "t";
-
-      if ("_uid" in o.data && o.data["_uid"] == undefined) {
+      // clean up uid
+      if ("_uid" in o.data && (o.data["_uid"] == undefined) || o.data["_uid"] == "null" || o.data["_uid"] == "undefined") {
         delete o.data["_uid"]
       }
       var ga = ckieGet("__utma"), gai = -1
