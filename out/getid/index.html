@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag test page | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -41,8 +41,8 @@
         <a class="brand" href="#">JSTag</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
-            <li class="active"><a href="index.html">Home</a> </li>
-            <li class=""><a href="test.html">Test</a></li>
+            <li class=""><a href="index.html">Home</a> </li>
+            <li class="active"><a href="test.html">Test</a></li>
             <li class=""><a href="testrun.html">Test Specs</a></li>
             <!--<li><a href="#contact">Contact</a></li>-->
           </ul>
@@ -76,15 +76,28 @@
             </div><!--/.well -->
       </div>
       <div class="span12">
-        <h1>Javascript Tag Collection</h1>
-<h3>Capture browser events and data </h3>
-<p>
-  You want to capture, and collect custom events from a browser 
-  and send to your servers for analysis/actions/storage. Maybe to feed into your 
-  <a href="http://kibana.org/">Kibana</a>  via <a href="http://logstash.net">Logstash</a> 
-  or <a href="http://splunk.com">Splunk</a>.   
-  This javascript library helps implement the necessary functions for that.
-</p>
+        <div class="row">
+
+  <div class="span6">
+    
+  </div>
+
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+<!-- start jstag  -->
+<script src="//c.lytics.io/static/io.js"></script>
+<script type="text/javascript">
+  jstag.init({cid:"DELETEME",url:'//c.lytics.io',js:"//c.lytics.io",extx:".js"})
+  
+  jstag.getid()
+</script>
+<!-- end jstag -->
       </div>
     </div>
   </div>

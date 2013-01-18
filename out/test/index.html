@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag test page | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -41,8 +41,8 @@
         <a class="brand" href="#">JSTag</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
-            <li class="active"><a href="index.html">Home</a> </li>
-            <li class=""><a href="test.html">Test</a></li>
+            <li class=""><a href="index.html">Home</a> </li>
+            <li class="active"><a href="test.html">Test</a></li>
             <li class=""><a href="testrun.html">Test Specs</a></li>
             <!--<li><a href="#contact">Contact</a></li>-->
           </ul>
@@ -76,15 +76,50 @@
             </div><!--/.well -->
       </div>
       <div class="span12">
-        <h1>Javascript Tag Collection</h1>
-<h3>Capture browser events and data </h3>
-<p>
-  You want to capture, and collect custom events from a browser 
-  and send to your servers for analysis/actions/storage. Maybe to feed into your 
-  <a href="http://kibana.org/">Kibana</a>  via <a href="http://logstash.net">Logstash</a> 
-  or <a href="http://splunk.com">Splunk</a>.   
-  This javascript library helps implement the necessary functions for that.
-</p>
+        <div class="row-fluid">
+
+  <div class="span6">
+    <a href="#" id="linktest">Event Based Send</a>
+
+    <h2>Jstag in iframe</h2>
+    <iframe src="iframetestbasic.html" width="100%" height="500px"></iframe>
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+<!-- start jstag  -->
+<script type="text/javascript" src="async.js"></script>
+<script type="text/javascript">
+  
+  jstag.init({cid:"DELETEME",url:'//c.lytics.io',js:"//c.lytics.io",ext:".js"}) //.load()
+
+</script>
+<!-- end jstag -->
+
+<script type="text/javascript">
+  jstag.send({"category":"hello","catid":6},function(o,io){
+    try{
+      console.log("hello, cb " + JSON.stringify(o))
+    } catch (e){}
+  });
+
+  jstag.bind("send.finished",function(o,io){
+    $("#output").html(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
+  
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    jstag.send("stream2", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+    //jstag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
+  });
+</script>
+<!-- end jstag -->
       </div>
     </div>
   </div>

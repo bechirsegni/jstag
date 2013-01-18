@@ -11,8 +11,9 @@
     "docpad-plugin-eco": "~2.0.1",
     "docpad-plugin-less": "~2.1.1",
     "docpad-plugin-buildr": "",
-    "docpad-plugin-coffeescript": "",
-    "docpad-plugin-uglify": ""
+    "docpad-plugin-uglify": "",
+    "docpad-plugin-partials":"",
+    "docpad-plugin-cleanurls":""
   },
   "engines": {
     "node": "0.6.x",
