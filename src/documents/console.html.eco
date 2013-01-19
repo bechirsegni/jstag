@@ -14,6 +14,7 @@ supress_cm: true
 
 <section class="slide" id="ex_usage" style="display:none;">
   jstag.init({cid:"YOUR_ID",url:'//c.lytics.io'})
+  
   // edit this and add your own data, possibly add a real cid above
   jstag.send({category:"your_data"})
 </section>
@@ -40,7 +41,7 @@ supress_cm: true
     var exHtml = $("#ex_usage").html() 
     if (exHtml) {
       var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
-          mode: 'text/html',tabMode: 'indent',lineNumbers: true,
+          mode: 'text/javascript',tabMode: 'indent',lineNumbers: true,
           overflow:true,indentUnit: 4,height:"200px"
       });
       docHtml.setValue(exHtml);
