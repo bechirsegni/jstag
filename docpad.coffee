@@ -32,9 +32,16 @@ docpadConfig = {
 			email: "your@email.com"
 
 
-
 		# -----------------------------
 		# Helper Functions
+
+		# get  root url path
+		getRoot: ->
+			ev = @getEnvironments()
+			if 'development' in ev
+				""
+			else
+				"/jstag/out"
 
 		# Get the short name
 		getName: ->
@@ -76,7 +83,7 @@ docpadConfig = {
 		# For instance, this one will fetch in all documents that have pageOrder set within their meta data
 		pages: (database) ->
 			database.findAllLive({pageOrder: $exists: true}, [pageOrder:1,title:1]).on "add", (model) ->
-                model.setMetaDefaults({layout:"default",cmheight:"250px",index_class: "active"})
+				model.setMetaDefaults({layout:"default",cmheight:"250px",index_class: "active"})
 			
 
 		# This one, will fetch in all documents that have the tag "post" specified in their meta data
