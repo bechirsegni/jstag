@@ -13,20 +13,12 @@
   <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js"></script><![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <style>
-    body {
-      padding-top: 60px;
-      color: #404040;
-      font: 13px/1.231 'Open Sans', sans-serif;
-    }
+    body {padding-top: 60px;color: #404040;font: 13px/1.231 'Open Sans', sans-serif;}
     .containerx {width:1100px;}
-    #why .icon-large {
-    font-size: 18px;
-    text-align: center;
-    padding-right: 4px;
-    }
-  .CodeMirror {border: 1px solid black;}
-  .cm-mustache {color: #0ca;}
-  .CodeMirror-scroll {min-height: 300px; overflow: auto;background-color:#fff;}
+    #why .icon-large {font-size: 18px;text-align: center;padding-right: 4px;}
+    .CodeMirror {border: 1px solid black;}
+    .cm-mustache {color: #0ca;}
+    .CodeMirror-scroll {min-height: 200px; overflow: auto;background-color:#fff;}
   </style>
 </head>
 <body>
@@ -41,8 +33,7 @@
         <a class="brand" href="#">JSTag</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
-            <li class=""><a href="index.html">Home</a> </li>
-            <li class="active"><a href="test.html">Test</a></li>
+            <li class="active"><a href="index.html">Home</a> </li>
             <li class=""><a href="testrun.html">Test Specs</a></li>
             <!--<li><a href="#contact">Contact</a></li>-->
           </ul>
@@ -53,33 +44,98 @@
   
   <div id="container" class="container">
     <div class="row">
-      <div class="span0" style="display:none;">
+      <div class="span2" style="displayx:none;">
             <div class="well sidebar-nav">
               <ul class="nav nav-list">
-                <li class="nav-header">Samples</li>
-                <li class="active"><a href="#">Link</a></li>
-                <li><a href="getid.html">Get ID</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li class="nav-header">Sidebar</li>
+                <!--<li class="nav-header">Sidebar</li>
                 <li><a href="#">Link</a></li>
                 <li><a href="#">Link</a></li>
                 <li><a href="#">Link</a></li>
                 <li><a href="#">Link</a></li>
                 <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li class="nav-header">Sidebar</li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
+                <li><a href="#">Link</a></li>-->
+                <li class="nav-header">Examples</li>
+                
+                     <li class="inactive">
+                        <a href="/test">
+                            Example
+                        </a>
+                    </li>
+                
+                     <li class="inactive">
+                        <a href="/callback">
+                            Callbacks
+                        </a>
+                    </li>
+                
+                     <li class="inactive">
+                        <a href="/binding">
+                            Bindings
+                        </a>
+                    </li>
+                
+                     <li class="inactive">
+                        <a href="/twitter">
+                            Twitter
+                        </a>
+                    </li>
+                
+                     <li class="inactive">
+                        <a href="/iframe">
+                            Iframe
+                        </a>
+                    </li>
+                
+                     <li class="inactive">
+                        <a href="/fb">
+                            Facebook JS
+                        </a>
+                    </li>
+                
+                     <li class="active">
+                        <a href="/getid">
+                            Get User Id
+                        </a>
+                    </li>
+                
+                     <li class="inactive">
+                        <a href="/inline">
+                            Inline
+                        </a>
+                    </li>
+                
               </ul>
             </div><!--/.well -->
       </div>
-      <div class="span12">
-        <div class="row">
+      <div class="span10" id="contentContainer">
+        
+        <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
+        
+        <section class="slide" id="example_usage">
+<!-- start jstag  -->
+<script type="text/javascript">
+  window.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",as=Array.prototype.slice,sp;t.init=function(c){sp=c.js?c.js:c.url||"";c.ext=c.ext||".min.js";t._c=c;return this};t.load=function(){var js,fjs=d.getElementsByTagName("script")[0];l=true;if(!("JSON"in w&&Array.prototype.forEach))src+="w";if(d.getElementById(src))return this;js=d.createElement("script");js.id=src;js.src=sp+src+t._c.ext;fjs.parentNode.insertBefore(js,fjs);return this};t.bind=function(e){this._q.push([e,as.call(arguments,1)])};t.ready=function(){this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
+  
+  jstag.init({cid:"YOUR_ID",url:'//c.lytics.io'}).send()
+  
+  // FORCE load of userid
+  jstag.getid()
+  jstag.send()
+</script>
+<!-- end jstag -->
+</section>
+
+
+<div class="row-fluid">
 
   <div class="span6">
-    
+    <h2>Get ID</h2>
+    <p>When operating in an iframe, and you have access outside the iframe you
+    can call <b>getid</b> which causes user cookies to be created without
+    tracking.</p>
+    <p>This doesn't appear to be a very big issue but may be for certain iframe/browser
+    combinations.</p>
+    <p>Try deleting cookies, and doing this.</p>
   </div>
 
 
@@ -90,21 +146,20 @@
 
 </div>
 
-<!-- start jstag  -->
-<script src="//c.lytics.io/static/io.js"></script>
+
+
 <script type="text/javascript">
-  jstag.init({cid:"DELETEME",url:'//c.lytics.io',js:"//c.lytics.io",extx:".js"})
-  
-  jstag.getid()
+  jstag.bind("send.finished",function(o,io){
+    $("#output").html(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
 </script>
-<!-- end jstag -->
       </div>
     </div>
   </div>
   <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.1/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.1/underscore-min.js"></script>
-  
   
   <link rel="stylesheet" href="//developer.lytics.io/codemirror/codemirror.css">
   <link rel="stylesheet" href="//developer.lytics.io/codemirror/theme/default.css">
@@ -113,5 +168,20 @@
   <script src="//developer.lytics.io/codemirror/mode/css/css.js"></script>
   <script src="//developer.lytics.io/codemirror/mode/javascript/javascript.js"></script>
   <script src="//developer.lytics.io/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    function cmFromDom() {
+      
+    }
+    $(document).ready(function(){
+      var exHtml = $("#example_usage").html() 
+      if (exHtml) {
+        var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
+            mode: 'text/html',tabMode: 'indent',lineNumbers: true,
+            overflow:true,indentUnit: 4,height:"250px"
+        });
+        docHtml.setValue(exHtml);
+      }
+    })
+  </script>
 </body>
 </html>

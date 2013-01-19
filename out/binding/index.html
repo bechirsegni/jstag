@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag test page | JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag Event Bindings page | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -56,7 +56,7 @@
                 <li><a href="#">Link</a></li>-->
                 <li class="nav-header">Examples</li>
                 
-                     <li class="active">
+                     <li class="inactive">
                         <a href="/test">
                             Example
                         </a>
@@ -68,7 +68,7 @@
                         </a>
                     </li>
                 
-                     <li class="inactive">
+                     <li class="active">
                         <a href="/binding">
                             Bindings
                         </a>
@@ -121,19 +121,9 @@
   <!-- end jstag -->
   
 <script type="text/javascript">
-  $("#linktest").click(function(e){
-    e.preventDefault();
-    // send arbitrary data on events
-    jstag.send({
-      "_ev":"share"
-      , hello:"world"
-      ,share_type:"twitter"
-      ,"cart_total":55
-      ,"my_type":"swim"
-      ,"cart_add":1234
-      ,"cart_load_fromdb":"1" 
-    });
-  });
+  jstag.bind("send.finished",function(o,io){
+    console.log(o)
+  })
 </script>
 </section>
 
@@ -141,9 +131,9 @@
 <div class="row-fluid">
 
   <div class="span6">
-    <h2>Events...</h2>
-    <a href="#" id="linktest">Click This link for Event Based Send</a>
-
+    <h2>Bindings...</h2>
+    Use bindings to insert data into the collection, remove, or edit.   
+    
     
   </div>
 
@@ -154,25 +144,11 @@
 
 </div>
 
-
-
 <script type="text/javascript">
-  jstag.send({"category":"hello","catid":6},function(o,io){
-    try{
-      console.log("hello, cb " + JSON.stringify(o))
-    } catch (e){}
-  });
-
   jstag.bind("send.finished",function(o,io){
     $("#output").html(io.debug())
     $("#output table").addClass("table table-condensed")
   })
-  
-  $("#linktest").click(function(e){
-    e.preventDefault();
-    jstag.send("stream2", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
-    //jstag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
-  });
 </script>
       </div>
     </div>
@@ -197,7 +173,7 @@
       if (exHtml) {
         var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
             mode: 'text/html',tabMode: 'indent',lineNumbers: true,
-            overflow:true,indentUnit: 4,height:"200px"
+            overflow:true,indentUnit: 4,height:"250px"
         });
         docHtml.setValue(exHtml);
       }

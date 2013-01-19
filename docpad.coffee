@@ -14,7 +14,7 @@ docpadConfig = {
 			# The production url of our website
 			url: ""
 
-			cid: "DELETEME"
+			cid: "YOUR_ACCOUNT_ID"
 			collector: "//c.lytics.io" #  "//localhost:8133"  "//c.lytics.io" 
 
 			# The default title of our website
@@ -35,6 +35,16 @@ docpadConfig = {
 
 		# -----------------------------
 		# Helper Functions
+
+		# Get the short name
+		getName: ->
+			if @document.name 
+				@document.title 
+			else if @document.title
+				"#{@document.title} | #{@site.title}"
+			# if our document does not have it's own title, then we should just use the site's title
+			else
+				@site.title
 
 		# Get the prepared site/document title
 		# Often we would like to specify particular formatting to our page's title
@@ -65,7 +75,9 @@ docpadConfig = {
 	collections:
 		# For instance, this one will fetch in all documents that have pageOrder set within their meta data
 		pages: (database) ->
-			database.findAllLive({pageOrder: $exists: true}, [pageOrder:1,title:1])
+			database.findAllLive({pageOrder: $exists: true}, [pageOrder:1,title:1]).on "add", (model) ->
+                model.setMetaDefaults({layout:"default",cmheight:"250px",index_class: "active"})
+			
 
 		# This one, will fetch in all documents that have the tag "post" specified in their meta data
 		posts: (database) ->

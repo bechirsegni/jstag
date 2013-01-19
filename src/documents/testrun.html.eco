@@ -2,6 +2,8 @@
 title:  "Jasmine Test Specs"
 layout: default
 testspec_class: "active"
+name: "Unit Tests"
+supress_cm: true
 ---
 
 

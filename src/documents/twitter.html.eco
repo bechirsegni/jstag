@@ -1,23 +1,23 @@
 ---
-layout: default
 title: "JSTag test page"
-test_class: "active"
+name: "Twitter"
+pageOrder: 2
 ---
 
 
 <%-@partial('tag.html.eco')%>
 
-  <h2>Capturing Twitter Events</h2>
-  <p>See the <a href="https://dev.twitter.com/docs/intents/events"> Twitter Documentation</a>
-  
-  <style>
-   #correlation1 .twt-border {max-width:100%!important;font-size:150%;}
-   #correlation1 .twp-container {max-width:100%;}
-   #correlation1 .entry-title a b {font-size: 24px!important;font-size: 180%!important;}
-   #correlation1 .twt-tweet .entry-title {font-size: 200%!important;}
-  </style>
+<h2>Capturing Twitter Events</h2>
+<p>See the <a href="https://dev.twitter.com/docs/intents/events"> Twitter Documentation</a>
 
-<section class="slide" id="twitter_usage">
+<style>
+ #correlation1 .twt-border {max-width:100%!important;font-size:150%;}
+ #correlation1 .twp-container {max-width:100%;}
+ #correlation1 .entry-title a b {font-size: 24px!important;font-size: 180%!important;}
+ #correlation1 .twt-tweet .entry-title {font-size: 200%!important;}
+</style>
+
+<section class="slide" id="example_usage">
   <blockquote class="twitter-tweet"><p>First release of a #mongrel2 implementation 
     for #golang m2go</p>&mdash; Aaron Raddon ( @araddon) 
     <a href="https://twitter.com/twitterapi/status/143447388063932416" 
@@ -37,31 +37,17 @@ test_class: "active"
     }(document, "script", "araddon"));
 
     twttr.ready(function (twttr) {
-      twttr.events.bind('click',    function(event){
-
-      });
-      twttr.events.bind('tweet',    function(event){
-
-      });
-      twttr.events.bind('retweet',  function(event){
-
-      });
-      twttr.events.bind('favorite', function(event){
-        console.log(event)
-      });
-      //twttr.events.bind('follow',   followIntentToAnalytics);
+      twttr.events.bind('click',    function(event){ });
+      twttr.events.bind('tweet',    function(event){ });
+      twttr.events.bind('retweet',  function(event){ });
+      twttr.events.bind('favorite', function(event){ });
+      twttr.events.bind('follow',   function(event){});
       twttr.events.bind('follow', function(event) {
-          //console.log(event)
-          //console.log(JSON.stringify(event.data))
-          jstag.send({"v":"tw.follow",
-                  "u.twuid": event.data.user_id,
-                  "tw.followed": event.data.screen_name,
-                  "u.s":"tw.follow"
-          },function(opts,io){
-            //console.log(opts)
-            //console.log(io)
-            debugOutput = io.debug();
-            $("#showoverlay").trigger("click")
+          jstag.send({"event":"tw_follow"
+              , "twuid": event.data.user_id
+              , "tw_followed": event.data.screen_name
+          }, function(opts,io){
+            $("#output").html(io.debug())
           });
       });
     });
@@ -69,18 +55,3 @@ test_class: "active"
  </p>
 </section>
 
-
-<textarea id="cmeditor" name="cmeditor" 
-    class="demojs CodeMirror-scroll"  style="height:350px;">
-</textarea>
-
-<script type="text/javascript" charset="utf-8">
-  $(document).ready(function(){
-    //$("#cmeditor").val($("#twitter_usage").html());
-    var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
-        mode: 'text/html',tabMode: 'indent',lineNumbers: true,
-        overflow:true,indentUnit: 4,height:"350px"
-    });
-    docHtml.setValue($("#twitter_usage").html());
-  })
-</script>

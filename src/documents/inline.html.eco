@@ -1,13 +1,29 @@
 ---
-layout: default
 title: "JSTag test page"
-test_class: "active"
+name: "Inline"
+pageOrder: 10
 ---
+
+<div id="example_usage">
+  <!-- start jstag  -->
+  <script type="text/javascript" src="<%= @site.collector %>/static/io.min.js"></script>
+  <script type="text/javascript">
+    
+    jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>'}) 
+    jstag.send({"category":"hello","catid":6});
+
+  </script>
+  <!-- end jstag -->
+</div>
 
 <div class="row-fluid">
 
   <div class="span6">
     <h2>Jstag Inline example</h2>
+    <p>This showcases usage of inline include of javascript.
+        Although this works fine, the recommended usage is Async for
+        better performance.
+    </p>
   </div>
 
   <div class="span6">
@@ -17,16 +33,6 @@ test_class: "active"
 
 </div>
 
-<!-- start jstag  -->
-<script type="text/javascript" src="<%= @site.collector %>/static/io.min.js"></script>
-<script type="text/javascript">
-  
-  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>"}) 
-  jstag.send({"category":"hello","catid":6});
-
-</script>
-<!-- end jstag -->
-
 
 <script type="text/javascript">
   // for test purposes only to output what was sent, not needed for your implementation
@@ -35,5 +41,6 @@ test_class: "active"
     $("#output table").addClass("table table-condensed")
   })
 </script>
+
 
 

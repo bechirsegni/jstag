@@ -1,6 +1,7 @@
 ---
 layout: default
 index_class: "active"
+supress_cm: true
 ---
 
 
