@@ -14,6 +14,12 @@ pageOrder: 2
   <!-- end jstag -->
   
 <script type="text/javascript">
+  jstag.bind("io.ready",function(o,io){
+    console.log(o)
+  })
+  jstag.bind("send.before",function(o,io){
+    console.log(o)
+  })
   jstag.bind("send.finished",function(o,io){
     console.log(o)
   })
@@ -26,7 +32,11 @@ pageOrder: 2
   <div class="span6">
     <h2>Bindings...</h2>
     Use bindings to insert data into the collection, remove, or edit.   
-    
+    <ul>
+      <li><b>io.ready</b>:   After the tag has been loaded asynchronously</li>
+      <li><b>send.before</b>:   before sending data, last chance to edit/delete/add</li>
+      <li><b>send.finished</b>:  After send has finished</li>
+    </ul>
     
   </div>
 
