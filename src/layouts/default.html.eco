@@ -50,7 +50,7 @@
               <li class="nav-header">Examples</li>
               <% for page in @getCollection("pages").toJSON(): %>
                    <li class="<%= if page.id is @document.id then 'active' else 'inactive' %>">
-                      <a href="<%= @getRoot() %><%= page.url %>">
+                      <a href="<%= @getRoot() %><%= page.url %>/">
                           <%= page.name %>
                       </a>
                   </li>
