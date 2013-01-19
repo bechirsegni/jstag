@@ -24,14 +24,7 @@ supress_cm: true
 
 </div>
 
-<!-- start jstag  -->
-<script type="text/javascript" src="async.js"></script>
-<script type="text/javascript">
-  
-  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",ext:".js"}) //.load()
-
-</script>
-<!-- end jstag -->
+<%-@partial('tag.html.eco')%>
 
 <script type="text/javascript">
   jstag.send({"category":"hello","catid":6},function(o,io){

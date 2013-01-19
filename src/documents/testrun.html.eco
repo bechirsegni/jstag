@@ -8,7 +8,7 @@ supress_cm: true
 
 
 <!-- start jstag  -->
-<script type="text/javascript" src="async.js"></script>
+<script type="text/javascript" src="<%= @getRoot() %>/async.js"></script>
 <script type="text/javascript">
   
   jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",ext:".js"}).load()

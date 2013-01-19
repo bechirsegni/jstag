@@ -19,13 +19,7 @@ name: "None"
 
 <a href="#" id="linktest">Event Based Send</a>
 
-<!-- start jstag  -->
-<script type="text/javascript" src="async.js"></script>
-<script type="text/javascript">
-  
-  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",ext:".js"}) //.load()
-
-</script>
+<%-@partial('tag.html.eco')%>
 <!-- end jstag -->
 <script type="text/javascript">
   jstag.send({"category":"hello","catid":6},function(o,io){

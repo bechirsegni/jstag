@@ -1,7 +1,7 @@
 ---
 title: "JSTag test page"
 name: "Inline"
-pageOrder: 10
+pageOrder: 9
 ---
 
 <div id="example_usage">

@@ -50,50 +50,56 @@
               <li class="nav-header">Examples</li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/test">
+                      <a href="/test">
                           Example
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/callback">
+                      <a href="/callback">
                           Callbacks
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/binding">
+                      <a href="/binding">
                           Bindings
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/twitter">
+                      <a href="/twitter">
                           Twitter
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/iframe">
+                      <a href="/iframe">
                           Iframe
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/fb">
+                      <a href="/fb">
                           Facebook JS
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/getid">
+                      <a href="/getid">
                           Get User Id
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/inline">
+                      <a href="/inline">
                           Inline
+                      </a>
+                  </li>
+              
+                   <li class="inactive">
+                      <a href="/console">
+                          Console
                       </a>
                   </li>
               
@@ -118,7 +124,10 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.1/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.1/underscore-min.js"></script>
-  
+  <script  src="/socket.io/socket.io.js"></script><script >var socket = io.connect('/docpad-live-reload');
+socket.on('regenerated',function(){
+	document.location.reload();
+});</script>
   <link rel="stylesheet" href="//developer.lytics.io/codemirror/codemirror.css">
   <link rel="stylesheet" href="//developer.lytics.io/codemirror/theme/default.css">
   <script src="//developer.lytics.io/codemirror/codemirror.js"></script>
@@ -127,9 +136,6 @@
   <script src="//developer.lytics.io/codemirror/mode/javascript/javascript.js"></script>
   <script src="//developer.lytics.io/codemirror/mode/htmlmixed/htmlmixed.js"></script>
   <script type="text/javascript" charset="utf-8">
-    function cmFromDom() {
-      
-    }
     $(document).ready(function(){
       var exHtml = $("#example_usage").html() 
       if (exHtml) {
