@@ -14,7 +14,7 @@ supress_cm: true
     View source on this iframe.   Operating inside of iframes
     is different, so this show's how a browser will react to an iframe
     (you can't write cookies in many browsers inside of iframes.)
-    <iframe src="iframetestbasic.html" width="100%" height="500px"></iframe>
+    <iframe src="<%= @getRoot() %>/iframetestbasic.html" width="100%" height="500px"></iframe>
   </div>
 
   <div class="span6">
