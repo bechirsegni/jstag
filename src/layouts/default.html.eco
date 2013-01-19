@@ -30,7 +30,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="#">JSTag</a>
+        <a class="brand" href="<%= @getRoot() %>/">JSTag</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
             <li class="<%= @document.index_class %>"><a href="<%= @getRoot() %>/">Home</a> </li>
