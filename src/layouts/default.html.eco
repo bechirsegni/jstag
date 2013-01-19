@@ -45,25 +45,18 @@
   <div id="container" class="container">
     <div class="row">
       <div class="span2" style="displayx:none;">
-            <div class="well sidebar-nav">
-              <ul class="nav nav-list">
-                <!--<li class="nav-header">Sidebar</li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>-->
-                <li class="nav-header">Examples</li>
-                <% for page in @getCollection("pages").toJSON(): %>
-                     <li class="<%= if page.id is @document.id then 'active' else 'inactive' %>">
-                        <a href="<%= page.url %>">
-                            <%= page.name %>
-                        </a>
-                    </li>
-                <% end %>
-              </ul>
-            </div><!--/.well -->
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Examples</li>
+              <% for page in @getCollection("pages").toJSON(): %>
+                   <li class="<%= if page.id is @document.id then 'active' else 'inactive' %>">
+                      <a href="./<%= page.url.replace /\//g, "" %>">
+                          <%= page.name %>
+                      </a>
+                  </li>
+              <% end %>
+            </ul>
+          </div>
       </div>
       <div class="span10" id="contentContainer">
         <% if @document.supress_cm :%>
