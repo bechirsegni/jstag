@@ -35,6 +35,14 @@ docpadConfig = {
 		# -----------------------------
 		# Helper Functions
 
+		# get  url of collector
+		getUrl: ->
+			ev = @getEnvironments()
+			if 'development' in ev
+				"//localhost:8133"
+			else
+				"//c.lytics.io"
+
 		# get  root url path
 		getRoot: ->
 			ev = @getEnvironments()

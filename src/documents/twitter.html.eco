@@ -5,7 +5,7 @@ pageOrder: 2
 ---
 
 
-<%-@partial('tag.html.eco')%>
+<%-@partial('tag.html.eco',@)%>
 
 <h2>Capturing Twitter Events</h2>
 <p>See the <a href="https://dev.twitter.com/docs/intents/events"> Twitter Documentation</a>

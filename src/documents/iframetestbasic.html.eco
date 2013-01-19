@@ -19,7 +19,8 @@ name: "None"
 
 <a href="#" id="linktest">Event Based Send</a>
 
-<%-@partial('tag.html.eco')%>
+<%-@partial('tag.html.eco',@)%>
+
 <!-- end jstag -->
 <script type="text/javascript">
   jstag.send({"category":"hello","catid":6},function(o,io){

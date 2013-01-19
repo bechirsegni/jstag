@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "JSTag test page"
 name: "Inline"
 pageOrder: 9
@@ -9,7 +10,7 @@ pageOrder: 9
   <script type="text/javascript" src="<%= @site.collector %>/static/io.min.js"></script>
   <script type="text/javascript">
     
-    jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>'}) 
+    jstag.init({cid:"<%= @site.cid %>",url:'<%= @getUrl() %>'}) 
     jstag.send({"category":"hello","catid":6});
 
   </script>

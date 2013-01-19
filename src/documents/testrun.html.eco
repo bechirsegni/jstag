@@ -11,7 +11,7 @@ supress_cm: true
 <script type="text/javascript" src="<%= @getRoot() %>/async.js"></script>
 <script type="text/javascript">
   
-  jstag.init({cid:"<%= @site.cid %>",url:'<%= @site.collector %>',js:"<%= @site.collector %>",ext:".js"}).load()
+  jstag.init({cid:"<%= @site.cid %>",url:'<%= @getUrl() %>',js:"<%= @getUrl()%>",ext:".js"}).load()
 
 </script>
 <!-- end jstag -->

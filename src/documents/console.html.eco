@@ -13,7 +13,7 @@ supress_cm: true
 
 
 <section class="slide" id="ex_usage" style="display:none;">
-  jstag.init({cid:"YOUR_ID",url:'//c.lytics.io'})
+  jstag.init({cid:"YOUR_ID",url:'<%= @getUrl() %>'})
   
   // edit this and add your own data, possibly add a real cid above
   jstag.send({category:"your_data"})

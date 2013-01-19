@@ -1,4 +1,4 @@
-// v1.05 JS Library for data collection. MIT License.
+// v1.06 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -12,6 +12,7 @@
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString
     , dref = referrer()
+    , uri = parseUri()
   
   win['jstag'] = jstag;
 
@@ -48,6 +49,7 @@
     , stream: undefined
     , sessecs: 1800 
     , channel:'Form'//  Form,Gif
+    , qsargs: []
     , ref: true
   })
 
@@ -72,6 +74,40 @@
       }
     }
     return target;
+  }
+
+  /*
+    parseUri 1.2.1
+    (c) 2007 Steven Levithan <stevenlevithan.com>
+    http://stevenlevithan.com/demo/parseuri/js/
+    MIT License
+  */
+  function parseUri(str) {
+    if (str == undefined){
+        str = dloc.href;
+    }
+    var o   =  {
+        strictMode: false,
+        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory"
+    ,"file","query","anchor"],
+        q:   {
+            name:   "qs",
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+    }
+    var m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+        uri = {},
+        i   = 14;
+    while (i--) uri[o.key[i]] = m[i] || "";
+    uri[o.q.name] = {};
+    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+        if ($1) uri[o.q.name][$1] = $2;
+    });
+    return uri;
   }
 
 
@@ -392,9 +428,21 @@
       o.data["_e"] = "pv"
       var ses = ckieGet(jstag.config.sesname)
         , ref = undefined
+      for (k in uri.qs) {
+        if (k.indexOf("utm_") == 0){
+          o.data[k] = uri.qs[k]
+        }
+      }
+      jstag.config.qsargs.forEach(function(qsa){
+        if (qsa in uri.qs){
+          o.data[qsa] = uri.qs[qsa]
+        }
+      })
+
       if (!ses) {
         o.data['_sesstart'] = "1"
       }
+
       if (!("_ref" in o.data)) {
         if (dref && dref[l] > 1){
           var rh = dref.toString().match(/\/\/(.*)\//);
@@ -578,6 +626,7 @@
         var self = this
 
         jstag.emit("send.before", opts)
+        this.data = opts.data;
 
         // now send
         this.channel.send(this.serializer(opts.data),{callback:function(to){
@@ -590,7 +639,7 @@
       },
       send : function(data,cb,stream) {
         data = data ? data : {};
-        this.data = data;
+        
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
         var opts = {data:data,callback:cb,config:this.config}

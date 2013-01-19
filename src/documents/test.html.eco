@@ -9,7 +9,7 @@ cmheight: "200px"
   <!-- start jstag  -->
   <script type="text/javascript">
   window.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",as=Array.prototype.slice,sp;t.init=function(c){sp=c.js?c.js:c.url||"";c.ext=c.ext||".min.js";t._c=c;return this};t.load=function(){var js,fjs=d.getElementsByTagName("script")[0];l=true;if(!("JSON"in w&&Array.prototype.forEach))src+="w";if(d.getElementById(src))return this;js=d.createElement("script");js.id=src;js.src=sp+src+t._c.ext;fjs.parentNode.insertBefore(js,fjs);return this};t.bind=function(e){this._q.push([e,as.call(arguments,1)])};t.ready=function(){this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
-  jstag.init({cid:"YOUR_ID",url:'//c.lytics.io'}).send({category:"mystuff",productid:22})  
+  jstag.init({cid:"YOUR_ID",url:'<%= @getUrl() %>',ext:".js"}).send({category:"mystuff",productid:22})  
   // NOTE the send at the end of the previous line autmatically sends as it is loaded
   </script>
   <!-- end jstag -->
@@ -37,7 +37,12 @@ cmheight: "200px"
   <div class="span6">
     <h2>Events...</h2>
     <a href="#" id="linktest">Click This link for Event Based Send</a>
-
+    <h2>Campaigns...</h2>
+    Capture Campaign data using Google Analtyics Parameters (utm_source ...)
+    <a href="?utm_source=jstag&utm_medium=banner" id="linktest">Click This link to try it out</a>
+    See details on <a href="http://support.google.com/analytics/bin/answer.py?hl=en&answer=1033867"> google</a>
+      <br /><br />
+    
     
   </div>
 
@@ -51,12 +56,6 @@ cmheight: "200px"
 
 
 <script type="text/javascript">
-  jstag.send({"category":"hello","catid":6},function(o,io){
-    try{
-      console.log("hello, cb " + JSON.stringify(o))
-    } catch (e){}
-  });
-
   jstag.bind("send.finished",function(o,io){
     $("#output").html(io.debug())
     $("#output table").addClass("table table-condensed")
