@@ -23,7 +23,7 @@ layout: default
 <!-- end jstag -->
 
 <section class="slide" id="ex_usage" style="display:none;">
-  jstag.init({cid:"YOUR_ID",url:'<%= @getUrl() %>'})
+  jstag.init({cid:"YOUR_ID",url:'<%= @getUrl() %>',ext:".js"})
   
   // edit this and add your own data, possibly add a real cid above
   jstag.send({category:"your_data"})

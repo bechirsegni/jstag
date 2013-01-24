@@ -240,29 +240,32 @@
   }
   jstag['emit'] = emit;
  
-   /**
+  /**
    * Replace the temporary Q object, iterating through and
    * calling the actual functions with arguments
    * the async tag provides a set of stub's which actually don't work
    * but instead get queued into Q.  
   **/
+  function handleQitem(q){
+    if (isString(q[1]) && q[1] in jstag ){
+      // these are alises for not yet created fn (when put in q)
+      //  q[0]    q[1]     
+      // "ready", "send"
+      // "ready", "send", {data:stuff}
+      // "ready", "send", {data:stuff}, fn() 
+      bind(q[0],function(){
+        jstag[q[1]].apply(jstag,as.call(q[2]? q[2] : {}))
+      })
+    } else {
+      // "ready", fn(), {data:stuff},
+      bind.apply(jstag,[q[0]].concat(as.call(q[1])))
+    }
+  }
   function replaceTempQ(){
     // check for any temp events
     if ("_q" in jstag && isArray(jstag._q)){
-      var q = null;
       for (var i = jstag._q.length - 1; i >= 0; i--) {
-        q = jstag._q[i]
-        if (isString(q[1]) && q[1] in jstag ){
-          // these are alises for not yet created fn (when put in q)
-          //  q[0]    q[1]     
-          // "ready", "send"
-          // "ready", "send", {data:stuff}
-          // "ready", "send", {data:stuff}, fn() 
-          bind(q[0],function(){jstag[q[1]].apply(jstag,as.call(q[2]))})
-        } else {
-          // "ready", fn(), {data:stuff},
-          bind.apply(jstag,[q[0]].concat(as.call(q[1])))
-        }
+        handleQitem(jstag._q[i])
       };
       // don't emit ready here, tooooo soon
     }
@@ -604,7 +607,7 @@
 
         // define pipeline
         for (var i = o.pipeline.length - 1; i >= 0; i--) {
-          pitem = o.pipline[i]
+          pitem = o.pipeline[i]
           if (isFn(pitem)){
             _pipe.push(pitem)
           } else if (pitem in pipeline){
