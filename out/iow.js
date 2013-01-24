@@ -295,28 +295,28 @@ if (!Array.prototype.map) {
    * @param the event name filter (string) to bind to
   **/
   function emit(evt){
-    var onetime = [],
+    var onetime = [],eventsn = []
       args = Array.prototype.slice.call(arguments,1);
-    if (events[evt]&&events[evt][l]){
-      for (var i=0,len=events[evt][l];i<len;i++){
+    if (events[evt]&&events[evt].length){
+      for (var i=0,len=events[evt].length;i<len;i++){
         if (isFn(events[evt][i])){
           var cb = events[evt][i];
           if (cb.opts.onetime){
             onetime.push(cb);
           } else {
             cb.apply({},args);
+            eventsn.push(events[evt][i])
           }
         }
       }
     }
-    if (onetime[l] > 0 && events[evt]){
-      events[evt] = events[evt].filter(function(el,i,a){
-        return (onetime.indexOf(el) == -1);
-      })
-    }
-    onetime.forEach(function(cb){
-      cb.apply({}, args);
-    })
+    events[evt] = eventsn
+    for (var i = onetime[l] - 1; i >= 0; i--) {
+      onetime[i].apply({},args)
+    };
+    //onetime.forEach(function(cb){
+    //  cb.apply({}, args);
+    //})
   }
   jstag['emit'] = emit;
  
@@ -329,8 +329,9 @@ if (!Array.prototype.map) {
   function replaceTempQ(){
     // check for any temp events
     if ("_q" in jstag && isArray(jstag._q)){
-      jstag._q.forEach(function(q){
-
+      var q = null;
+      for (var i = jstag._q.length - 1; i >= 0; i--) {
+        q = jstag._q[i]
         if (isString(q[1]) && q[1] in jstag ){
           // these are alises for not yet created fn (when put in q)
           //  q[0]    q[1]     
@@ -342,7 +343,7 @@ if (!Array.prototype.map) {
           // "ready", fn(), {data:stuff},
           bind.apply(jstag,[q[0]].concat(as.call(q[1])))
         }
-      })
+      };
       // don't emit ready here, tooooo soon
     }
   }
@@ -513,11 +514,15 @@ if (!Array.prototype.map) {
           o.data[k] = uri.qs[k]
         }
       }
-      jstag.config.qsargs.forEach(function(qsa){
-        if (qsa in uri.qs){
-          o.data[qsa] = uri.qs[qsa]
-        }
-      })
+      if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
+        var qsa = null
+        for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
+          qsa = jstag.config.qsargs[i]
+          if (qsa in uri.qs){
+            o.data[qsa] = uri.qs[qsa]
+          }
+        };
+      }
 
       if (!ses) {
         o.data['_sesstart'] = "1"
@@ -641,12 +646,11 @@ if (!Array.prototype.map) {
       data = args[0]
       if (args.length===2) cb = args[1]
     }
-    if ('io' in cache){
+    if ('io' in cache && isArray(cache['io'])){
       // it is possible to create more than 1 sender, send events multiple locations
-      //  TODO:  document
-      cache['io'].forEach(function(io){
-        io.send(data,cb,stream);
-      })
+      for (var i = cache['io'].length - 1; i >= 0; i--) {
+        cache['io'][i].send(data,cb,stream);
+      };
     } else {
       var io = new Io();// this will auto-cache
       io.send(data,cb,stream);
@@ -656,9 +660,10 @@ if (!Array.prototype.map) {
   
   Io.prototype = function(){
 
-    var _pipe = [],
-      self = null,
-      o = null;
+    var _pipe = []
+      , self = null
+      , o = null
+      , pitem = null;
 
     
     return {
@@ -678,22 +683,23 @@ if (!Array.prototype.map) {
         this.channel = new jstag.channels[o.channel](o);
 
         // define pipeline
-        o.pipeline.forEach(function(item){
-          if (isFn(item)){
-            _pipe.push(item)
-          } else if (item in pipeline){
-            _pipe.push(pipeline[item])
+        for (var i = o.pipeline.length - 1; i >= 0; i--) {
+          pitem = o.pipline[i]
+          if (isFn(pitem)){
+            _pipe.push(pitem)
+          } else if (pitem in pipeline){
+            _pipe.push(pipeline[pitem])
           } else if (item in win){
-            _pipe.push(win[item])
+            _pipe.push(win[pitem])
           }
-        })
+        };
 
         // if they supplied a Q, wire it up
         if (o.Q && o.length > 0){
           var i = 0, l = Q.length;
-          o.Q.forEach(function(args){
-            self.send.apply(self,args)
-          })
+          for (var i = o.Q.length - 1; i >= 0; i--) {
+            self.send.apply(self,o.Q[i])
+          };
         }
         if (o.Q){
           o.Q.push=function(){
@@ -724,19 +730,21 @@ if (!Array.prototype.map) {
         // todo, support json or n/v serializer?
         var opts = {data:data,callback:cb,config:this.config}
           , self = this
-          , url = o.url + o.path + o.cid;
+          , url = o.url + o.path + o.cid
+          , pipeNew = [];
         stream = stream || o.stream;
         o.sendurl = stream ? url + "/" + stream  : url
         if (o.sendurl.indexOf("_uidn=") == -1 && config.cookie != "seerid") {
           o.sendurl = addQs(o.sendurl, "_uidn", config.cookie)
         }
         // run pre-work
-        _pipe.forEach(function(fn){
-          fn(opts)
-        })
-        _pipe = _pipe.filter(function(fn){
-          return !fn.onetime
-        })
+        for (var i = _pipe.length - 1; i >= 0; i--) {
+          _pipe[i](opts)
+          if (!(_pipe[i].onetime)){
+            pipeNew.push(_pipe[i])
+          }
+        };
+        _pipe = pipeNew
 
         // now for the actual collection
         if (uidv) {

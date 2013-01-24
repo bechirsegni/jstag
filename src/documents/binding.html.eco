@@ -1,7 +1,7 @@
 ---
 title: "JSTag Event Bindings page"
 name: "Bindings"
-pageOrder: 2
+pageOrder: 13
 ---
 
 <section class="slide" id="example_usage">
