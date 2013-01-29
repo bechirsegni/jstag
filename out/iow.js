@@ -118,7 +118,7 @@ if (!Array.prototype.map) {
     , Q:[]
     , id: undefined
     , cid : undefined
-    , getid : jqgetid
+    , getid : makeid
     , serializer:toString
     , pipeline:['identity','analyze']
     , delay:200
@@ -190,19 +190,29 @@ if (!Array.prototype.map) {
     return uri;
   }
 
-
+  function s16() {
+     return ((1+Math.random())*0x10000).toString()
+  }
+  /**
+   * creates random id
+  */
+  function makeid(cb){
+    jstag.setid(s16())
+  }
   /**
    * the built in getid assumes you have jquery
    * @param cb = callback function (mandatory)
   */
   function jqgetid(cb){
-    if (jQuery) {
+    if (jQuery && jQuery.ajax && isFn(jQuery.ajax)) {
       var idurl = config.url + config.idpath + config.cid;
       jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
         jstag.setid(json)
         didGetId = "t"
         cb(json)
       }});
+    } else {
+      jstag.setid(s16())
     }
   }
   // setid
