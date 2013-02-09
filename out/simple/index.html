@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag Facebook Like page | JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag Simple Async | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -73,7 +73,7 @@
                       </a>
                   </li>
               
-                   <li class="active">
+                   <li class="inactive">
                       <a href="/jstag/out/fblike/">
                           Facebook Like
                       </a>
@@ -97,7 +97,7 @@
                       </a>
                   </li>
               
-                   <li class="inactive">
+                   <li class="active">
                       <a href="/jstag/out/simple/">
                           Simple
                       </a>
@@ -123,75 +123,37 @@
         <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
         
         <section class="slide" id="example_usage">
-  <script type="text/javascript">
-    window.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",as=Array.prototype.slice,sp;t.init=function(c){sp=c.js?c.js:c.url||"";c.ext=c.ext||".min.js";t._c=c;return this};t.load=function(){var js,fjs=d.getElementsByTagName("script")[0];l=true;if(!("JSON"in w&&Array.prototype.forEach))src+="w";if(d.getElementById(src))return this;js=d.createElement("script");js.id=src;js.src=sp+src+t._c.ext;fjs.parentNode.insertBefore(js,fjs);return this};t.bind=function(e){this._q.push([e,as.call(arguments,1)])};t.ready=function(){this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
-    jstag.init({cid:"YOUR_ID",url:'//c.lytics.io'})
-    // NOTE, no send() on previous line
-  </script>
+<!-- start jstag  -->
+<script type="text/javascript">
 
-
-    <p> 
-      <div class="fb-like" data-href="https://lytics.github.com/jstag" data-send="true" data-width="450" data-show-faces="false"></div>
-      <a class="fb_button fb_button_medium fb_login_button"><span class="fb_button_text">Login with Facebook</span></a>
-    </p>
-  <div id="fb-root"></div>
-  <script>
-    window.fbAsyncInit = function() {
-      FB.init({
-        appId      : '391578834257696', // Your App ID
-        channelUrl : '/channel.html', // Channel File
-        status     : true, // check login status
-        cookie     : true, // enable cookies to allow the server to access the session
-        xfbml      : true  // parse XFBML
-      });
-
-      // user initiated click on signup/logon
-      $("a.fb_login_button").click(function(){
-        FB.login(function(response){
-            console.log(response)
-        }, {scope:'email,offline_access,read_insights'});
-        return false;
-      });
-
-
-      FB.Event.subscribe('edge.create',function(response) {
-        // response = url you just liked
-        jstag.send({"_e":"fb_like","fbresp":response},function(opts,io){
-          $("#output").html(io.debug())
-          $("#output table").addClass("table table-condensed")
-        });
-      });
-
-
-      FB.Event.subscribe('auth.login',function(response) {
-        console.log(response)
-        // authResponsem userID
-        jstag.send({"_e":"fb.auth","fbuid": response.authResponse.userID},function(opts,io){
-          //console.log(opts)
-          //console.log(io)
-          $("#output").html(io.debug())
-          $("#output table").addClass("table table-condensed")
-        });
-    };
-
-    // Load the FB SDK Asynchronously
-    (function(d){
-       var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-       if (d.getElementById(id)) {return;}
-       js = d.createElement('script'); js.id = id; js.async = true;
-       js.src = "//connect.facebook.net/en_US/all.js";
-       ref.parentNode.insertBefore(js, ref);
-     }(document));
-  </script>
- </p>
+</script>
+<script type="text/javascript">
+// Load the jstag Asynchronously
+(function(d){
+  window.jstagAsyncInit = function(){
+    jstag.init({cid:"YOUR_ID"}).send({your_data:"here"})
+  }
+  
+   var js, id = 'jstag-csdk', ref = d.getElementsByTagName('script')[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement('script'); js.id = id; js.async = true;
+   js.src = "//localhost:9778/io.js";
+   ref.parentNode.insertBefore(js, ref);
+ }(document));
+</script>
+<!-- end jstag -->
 </section>
+
 
 <div class="row-fluid">
 
   <div class="span6">
-    <h2>Capturing Facebook Events</h2>
-    <p>See the <a href="http://developers.facebook.com/docs/howtos/login/getting-started/"> Facebook Documentation</a>
-
+    <h2>Simple...</h2>
+    For pages that have a single usage of jstag, and only need to call it in one place
+    a simpler usage is to load the tag asynchronously and callback to an async callback
+    to collect data
+    
+    
   </div>
 
   <div class="span6">
@@ -201,13 +163,7 @@
 
 </div>
 
-
-<script type="text/javascript">
-  jstag.bind("send.finished",function(o,io){
-    $("#output").html(io.debug())
-    $("#output table").addClass("table table-condensed")
-  })
-</script>
+/
       </div>
     </div>
   </div>
