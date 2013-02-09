@@ -78,7 +78,7 @@ if (!Array.prototype.map) {
     return A;
   };      
 }
-// v1.06 JS Library for data collection. MIT License.
+// v1.07 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -131,6 +131,7 @@ if (!Array.prototype.map) {
     , channel:'Form'//  Form,Gif
     , qsargs: []
     , ref: true
+    , tagid: 'jstag-csdk'
   })
 
   function isFn(it){return otostr.call(it) === "[object Function]"}
@@ -229,7 +230,7 @@ if (!Array.prototype.map) {
       var sid = ckieGet(config.cookie);
       if (sid && sid[l] && sid != "undefined") {
         uidv=sid
-        cb()
+        cb(uidv)
       } else {
         config.getid(cb)
       }
@@ -376,7 +377,9 @@ if (!Array.prototype.map) {
     }
     return null; 
   }
-
+  // expose it publicly
+  jstag['ckieGet'] = ckieGet;
+  
   function ckieDel(name) {
     doc.cookie=name+"=; path=/; expires=Monday, 19-Aug-1996 05:00:00 GMT";
   }
@@ -683,6 +686,13 @@ if (!Array.prototype.map) {
       init: function(opts){
         self = this
         o = config
+        if (!o.url || o.url == ''){
+          var tagel = doc.getElementById(o.tagid), elu = null;
+          if (tagel) {
+            elu = parseUri(tagel.getAttribute("src"))
+            o.url = "//" + elu.authority 
+          }
+        }
         if (!o.url || !o.cid) throw new Error("Must have collection url and Account");
         //if ('id' in o && !jstag.config.cid) jstag.config.cid = o.cid;
         if ('cid' in o && !o.cid) jstag.config.cid = o.cid;
@@ -799,8 +809,8 @@ if (!Array.prototype.map) {
   }
 
 
-  if (win && 'asyncInit' in win && isFn(win.asyncInit)){
-    win.asyncInit();
+  if (win && 'jstagAsyncInit' in win && isFn(win.jstagAsyncInit)){
+    win.jstagAsyncInit();
   }
   
 

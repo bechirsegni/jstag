@@ -1,0 +1,50 @@
+---
+title: "JSTag Simple Async"
+name: "Simple"
+pageOrder: 11
+---
+
+<section class="slide" id="example_usage">
+<!-- start jstag  -->
+<script type="text/javascript">
+
+</script>
+<script type="text/javascript">
+// Load the jstag Asynchronously
+(function(d){
+  window.jstagAsyncInit = function(){
+    jstag.init({cid:"YOUR_ID"}).send({your_data:"here"})
+  }
+  
+   var js, id = 'jstag-csdk', ref = d.getElementsByTagName('script')[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement('script'); js.id = id; js.async = true;
+   js.src = "//localhost:9778/io.js";
+   ref.parentNode.insertBefore(js, ref);
+ }(document));
+</script>
+<!-- end jstag -->
+</section>
+
+
+<div class="row-fluid">
+
+  <div class="span6">
+    <h2>Simple...</h2>
+    For pages that have a single usage of jstag, and only need to call it in one place
+    a simpler usage is to load the tag asynchronously and callback to an async callback
+    to collect data
+    
+    
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+/
+
+
