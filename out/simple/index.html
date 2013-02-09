@@ -146,7 +146,8 @@ $.when( hasTag )
 // Load the jstag Asynchronously
 (function(d){
    window.jstagAsyncInit = function(){
-     jstag.init({cid:"YOUR_ID"}).send({your_data:"here"})
+     jstag.init({cid:"YOUR_ID"});
+     jstag.send({your_data:"here"});
    }
 
    var js, id = 'jstag-csdk', ref = d.getElementsByTagName('script')[0];
