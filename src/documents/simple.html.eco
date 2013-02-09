@@ -7,7 +7,7 @@ pageOrder: 11
 <script type="text/javascript">
 var hasTag = $.Deferred()
   , tagChecker=setInterval(checkTag = function(){
-      if (jstag) hasTag.resolve()
+      if ("jstag" in window) hasTag.resolve()
     }, 100);
 
 $.when( hasTag )
