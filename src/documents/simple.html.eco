@@ -7,19 +7,16 @@ pageOrder: 11
 <section class="slide" id="example_usage">
 <!-- start jstag  -->
 <script type="text/javascript">
-
-</script>
-<script type="text/javascript">
 // Load the jstag Asynchronously
 (function(d){
-  window.jstagAsyncInit = function(){
-    jstag.init({cid:"YOUR_ID"}).send({your_data:"here"})
-  }
-  
+   window.jstagAsyncInit = function(){
+     jstag.init({cid:"YOUR_ID"}).send({your_data:"here"})
+   }
+
    var js, id = 'jstag-csdk', ref = d.getElementsByTagName('script')[0];
    if (d.getElementById(id)) {return;}
    js = d.createElement('script'); js.id = id; js.async = true;
-   js.src = "//localhost:9778/io.js";
+   js.src = "<%= @getUrl() %>/static/io.min.js";
    ref.parentNode.insertBefore(js, ref);
  }(document));
 </script>
@@ -45,6 +42,21 @@ pageOrder: 11
 
 </div>
 
-/
+<script type="text/javascript">
+var hasTag = $.Deferred()
+  , tagChecker=setInterval(checkTag = function(){
+      if (jstag) hasTag.resolve()
+    }, 500);
+
+$.when( hasTag )
+ .then(function(){
+    jstag.bind("send.finished",function(o,io){
+      $("#output").html(io.debug())
+      $("#output table").addClass("table table-condensed")
+    })
+    clearInterval(tagChecker)
+});
+
+</script>
 
 
