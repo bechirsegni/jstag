@@ -4,6 +4,24 @@ name: "Simple"
 pageOrder: 11
 ---
 
+<script type="text/javascript">
+var hasTag = $.Deferred()
+  , tagChecker=setInterval(checkTag = function(){
+      if (jstag) hasTag.resolve()
+    }, 100);
+
+$.when( hasTag )
+ .then(function(){
+    jstag.bind("send.finished",function(o,io){
+      $("#output").html(io.debug())
+      $("#output table").addClass("table table-condensed")
+    })
+    clearInterval(tagChecker)
+});
+
+</script>
+
+
 <section class="slide" id="example_usage">
 <!-- start jstag  -->
 <script type="text/javascript">
@@ -42,21 +60,5 @@ pageOrder: 11
 
 </div>
 
-<script type="text/javascript">
-var hasTag = $.Deferred()
-  , tagChecker=setInterval(checkTag = function(){
-      if (jstag) hasTag.resolve()
-    }, 500);
-
-$.when( hasTag )
- .then(function(){
-    jstag.bind("send.finished",function(o,io){
-      $("#output").html(io.debug())
-      $("#output table").addClass("table table-condensed")
-    })
-    clearInterval(tagChecker)
-});
-
-</script>
 
 

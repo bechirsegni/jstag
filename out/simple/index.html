@@ -122,7 +122,25 @@
         
         <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
         
-        <section class="slide" id="example_usage">
+        <script type="text/javascript">
+var hasTag = $.Deferred()
+  , tagChecker=setInterval(checkTag = function(){
+      if (jstag) hasTag.resolve()
+    }, 100);
+
+$.when( hasTag )
+ .then(function(){
+    jstag.bind("send.finished",function(o,io){
+      $("#output").html(io.debug())
+      $("#output table").addClass("table table-condensed")
+    })
+    clearInterval(tagChecker)
+});
+
+</script>
+
+
+<section class="slide" id="example_usage">
 <!-- start jstag  -->
 <script type="text/javascript">
 // Load the jstag Asynchronously
@@ -159,23 +177,6 @@
   </div>
 
 </div>
-
-<script type="text/javascript">
-var hasTag = $.Deferred()
-  , tagChecker=setInterval(checkTag = function(){
-      if (jstag) hasTag.resolve()
-    }, 500);
-
-$.when( hasTag )
- .then(function(){
-    jstag.bind("send.finished",function(o,io){
-      $("#output").html(io.debug())
-      $("#output table").addClass("table table-condensed")
-    })
-    clearInterval(tagChecker)
-});
-
-</script>
       </div>
     </div>
   </div>
