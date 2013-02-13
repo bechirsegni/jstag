@@ -8,7 +8,7 @@ cmheight: "200px"
 <section class="slide" id="example_usage">
 <script type="text/javascript">
 window.analytics = (function () {
-  var jssrc='/gkl.analytics.js';q=[],l=false,w=window,d=document,as=Array.prototype.slice;q.load=function(){ var script = d.createElement('script'); script.type = 'text/javascript';script.async = true;script.src = jssrc; var firstScript = document.getElementsByTagName('script')[0];firstScript.parentNode.insertBefore(script, firstScript); var methodFactory = function (type) {return function () {q.push([type].concat(as.call(arguments, 0)));};}; var methods = ['identify', 'track', 'trackLink', 'trackForm', 'trackClick','trackSubmit', 'pageview', 'ab', 'alias', 'ready']; for (var i = 0; i < methods.length; i++) {q[methods[i]] = methodFactory(methods[i]);}; return this;}; return q
+  var jssrc='<%= @getUrl() %>/static/gkl.analytics.js';q=[],l=false,w=window,d=document,as=Array.prototype.slice;q.load=function(){ var script = d.createElement('script'); script.type = 'text/javascript';script.async = true;script.src = jssrc; var firstScript = document.getElementsByTagName('script')[0];firstScript.parentNode.insertBefore(script, firstScript); var methodFactory = function (type) {return function () {q.push([type].concat(as.call(arguments, 0)));};}; var methods = ['identify', 'track', 'trackLink', 'trackForm', 'trackClick','trackSubmit', 'pageview', 'ab', 'alias', 'ready']; for (var i = 0; i < methods.length; i++) {q[methods[i]] = methodFactory(methods[i]);}; return this;}; return q
 })().load();
 
 analytics.asyncInit = function(analytics) {
