@@ -1,0 +1,74 @@
+---
+title: "JSTag analytics.js example"
+name: "Analytics.js"
+pageOrder: 5
+cmheight: "200px"
+---
+
+<section class="slide" id="example_usage">
+<script type="text/javascript">
+window.analytics = (function () {
+  var jssrc='/gkl.analytics.js';q=[],l=false,w=window,d=document,as=Array.prototype.slice;q.load=function(){ var script = d.createElement('script'); script.type = 'text/javascript';script.async = true;script.src = jssrc; var firstScript = document.getElementsByTagName('script')[0];firstScript.parentNode.insertBefore(script, firstScript); var methodFactory = function (type) {return function () {q.push([type].concat(as.call(arguments, 0)));};}; var methods = ['identify', 'track', 'trackLink', 'trackForm', 'trackClick','trackSubmit', 'pageview', 'ab', 'alias', 'ready']; for (var i = 0; i < methods.length; i++) {q[methods[i]] = methodFactory(methods[i]);}; return this;}; return q
+})().load();
+
+analytics.asyncInit = function(analytics) {
+  window.analytics.initialize({
+      'Lytics' : {cid : 'lio-XXXXXX' }
+  });
+}
+</script>
+  
+<script type="text/javascript">
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    // send arbitrary data on events
+    analytics.track("clickonstuff", {"_ev":"share", hello:"world"});
+  });
+</script>
+</section>
+
+
+<div class="row-fluid">
+
+  <div class="span6">
+    <h2>Analytics.js</h2>
+    This an example showing usage with <a href="https://github.com/segmentio/analytics.js">github.com/segmentio/analytics.js</a> an open-source
+    tag management that wraps multiple other tags.
+    <h2>Events...</h2>
+    <a href="#" id="linktest">Click This link for Event Based Send</a>
+      <br /><br />
+    <pre>
+  // example of loading kiss, google, lytics
+  window.analytics.initialize({
+      'Google Analytics' : 'UA-XXXXXX-XX'
+      , 'Lytics' : {cid : 'lio-XXXXXX'}
+      , 'KISSmetrics' : 'XXXXXXXXXX'
+  });
+  </pre>
+    
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+
+
+<script type="text/javascript">
+  window.jstagAsyncInit = function(){
+    jstag.bind("send.finished",function(o,io){
+      $("#output").html(io.debug())
+      $("#output table").addClass("table table-condensed")
+    })
+   }
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    analytics.track("eventname", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+  });
+</script>
+
+
+
