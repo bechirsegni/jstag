@@ -827,9 +827,7 @@ analytics.addProvider('Lytics', {
     // --------
 
     identify: function (userId, traits) {
-
-        console.log(userId)
-        console.log(traits)
+        window.jstag.send(traits)
     },
 
 
@@ -848,10 +846,6 @@ analytics.addProvider('Lytics', {
     // ----------
 
     pageview: function (url) {
-        // we are happy to accept traditional analytics :)
-        // (title, name, categoryName, url, referrer)
-        //window._fxm.push(['_fxm.pages.view', null, null, null, (url || null), null]);
-        console.log(url)
         window.jstag.send()
     },
 
@@ -859,10 +853,9 @@ analytics.addProvider('Lytics', {
     // Alias
     // -----
 
-    // Although undocumented, Mixpanel actually supports the `originalId`. It
-    // just usually defaults to the current user's `distinct_id`.
+    // support changing id's?
     alias : function (newId, originalId) {
-        //window.mixpanel.alias(newId, originalId);
+        //window.jstag.alias(newId, originalId);
     }
 
 });
