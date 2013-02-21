@@ -51,7 +51,7 @@ $.when( hasTag )
     a simpler usage is to load the tag asynchronously and callback to an async callback
     to collect data
     
-    <a href="http://localhost:9778/simple/?utm_source=jstag&utm_medium=banner">link</a>
+    <a href="http://lytics.github.com/jstag/out/simple/?utm_source=jstag&utm_medium=banner">link</a>
     
   </div>
 
