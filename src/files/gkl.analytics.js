@@ -827,6 +827,9 @@ analytics.addProvider('Lytics', {
     // --------
 
     identify: function (userId, traits) {
+        if (analytics.utils.isObject(traits)){
+            traits._uid = userId
+        }
         window.jstag.send(traits)
     },
 
@@ -835,10 +838,9 @@ analytics.addProvider('Lytics', {
     // -----
 
     track: function (event, properties) {
-        // send in null as event category name
-        //window._fxm.push([event, null, properties]);
-        console.log(event)
-        console.log(properties)
+        if (analytics.utils.isObject(properties)){
+            properties.event = event
+        }
         window.jstag.send(properties)
     },
 
@@ -852,7 +854,6 @@ analytics.addProvider('Lytics', {
 
     // Alias
     // -----
-
     // support changing id's?
     alias : function (newId, originalId) {
         //window.jstag.alias(newId, originalId);

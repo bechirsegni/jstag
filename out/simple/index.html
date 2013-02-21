@@ -159,7 +159,7 @@ $.when( hasTag )
    var js, id = 'jstag-csdk', ref = d.getElementsByTagName('script')[0];
    if (d.getElementById(id)) {return;}
    js = d.createElement('script'); js.id = id; js.async = true;
-   js.src = "//c.lytics.io/static/io.min.js";
+   js.src = "//c.lytics.io/static/io.js";
    ref.parentNode.insertBefore(js, ref);
  }(document));
 </script>
@@ -175,6 +175,7 @@ $.when( hasTag )
     a simpler usage is to load the tag asynchronously and callback to an async callback
     to collect data
     
+    <a href="http://localhost:9778/simple/?utm_source=jstag&utm_medium=banner">link</a>
     
   </div>
 

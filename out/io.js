@@ -1,4 +1,4 @@
-// v1.07 JS Library for data collection. MIT License.
+// v1.08 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -13,6 +13,7 @@
     , otostr = Object.prototype.toString
     , dref = referrer()
     , uri = parseUri()
+    , sesStart = undefined
   
   win['jstag'] = jstag;
 
@@ -163,10 +164,6 @@
   */
   function referrer(){
     var r = '';
-    if (!config.ref) {
-        return r
-    }
-    config.ref = false
     try {
         r = top.document.referrer
     } catch (e1) {
@@ -475,6 +472,11 @@
           }
         }
       }  
+
+      // update the session time
+      var expires = new Date();
+      expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
+      ckieSet(jstag.config.sesname,"e", expires)
     },
     identity: function(o){
       // set mobile flags
@@ -483,10 +485,6 @@
       } else {
         o.data["_nmob"] = "t"
       }
-      // update the session time
-      var expires = new Date();
-      expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
-      ckieSet(jstag.config.sesname,"e", expires)
       // get location
       if (!("url" in o.data)) {
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
