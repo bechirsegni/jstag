@@ -78,7 +78,7 @@ if (!Array.prototype.map) {
     return A;
   };      
 }
-// v1.08 JS Library for data collection. MIT License.
+// v1.09 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,context) {
   var dloc = doc.location
@@ -170,8 +170,7 @@ if (!Array.prototype.map) {
     }
     var o   =  {
         strictMode: false,
-        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory"
-    ,"file","query","anchor"],
+        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
         q:   {
             name:   "qs",
             parser: /(?:^|&)([^&=]*)=?([^&]*)/g
@@ -382,6 +381,12 @@ if (!Array.prototype.map) {
   }
 
   function ckieSet(name, value, expires, path, domain, secure) {
+    if (!domain && uri && uri.host){
+      var hp = uri.host.split(".");
+      if (hp.length > 1){
+        domain = "." + hp[hp.length-2] +"." + hp[hp.length-1]
+      }
+    }
     path = path || "/"
     var cv = name + "=" + escape(value) +
         ((expires) ? "; expires=" + expires.toGMTString() : "") +
@@ -566,9 +571,10 @@ if (!Array.prototype.map) {
         o.data["_nmob"] = "t"
       }
       // get location
-      if (!("url" in o.data)) {
+      // TODO:   fix url in ?
+      //if (!("url" in o.data)) {
         o.data['url'] = dloc.href.replace("http://","").replace("https://","");
-      }
+      //}
       // determine if we are in an iframe
       if (win.location != win.parent.location) o.data["_if"] =  "t";
       // clean up uid
