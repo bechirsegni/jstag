@@ -629,7 +629,9 @@ if (!Array.prototype.map) {
         as.push(key + '=' + data[p]())
       } else if (isArray(data[p])) {
         as.push(key + '=[' + data[p].join(",") + "]")
-      } else {
+      } else if (isString(data[p]) && data[p].length > 0) {
+        as.push(key + '=' + data[p])
+      } else if (data[p] != null && data[p] != undefined ){
         as.push(key + '=' + encode(data[p]))
       }
     }
@@ -740,6 +742,7 @@ if (!Array.prototype.map) {
 
         jstag.emit("send.before", opts)
         this.data = opts.data;
+        opts.data['_ca'] = "jstag1";
 
         // now send
         this.channel.send(this.serializer(opts.data),{callback:function(to){

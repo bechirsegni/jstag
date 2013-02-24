@@ -1,7 +1,9 @@
 
 (function (w) {
     // Wrap any existing `onload` function with our own that will cache the
-    // loaded state of the page.   We are now going to look for any methods that have been 
+    // loaded state of the page.   
+
+    // We are now going to look for any methods that have been 
     // called on the "queue" array, and submit them
     var oldonload = w.onload;
     w.onload = function () {
