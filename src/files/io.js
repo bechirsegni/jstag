@@ -546,11 +546,11 @@
       if (isObject(data[p])){
         as.push(toString(data[p],p))
       } else if (isFn(data[p])) {
-        as.push(key + '=' + data[p]())
+        as.push(key + '=' + encode(data[p]()))
       } else if (isArray(data[p])) {
-        as.push(key + '=[' + data[p].join(",") + "]")
+        as.push(key + '=[' + encode(data[p].join(",")) + "]")
       } else if (isString(data[p]) && data[p].length > 0) {
-        as.push(key + '=' + data[p])
+        as.push(key + '=' + encode(data[p]))
       } else if (data[p] != null && data[p] != undefined ){
         as.push(key + '=' + encode(data[p]))
       }
