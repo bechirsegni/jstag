@@ -524,7 +524,7 @@ if (!Array.prototype.map) {
   // the core page analysis functions, an array of options
   var pipeline = {
     analyze: function(o){
-      o.data["_e"] = "pv"
+      if (!("_e" in o.data)) o.data["_e"] = "pv";
       var ses = ckieGet(jstag.config.sesname)
         , ref = undefined
       for (k in uri.qs) {

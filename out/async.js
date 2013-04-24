@@ -11,7 +11,6 @@ window.jstag = (function () {
     var js,
       fjs = d.getElementsByTagName("script")[0];
     l = true;
-    if (!("JSON" in w && Array.prototype.forEach)) src+="w";
     if (d.getElementById(src)) return this; 
     js=d.createElement("script"); 
     js.id=src;

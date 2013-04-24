@@ -129,16 +129,13 @@
         <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
         
         <section class="slide" id="example_usage">
-<script type="text/javascript">
-window.analytics = (function () {
-  var jssrc='//c.lytics.io/static/gkl.analytics.js';q=[],l=false,w=window,d=document,as=Array.prototype.slice;q.load=function(){ var script = d.createElement('script'); script.type = 'text/javascript';script.async = true;script.src = jssrc; var firstScript = document.getElementsByTagName('script')[0];firstScript.parentNode.insertBefore(script, firstScript); var methodFactory = function (type) {return function () {q.push([type].concat(as.call(arguments, 0)));};}; var methods = ['identify', 'track', 'trackLink', 'trackForm', 'trackClick','trackSubmit', 'pageview', 'ab', 'alias', 'ready']; for (var i = 0; i < methods.length; i++) {q[methods[i]] = methodFactory(methods[i]);}; return this;}; return q
-})().load();
 
-analytics.asyncInit = function(analytics) {
-  window.analytics.initialize({
-      'Lytics' : {cid : 'lio-XXXXXX' }
-  });
-}
+<script src="https://raw.github.com/segmentio/analytics.js/master/analytics.min.js"></script>
+<script type="text/javascript">
+
+analytics.initialize({ 'Lytics' : {cid:"YOUR_ID"} });
+analytics.pageview();
+
 </script>
   
 <script type="text/javascript">
@@ -146,6 +143,7 @@ analytics.asyncInit = function(analytics) {
     e.preventDefault();
     // send arbitrary data on events
     analytics.track("clickonstuff", {"_ev":"share", hello:"world"});
+
   });
 </script>
 </section>

@@ -58,6 +58,8 @@ pageOrder: 4
           $("#output").html(io.debug())
           $("#output table").addClass("table table-condensed")
         });
+      });
+      
     };
 
     // Load the FB SDK Asynchronously
