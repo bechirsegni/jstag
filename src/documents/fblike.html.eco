@@ -17,7 +17,7 @@ pageOrder: 4
 
 
     <p> 
-      <div class="fb-like" data-href="https://lytics.github.com/jstag" data-send="true" data-width="450" data-show-faces="false"></div>
+      <div class="fb-like" data-href="https://lytics.github.io/jstag" href="https://lytics.github.io/jstag" data-send="true" data-width="450" data-show-faces="false"></div>
       <a class="fb_button fb_button_medium fb_login_button"><span class="fb_button_text">Login with Facebook</span></a>
     </p>
   <div id="fb-root"></div>
