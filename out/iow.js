@@ -568,11 +568,23 @@ if (!Array.prototype.map) {
       if (typeof (screen) == "object") {
         o.data["_sz"] = screen.width + "x" + screen.height;
       }
+
     },
     identity: function(o){
       // set mobile flags
       if (isMobile()) {
         o.data["_mob"] = "t"
+        var mobType = "unknown"
+        if (nav.userAgent.match(/Android/i)) {
+          mobType="Android"
+        } else if (nav.userAgent.match(/BlackBerry/i)) {
+          mobType="Blackberry"
+        } else if (nav.userAgent.match(/iPhone|iPad|iPod/i)) {
+          mobType="IOS"
+        } else if (nav.userAgent.match(/IEMobile/i)) {
+          mobType="WinMobile"
+        }
+        o.data["_device"] = mobType;
       } else {
         o.data["_nmob"] = "t"
       }
