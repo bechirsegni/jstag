@@ -1,10 +1,40 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<title>Redirect</title>
-		<meta http-equiv="REFRESH" content="0;url=/iframetestbasic">
-	</head>
-	<body>
-		This page has moved. You will be automatically redirected to its new location. If you aren't forwarded to the new page, <a href="/iframetestbasic">click here</a>.
-	</body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Async Tag Test page</title>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+  </head>
+<body>
+
+<div id="output"></div>
+
+<a href="#" id="linktest">Event Based Send</a>
+
+[partial:0.6843151370994747]
+
+<!-- end jstag -->
+<script type="text/javascript">
+  jstag.send({"category":"hello","catid":6},function(o,io){
+    try{
+      console.log("hello, cb " + JSON.stringify(o))
+    } catch (e){}
+  });
+
+  jstag.bind("send.finished",function(o,io){
+    $("#output").append(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
+  
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    jstag.send({"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+    //jstag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
+  });
+</script>
+<!-- end jstag -->
+
+</body>
 </html>

@@ -80,7 +80,7 @@ if (!Array.prototype.map) {
 }
 // v1.09 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
-(function(win,doc,context) {
+(function(win,doc,nav) {
   var dloc = doc.location
     , ckie = doc.cookie
     , jstag = win.jstag || {}
@@ -562,6 +562,12 @@ if (!Array.prototype.map) {
       var expires = new Date();
       expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
       ckieSet(jstag.config.sesname,"e", expires)
+      // some browser items
+      o.data["_tz"] = parseInt(expires.getTimezoneOffset() / 60 * -1) || "0";
+      o.data["_ul"] = nav.appName == "Netscape" ? nav.language : nav.userLanguage;
+      if (typeof (screen) == "object") {
+        o.data["_sz"] = screen.width + "x" + screen.height;
+      }
     },
     identity: function(o){
       // set mobile flags
@@ -831,5 +837,5 @@ if (!Array.prototype.map) {
   jstag.emit("ready")
   
 
-}(window,document));
+}(window,document,window.navigator));
 

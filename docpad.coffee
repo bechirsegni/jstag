@@ -39,7 +39,7 @@ docpadConfig = {
 		getUrl: ->
 			ev = @getEnvironments()
 			if 'development' in ev
-				"//localhost:8133"
+				"//localhost:5353"
 			else
 				"//c.lytics.io"
 
