@@ -139,7 +139,9 @@
   // setid
   jstag.setid = function(id){
     uidv = id
-    ckieSet(config.cookie, id)
+    var expires = new Date();
+    expires.setTime(expires.getTime() + 7776000 * 1000)
+    ckieSet(config.cookie, id, expires)
   }
   /**
    * the getid forces the id to load in advance
