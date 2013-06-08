@@ -78,7 +78,7 @@ if (!Array.prototype.map) {
     return A;
   };      
 }
-// v1.09 JS Library for data collection. MIT License.
+// v1.11 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
