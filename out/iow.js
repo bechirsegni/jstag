@@ -589,6 +589,7 @@ if (!Array.prototype.map) {
         o.data["_device"] = mobType;
       } else {
         o.data["_nmob"] = "t"
+        o.data["_device"] = "desktop";
       }
       // get location
       // TODO:   fix url in ?
