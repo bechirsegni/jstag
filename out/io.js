@@ -285,7 +285,7 @@
    */
   function ckieGet(name){
     if (ckie[l] > 0) { 
-      var begin = ckie.indexOf(name+"="); 
+      var begin = ckie.indexOf(name+"="), end; 
       if (begin != -1) { 
         begin += name.length+1; 
         end = ckie.indexOf(";", begin);
