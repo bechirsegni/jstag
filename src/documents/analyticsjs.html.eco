@@ -6,21 +6,24 @@ cmheight: "200px"
 ---
 
 <section class="slide" id="example_usage">
-
 <script src="../analytics.js"></script>
 <script type="text/javascript">
-
-analytics.initialize({ 'Lytics' : {cid:"YOUR_ID"} });
-analytics.pageview();
-
+// this initializes as well as sends initial pageView tracking call
+analytics.initialize({
+      'Google Analytics' : 'UA-XXXXXX-XX'
+      , 'Lytics' : {cid : 'lio-XXXXXX'}
+      , 'KISSmetrics' : 'XXXXXXXXXX'
+  });
 </script>
   
 <script type="text/javascript">
   $("#linktest").click(function(e){
     e.preventDefault();
     // send arbitrary data on events, change name:value to be your data
-    analytics.track("eventname", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
-
+    analytics.track("eventname", {
+      "_ev":"share", hello:"world",share_type:"twitter",
+      "cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" 
+    });
   });
 </script>
 </section>
@@ -31,7 +34,8 @@ analytics.pageview();
   <div class="span6">
     <h2>Analytics.js</h2>
     This an example showing usage with <a href="https://github.com/segmentio/analytics.js">github.com/segmentio/analytics.js</a> an open-source
-    tag management that wraps multiple other tags.
+    tag management that wraps multiple other tags.   Or use the excellent Service from <a href="http://segment.io">Segment.io</a>.   
+     Full list of providers <a href="https://github.com/segmentio/analytics.js/tree/master/src/providers">https://github.com/segmentio/analytics.js/tree/master/src/providers</a>
     <h2>Events...</h2>
     <a href="#" id="linktest">Click This link for Event Based Send</a>
       <br /><br />
