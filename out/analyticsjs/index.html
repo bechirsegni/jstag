@@ -130,7 +130,7 @@
         
         <section class="slide" id="example_usage">
 
-<script src="https://raw.github.com/segmentio/analytics.js/master/analytics.min.js"></script>
+<script src="../analytics.js"></script>
 <script type="text/javascript">
 
 analytics.initialize({ 'Lytics' : {cid:"YOUR_ID"} });
@@ -141,8 +141,8 @@ analytics.pageview();
 <script type="text/javascript">
   $("#linktest").click(function(e){
     e.preventDefault();
-    // send arbitrary data on events
-    analytics.track("clickonstuff", {"_ev":"share", hello:"world"});
+    // send arbitrary data on events, change name:value to be your data
+    analytics.track("eventname", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
 
   });
 </script>
