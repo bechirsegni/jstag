@@ -144,7 +144,7 @@
     (function(w){
        var lfbInt;
        function waitForFB(){
-        if (w.FB) {
+        if (w.FB && !w.FB.jstagRun) {
           clearInterval(lfbInt);
           // Additional init code here
           FB.getLoginStatus(function(response) {
@@ -156,7 +156,7 @@
           });
         }
        }
-       setInterval(waitForFB,500);
+       lfbInt = setInterval(waitForFB,500);
      }(window));
 
   </script>
