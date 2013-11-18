@@ -520,7 +520,7 @@
       // determine if we are in an iframe
       if (win.location != win.parent.location) o.data["_if"] =  "t";
       // clean up uid
-      if ("_uid" in o.data && (!o.data["_uid"]) || o.data["_uid"] == "null" || o.data["_uid"] == "undefined") {
+      if (("_uid" in o.data) && (!o.data["_uid"] || o.data["_uid"] == "null" || o.data["_uid"] == "undefined")) {
         delete o.data["_uid"]
       }
       var ga = ckieGet("__utma"), gai = -1
