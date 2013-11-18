@@ -1,3 +1,4 @@
+/* jshint laxcomma:true, sub:true, asi:true */
 // v1.11 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
@@ -7,13 +8,13 @@
     , config = jstag.config || {}
     , l = 'length'
     , cache = {}
-    , uidv = undefined
-    , didGetId = undefined
+    , uidv
+    , didGetId
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString
     , dref = referrer()
     , uri = parseUri()
-    , sesStart = undefined
+    , sesStart
   
   win['jstag'] = jstag;
 
@@ -70,7 +71,7 @@
   */
   function extend(target, source, overwrite){
     if (!source) return target;
-    for (p in source){
+    for (var p in source){
       if (source.hasOwnProperty(p) && (!(p in target) || overwrite)){
         target[p] = source[p]
       }
@@ -85,7 +86,7 @@
     MIT License
   */
   function parseUri(str) {
-    if (str == undefined){
+    if (str === undefined){
         str = dloc.href;
     }
     var o   =  {
@@ -174,7 +175,7 @@
             r = ''
         }
     }
-    if (r == '') {
+    if (r === '') {
         r = doc.referrer
     }
     return r
@@ -224,12 +225,12 @@
    * @param the event name filter (string) to bind to
   **/
   function emit(evt){
-    var onetime = [],eventsn = []
+    var onetime = [], eventsn = [], cb,
       args = Array.prototype.slice.call(arguments,1);
     if (events[evt]&&events[evt].length){
       for (var i=0,len=events[evt].length;i<len;i++){
         if (isFn(events[evt][i])){
-          var cb = events[evt][i];
+          cb = events[evt][i];
           if (cb.opts.onetime){
             onetime.push(cb);
           } else {
@@ -240,9 +241,9 @@
       }
     }
     events[evt] = eventsn
-    for (var i = onetime[l] - 1; i >= 0; i--) {
-      onetime[i].apply({},args)
-    };
+    for (var k = onetime[l] - 1; k >= 0; k--) {
+      onetime[k].apply({},args)
+    }
     //onetime.forEach(function(cb){
     //  cb.apply({}, args);
     //})
@@ -275,7 +276,7 @@
     if ("_q" in jstag && isArray(jstag._q)){
       for (var i = jstag._q.length - 1; i >= 0; i--) {
         handleQitem(jstag._q[i])
-      };
+      }
       // don't emit ready here, tooooo soon
     }
   }
@@ -428,7 +429,7 @@
             var g = new Gif(opts)
             try {
               g.send(data)
-            } catch (e){}
+            } catch (err){}
           }
         }
       }
@@ -448,9 +449,9 @@
     analyze: function(o){
       if (!("_e" in o.data)) o.data["_e"] = "pv";
       var ses = ckieGet(jstag.config.sesname)
-        , ref = undefined
-      for (k in uri.qs) {
-        if (k.indexOf("utm_") == 0){
+        , ref
+      for (var k in uri.qs) {
+        if (k.indexOf("utm_") === 0){
           o.data[k] = uri.qs[k]
         }
       }
@@ -461,7 +462,7 @@
           if (qsa in uri.qs){
             o.data[qsa] = uri.qs[qsa]
           }
-        };
+        }
       }
 
       if (!ses) {
@@ -519,7 +520,7 @@
       // determine if we are in an iframe
       if (win.location != win.parent.location) o.data["_if"] =  "t";
       // clean up uid
-      if ("_uid" in o.data && (o.data["_uid"] == undefined) || o.data["_uid"] == "null" || o.data["_uid"] == "undefined") {
+      if (("_uid" in o.data) && (!o.data["_uid"] || o.data["_uid"] == "null" || o.data["_uid"] == "undefined")) {
         delete o.data["_uid"]
       }
       var ga = ckieGet("__utma"), gai = -1
@@ -559,9 +560,9 @@
     if (arguments.length == 1){
       ns = ""
     }
-    for (p in data){
+    for (var p in data){
       key = p
-      if (ns != "") {
+      if (ns !== "") {
         key = ns + '.' + p
       }
       if (isObject(data[p])){
@@ -572,7 +573,7 @@
         as.push(key + '=[' + encode(data[p].join(",")) + "]")
       } else if (isString(data[p]) && data[p].length > 0) {
         as.push(key + '=' + encode(data[p]))
-      } else if (data[p] != null && data[p] != undefined ){
+      } else if (data[p] !== null && data[p] !== undefined ){
         as.push(key + '=' + encode(data[p]))
       }
     }
@@ -613,7 +614,7 @@
       // it is possible to create more than 1 sender, send events multiple locations
       for (var i = cache['io'].length - 1; i >= 0; i--) {
         cache['io'][i].send(data,cb,stream);
-      };
+      }
     } else {
       var io = new Io();// this will auto-cache
       io.send(data,cb,stream);
@@ -633,7 +634,7 @@
       init: function(opts){
         self = this
         o = config
-        if (!o.url || o.url == ''){
+        if (!o.url || o.url === ''){
           var tagel = doc.getElementById(o.tagid), elu = null;
           if (tagel) {
             elu = parseUri(tagel.getAttribute("src"))
@@ -662,14 +663,13 @@
           } else if (item in win){
             _pipe.push(win[pitem])
           }
-        };
+        }
 
         // if they supplied a Q, wire it up
         if (o.Q && o.length > 0){
-          var i = 0, l = Q.length;
-          for (var i = o.Q.length - 1; i >= 0; i--) {
-            self.send.apply(self,o.Q[i])
-          };
+          for (var k = o.Q.length - 1; k >= 0; k--) {
+            self.send.apply(self,o.Q[k])
+          }
         }
         if (o.Q){
           o.Q.push=function(){
@@ -714,7 +714,7 @@
           if (!(_pipe[i].onetime)){
             pipeNew.push(_pipe[i])
           }
-        };
+        }
         _pipe = pipeNew
 
         // now for the actual collection
@@ -745,7 +745,7 @@
   function oToS(o,lead){
     var s = '';
     lead = lead || ''
-    for (p in o){
+    for (var p in o){
       if (isObject(o[p])) {
         s += oToS(o[p], p + ".")
       } else if (isFn(o[p])) {
