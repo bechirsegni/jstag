@@ -144,17 +144,19 @@
     (function(w){
        var lfbInt;
        function waitForFB(){
-        if (w.FB && !w.FB.jstagRun) {
-          clearInterval(lfbInt);
-          // Additional init code here
-          FB.getLoginStatus(function(response) {
-            if (response.status === 'connected') {
-              jstag.send({fbstatus:"c",fbuid:response.authResponse.userID})
-            } else {
-              jstag.send({fbstatus:"nc"})
-            }
-          });
-        }
+        try {
+          if (w.FB && !w.FB.jstagRun) {
+            clearInterval(lfbInt);
+            // Additional init code here
+            FB.getLoginStatus(function(response) {
+              if (response.status === 'connected') {
+                jstag.send({fbstatus:"c",fbuid:response.authResponse.userID})
+              } else {
+                jstag.send({fbstatus:"nc"})
+              }
+            });
+          }
+        } catch (err) {}
        }
        lfbInt = setInterval(waitForFB,500);
      }(window));
