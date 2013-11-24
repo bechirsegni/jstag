@@ -123,7 +123,7 @@ if (!Array.prototype.map) {
     , getid : makeid
     , serializer:toString
     , pipeline:['identity','analyze']
-    , delay:200
+    , delay:1000
     , path: '/c/'
     , idpath: '/cid/'
     , cookie:"seerid"
