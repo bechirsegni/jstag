@@ -200,6 +200,7 @@ if (!Array.prototype.map) {
   */
   function makeid(cb){
     jstag.setid(s16())
+    if (isFn(cb)) cb(uidv);
   }
   /**
    * the built in getid assumes you have jquery
