@@ -16,8 +16,6 @@ pageOrder: 5
     (function(w){
        var lfbInt,maxWait=0;
        function waitForFB(){
-        // lets just send if we don't appear to have facebook
-        if (maxWait == 4) { jstag.send(); }
         try {
           if (w.FB && !w.FB.jstagRun) {
             clearInterval(lfbInt);
@@ -28,8 +26,11 @@ pageOrder: 5
                 jstag.send({fbstatus:"nc"})
               }
             });
+            return
           }
         } catch (err) {}
+        // lets just send if we don't appear to have facebook
+        if (maxWait == 4) { jstag.send(); }
         maxWait++;
        }
        lfbInt = setInterval(waitForFB,500);
