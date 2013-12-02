@@ -45,7 +45,7 @@ pageOrder: 5
 
     window.fbAsyncInit = function() {
       FB.init({
-        appId      : '391578834257696', // Your App ID
+        appId      : '391578834257696', // This is Lytics Demo Facebook ID, replace with Yours
         channelUrl : '/channel.html', // Channel File
         status     : true, // check login status
         cookie     : true, // enable cookies to allow the server to access the session
