@@ -231,13 +231,14 @@
   <link rel="stylesheet" href="/jstag/out/codemirror.css">
   <script src="/jstag/out/codemirror.js"></script>
   <script src="/jstag/out/mode/javascript/javascript.js"></script>
+  <script src="/jstag/out/mode/htmlembedded/htmlembedded.js"></script>
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function(){
       var exHtml = $("#example_usage").html() 
       if (exHtml) {
         $("#cmeditor").val(exHtml);
         var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
-            mode: 'text/html',tabMode: 'indent',lineNumbers: true,
+            mode: 'html',tabMode: 'indent',lineNumbers: true,
             overflow:true,indentUnit: 4,height:"250px"
         });
       }
