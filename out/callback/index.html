@@ -188,11 +188,11 @@
     $(document).ready(function(){
       var exHtml = $("#example_usage").html() 
       if (exHtml) {
+        $("#cmeditor").val(exHtml);
         var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
             mode: 'text/html',tabMode: 'indent',lineNumbers: true,
             overflow:true,indentUnit: 4,height:"250px"
         });
-        docHtml.setValue(exHtml);
       }
     })
   </script>
