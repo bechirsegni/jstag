@@ -22,7 +22,7 @@ layout: default
 </script>
 <!-- end jstag -->
 
-<section class="slide" id="ex_usage" style="display:none;">
+<section class="slide" id="ex_usage" style="displayx:none; overflow:hidden;height:0px;">
   jstag.init({cid:"YOUR_ID",url:'<%= @getUrl() %>',ext:".js"})
   
   // edit this and add your own data, possibly add a real cid above
@@ -51,11 +51,12 @@ layout: default
   $(document).ready(function(){
     var exHtml = $("#ex_usage").html() 
     if (exHtml) {
+      $("#cmeditor").val(exHtml);
       var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
-          mode: 'text/javascript',tabMode: 'indent',lineNumbers: true,
+          mode: 'javascript',tabMode: 'indent',lineNumbers: true,
           overflow:true,indentUnit: 4,height:"200px"
       });
-      docHtml.setValue(exHtml);
+      //docHtml.setValue(exHtml);
       // capture new tag submissions
       $("#consoleSubmit").click(function(){
         eval(docHtml.getValue());
