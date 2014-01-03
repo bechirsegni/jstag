@@ -46,7 +46,7 @@ $.when( hasTag )
 <div class="row-fluid">
 
   <div class="span6">
-    <h2>Simple...</h2>
+    <h2>Quersystring Arguments</h2>
     For pages that need to collect information out of Querystring arguments, use the <b>qsargs</b> parameter.
     
     <a href="http://lytics.github.com/jstag/out/simple/?search=my+search+term&argname1=value">Example Querystring Link</a>
