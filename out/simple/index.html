@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag Querystring Args | JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag Simple Async | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -109,15 +109,21 @@
                       </a>
                   </li>
               
+                   <li class="active">
+                      <a href="/jstag/out/simple/">
+                          Simple
+                      </a>
+                  </li>
+              
                    <li class="inactive">
                       <a href="/jstag/out/callback/">
                           Callbacks
                       </a>
                   </li>
               
-                   <li class="active">
-                      <a href="/jstag/out/simple/">
-                          Querystring
+                   <li class="inactive">
+                      <a href="/jstag/out/qsargs/">
+                          Querystring Args
                       </a>
                   </li>
               
@@ -158,7 +164,7 @@ $.when( hasTag )
 // Load the jstag Asynchronously
 (function(d){
    window.jstagAsyncInit = function(){
-     jstag.init({cid:"YOUR_ID", qsargs:["qsargname","search"]});
+     jstag.init({cid:"YOUR_ID"});
      jstag.send({your_data:"here"});
    }
 
@@ -177,9 +183,11 @@ $.when( hasTag )
 
   <div class="span6">
     <h2>Simple...</h2>
-    To automatically extract arguments from the querystring and pass through as parameters, use the <b>qsargs</b> parameter.
+    For pages that have a single usage of jstag, and only need to call it in one place
+    a simpler usage is to load the tag asynchronously and callback to an async callback
+    to collect data
     
-    <a href="http://lytics.github.com/jstag/out/simple/?search=my+term&qsargname=argvalue">link</a>
+    <a href="http://lytics.github.com/jstag/out/simple/?utm_source=jstag&utm_medium=banner">link</a>
     
   </div>
 
