@@ -193,6 +193,8 @@ if (!Array.prototype.map) {
     return uri;
   }
 
+  jstag["parseUri"] = parseUri;
+
   function s16() {
      return ((1+Math.random())*0x10000).toString()
   }
