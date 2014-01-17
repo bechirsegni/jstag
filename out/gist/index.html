@@ -214,7 +214,7 @@
       dataType: 'jsonp'
     }).success( function(gistdata) {
 
-        var content '';
+        var content = '';
         for (var page in gistdata.data.files) {
            content = gistdata.data.files[page].content;
         }
