@@ -37,6 +37,7 @@ supress_cm: true
     MIT License
   */
   function parseUri(str) {
+   var dloc = document.location;
     if (str === undefined){
         str = dloc.href;
     }
