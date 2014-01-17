@@ -54,6 +54,7 @@
     , qsargs: []
     , ref: true
     , tagid: 'jstag-csdk'
+    , pagedata: {}
   })
 
   function isFn(it){return otostr.call(it) === "[object Function]"}
@@ -571,7 +572,9 @@
       } else if (isFn(data[p])) {
         as.push(key + '=' + encode(data[p]()))
       } else if (isArray(data[p])) {
-        as.push(key + '=[' + encode(data[p].join(",")) + "]")
+        for (var ai = data[p].length - 1; ai >= 0; ai--) {
+          as.push(key + '=' + encode(data[p][ai]))
+        }
       } else if (isString(data[p]) && data[p].length > 0) {
         as.push(key + '=' + encode(data[p]))
       } else if (data[p] !== null && data[p] !== undefined ){
@@ -680,14 +683,15 @@
         jstag.emit("io.ready",this)
       },
       collect:function(opts,cb){
-        var self = this
+        var self = this, dataout = {}
 
         jstag.emit("send.before", opts)
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
+        dataout = extend(opts.data,config.pagedata,false)
         // now send
-        this.channel.send(this.serializer(opts.data),{callback:function(to){
+        this.channel.send(this.serializer(dataout),{callback:function(to){
           opts.returndata = to
           if (isFn(cb)){
             cb(opts,self);
