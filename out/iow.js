@@ -79,7 +79,7 @@ if (!Array.prototype.map) {
   };      
 }
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.12 JS Library for data collection. MIT License.
+// v1.13 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
