@@ -233,18 +233,23 @@
       });
       docHtml.setValue(content);
       // capture new tag submissions
-      $("#consoleSubmit").click(function(){
+      $("#consoleSubmit").on("click", function(){
+
+        //load/eval the script
         eval(docHtml.getValue());
+        
+        window.jstag.bind("send.finished",function(o,io){
+          $("#output").html(io.debug())
+          $("#output table").addClass("table table-condensed")
+        })
+        
         try{
         } catch (e){
           console.log(e)
         }
       })
   }
-  jstag.bind("send.finished",function(o,io){
-    $("#output").html(io.debug())
-    $("#output table").addClass("table table-condensed")
-  })
+  
 </script>
       </div>
     </div>
