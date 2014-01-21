@@ -692,7 +692,7 @@
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
-        dataout = extend(opts.data,config.pagedata,false)
+        dataout = extend(opts.data,config.pagedata,false);
         // now send
         this.channel.send(this.serializer(dataout),{callback:function(to){
           opts.returndata = to
