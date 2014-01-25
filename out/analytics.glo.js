@@ -27,10 +27,14 @@ function require(path, parent, orig) {
   // perform real require()
   // by invoking the module's
   // registered function
-  if (!module.exports) {
-    module.exports = {};
-    module.client = module.component = true;
-    module.call(this, module.exports, require.relative(resolved), module);
+  if (!module._resolving && !module.exports) {
+    var mod = {};
+    mod.exports = {};
+    mod.client = mod.component = true;
+    module._resolving = true;
+    module.call(this, mod.exports, require.relative(resolved), mod);
+    delete module._resolving;
+    module.exports = mod.exports;
   }
 
   return module.exports;
@@ -64,7 +68,6 @@ require.aliases = {};
 
 require.resolve = function(path) {
   if (path.charAt(0) === '/') path = path.slice(1);
-  var index = path + '/index.js';
 
   var paths = [
     path,
@@ -77,10 +80,7 @@ require.resolve = function(path) {
   for (var i = 0; i < paths.length; i++) {
     var path = paths[i];
     if (require.modules.hasOwnProperty(path)) return path;
-  }
-
-  if (require.aliases.hasOwnProperty(index)) {
-    return require.aliases[index];
+    if (require.aliases.hasOwnProperty(path)) return require.aliases[path];
   }
 };
 
@@ -3285,7 +3285,7 @@ module.exports = Provider.extend({
       return t;
     })();
 
-    load('//c.lytics.io/static/io' + (options.minified ? '.min' : '') + '.js');
+    load(options.url + '/static/io' + (options.minified ? '.min' : '') + '.js');
 
     if (options.initialPageview) {
       this.pageview();
@@ -3310,6 +3310,58 @@ module.exports = Provider.extend({
 
 });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 require.alias("avetisk-defaults/index.js", "analytics/deps/defaults/index.js");
 require.alias("avetisk-defaults/index.js", "defaults/index.js");
 
@@ -3357,7 +3409,6 @@ require.alias("component-bind/index.js", "segmentio-bind-all/deps/bind/index.js"
 require.alias("component-type/index.js", "segmentio-bind-all/deps/type/index.js");
 
 require.alias("segmentio-bind-all/index.js", "segmentio-bind-all/index.js");
-
 require.alias("segmentio-canonical/index.js", "analytics/deps/canonical/index.js");
 require.alias("segmentio-canonical/index.js", "canonical/index.js");
 
@@ -3397,26 +3448,22 @@ require.alias("segmentio-json/index.js", "segmentio-store.js/deps/json/index.js"
 require.alias("component-json-fallback/index.js", "segmentio-json/deps/json-fallback/index.js");
 
 require.alias("segmentio-store.js/store.js", "segmentio-store.js/index.js");
-
 require.alias("segmentio-top-domain/index.js", "analytics/deps/top-domain/index.js");
 require.alias("segmentio-top-domain/index.js", "analytics/deps/top-domain/index.js");
 require.alias("segmentio-top-domain/index.js", "top-domain/index.js");
 require.alias("component-url/index.js", "segmentio-top-domain/deps/url/index.js");
 
 require.alias("segmentio-top-domain/index.js", "segmentio-top-domain/index.js");
-
 require.alias("timoxley-next-tick/index.js", "analytics/deps/next-tick/index.js");
 require.alias("timoxley-next-tick/index.js", "next-tick/index.js");
 
 require.alias("yields-prevent/index.js", "analytics/deps/prevent/index.js");
 require.alias("yields-prevent/index.js", "prevent/index.js");
 
-require.alias("analytics/src/indexShim.js", "analytics/index.js");
-
-if (typeof exports == "object") {
+require.alias("analytics/src/indexShim.js", "analytics/index.js");if (typeof exports == "object") {
   module.exports = require("analytics");
 } else if (typeof define == "function" && define.amd) {
-  define(function(){ return require("analytics"); });
+  define([], function(){ return require("analytics"); });
 } else {
   this["analytics"] = require("analytics");
 }})();

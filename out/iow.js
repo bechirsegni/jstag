@@ -87,6 +87,7 @@ if (!Array.prototype.map) {
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
+    , ioVersion = "1.13"
     , cache = {}
     , uidv
     , didGetId
@@ -771,7 +772,7 @@ if (!Array.prototype.map) {
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
-        dataout = extend(opts.data,config.pagedata,false)
+        dataout = extend(opts.data,config.pagedata,false);
         // now send
         this.channel.send(this.serializer(dataout),{callback:function(to){
           opts.returndata = to

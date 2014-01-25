@@ -3285,7 +3285,7 @@ module.exports = Provider.extend({
       return t;
     })();
 
-    load('//c.lytics.io/static/io' + (options.minified ? '.min' : '') + '.js');
+    load(options.url + '/static/io' + (options.minified ? '.min' : '') + '.js');
 
     if (options.initialPageview) {
       this.pageview();
