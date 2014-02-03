@@ -341,7 +341,6 @@
      * @constructur
     */
     Gif: function(opts){
-      //if (!(this instanceof Gif)) return new Gif(opts);
       return {
         images:[],
         /**
@@ -431,7 +430,8 @@
               }, config.delay * 2);
             }, 0);
           } catch(e) {
-            var g = new Gif(opts)
+            // If iFrame transport fails, fallback on Gif
+            var g = new jstag.channels.Gif(opts);
             try {
               g.send(data)
             } catch (err){}
