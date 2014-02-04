@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 echo "Create iow.js"
-cat src/files/shim.js src/files/io.js  > src/files/iow.js
+cat src/files/io.js > src/files/iow.js
+#cat src/files/shim.js src/files/io.js  > src/files/iow.js
 
 echo "minify async.js"
 uglifyjs -o src/files/async2.min.js src/files/async2.js
