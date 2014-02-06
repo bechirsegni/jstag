@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.15 JS Library for data collection. MIT License.
+// v1.16 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.15"
+    , ioVersion = "1.16"
     , cache = {}
     , uidv
     , didGetId
@@ -414,18 +414,11 @@
               inp.setAttribute("name", "_js");
               inp.value = data;
               form.appendChild(inp);
-              /*
-              if ( window.addEventListener ) { 
-                iframe.addEventListener( "load", onFinish, false );
-              } else if ( window.attachEvent ) { 
-                iframe.attachEvent( "onload", onFinish );
-              } else if (iframe.onload) {
-                iframe.onload = onFinish;
-              } 
-              */
               form.submit();
               setTimeout(function(){
-                doc.body.removeChild(iframe);
+                try {
+                  doc.body.removeChild(iframe);
+                } catch (err) { }
                 onFinish({timeout:true})
               }, config.delay * 2);
             }, 0);
