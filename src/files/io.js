@@ -387,16 +387,16 @@
     Form: function(opts){
        // form based communication channel
       this.config = opts
-      var self = this;
-      return {
-        sendAlternate:function(data){
+      var self = this
+        , sendAlternate = function(data){
             // If iFrame transport fails, fallback on Gif
             var g = new jstag.channels.Gif(opts);
             try {
-              g.send(data)
+              g.send(data);
             } catch (err){}
-        }
-        , send: function(data,o){
+        };
+      return {
+        send: function(data,o){
           try {
             var iframe = doc.createElement("iframe")
               , form
@@ -414,7 +414,7 @@
             setTimeout(function() {
               form = iframe.contentWindow.document.createElement("form");
               if (!(iframe.contentWindow.document.body)) {
-                return self.sendAlternate(data)
+                return sendAlternate(data)
               }
               iframe.contentWindow.document.body.appendChild(form);
               form.setAttribute("action", opts.sendurl );
@@ -433,7 +433,7 @@
               }, config.delay * 2);
             }, 0);
           } catch(e) {
-            self.sendAlternate(data);
+            sendAlternate(data);
           }
         }
       }
