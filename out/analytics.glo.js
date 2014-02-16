@@ -1764,10 +1764,13 @@ var Analytics = require('./analytics')
 
 var analytics = new Analytics(providers);
 
+if (!analytics["page"]) {
+	analytics["page"] = analytics.pageview
+}
+
 if (window.analyticsInit) {
   window.analyticsInit(analytics)
 }
-
 
 // Loop through the interim analytics queue and reapply the calls to their
 // proper analytics.js method.

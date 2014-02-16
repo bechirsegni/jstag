@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag test page | JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag Lite | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -97,7 +97,7 @@
                       </a>
                   </li>
               
-                   <li class="active">
+                   <li class="inactive">
                       <a href="/jstag/out/inline/">
                           Inline
                       </a>
@@ -133,7 +133,7 @@
                       </a>
                   </li>
               
-                   <li class="inactive">
+                   <li class="active">
                       <a href="/jstag/out/lite/">
                           Lite
                       </a>
@@ -152,26 +152,59 @@
         
         <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
         
-        <div id="example_usage">
-  <!-- start jstag  -->
-  <script type="text/javascript" src="//c.lytics.io/static/io.min.js"></script>
-  <script type="text/javascript">
-    
-    jstag.init({cid:"YOUR_ACCOUNT_ID",url:'//c.lytics.io'}) 
-    jstag.send({"category":"hello","catid":6});
+        <section class="slide" id="example_usage">
+<!-- start jstag  -->
+<script type="text/javascript">
+window.jstag = window.jstag || (function () {
+  var t={_q:[],_c:{},ts:(new Date()).getTime()},l=false,w=window,d=document,as=Array.prototype.slice,n="jstag.lite.js";
+    //{url:,min:true}
+    t.init=function(c){
+      if (!"min" in c) c.min = true;
+      t._c = c
+      return this
+    }
+    t.load=function(){
+      var js,
+        fjs = d.getElementsByTagName("script")[0];
+      l = true;
+      if (d.getElementById(n)) return this; 
+      js=d.createElement("script"); 
+      js.id=n;
+      t._c.url = t._c.url||'//c.lytics.io';
+      js.src=t._c.url + "/static/io.lite" + (t._c.min ? ".min.js" : ".js"); 
+      fjs.parentNode.insertBefore(js, fjs);
+      return this;
+    }
+    t.send=function(){
+      if (!l) this.load();
+      this._q.push(["send",as.call(arguments)]);
+      return this;
+    }
+    return t
+  }
+)();
 
-  </script>
-  <!-- end jstag -->
-</div>
+jstag.init({key:"API_KEY", min:false})
+
+// NOTE the send and callback
+jstag.send({"category":"hello","catid":6},function(o,io){
+try{
+  console.log("hello, cb " + JSON.stringify(o))
+} catch (e){}
+});
+</script>
+<!-- end jstag -->
+</section>
+
 
 <div class="row-fluid">
 
   <div class="span6">
-    <h2>Jstag Inline example</h2>
-    <p>This showcases usage of inline include of javascript.
-        Although this works fine, the recommended usage is Async for
-        better performance.
-    </p>
+    <h2>Callbacks...</h2>
+    Use callbacks to be notified after tracking has occured.  It is not safe to navigate away
+    from page.   
+    
+    
   </div>
 
   <div class="span6">
@@ -181,9 +214,7 @@
 
 </div>
 
-
 <script type="text/javascript">
-  // for test purposes only to output what was sent, not needed for your implementation
   jstag.bind("send.finished",function(o,io){
     $("#output").html(io.debug())
     $("#output table").addClass("table table-condensed")
