@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag test page | JSTag Open Source Javascript Event Collection Tag</title>
+  <title>Google Tag Manager | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -97,7 +97,7 @@
                       </a>
                   </li>
               
-                   <li class="active">
+                   <li class="inactive">
                       <a href="/jstag/out/inline/">
                           Inline
                       </a>
@@ -145,7 +145,7 @@
                       </a>
                   </li>
               
-                   <li class="inactive">
+                   <li class="active">
                       <a href="/jstag/out/gtm/">
                           Google Tag Manager
                       </a>
@@ -158,26 +158,55 @@
         
         <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
         
-        <div id="example_usage">
-  <!-- start jstag  -->
-  <script type="text/javascript" src="//c.lytics.io/static/io.min.js"></script>
-  <script type="text/javascript">
-    
-    jstag.init({cid:"YOUR_ACCOUNT_ID",url:'//c.lytics.io'}) 
-    jstag.send({"category":"hello","catid":6});
+        <script type="text/javascript">
+var hasTag = $.Deferred()
+  , tagChecker=setInterval(checkTag = function(){
+      if ("jstag" in window) hasTag.resolve()
+    }, 100);
 
-  </script>
-  <!-- end jstag -->
-</div>
+$.when( hasTag )
+ .then(function(){
+    jstag.bind("send.finished",function(o,io){
+      $("#output").html(io.debug())
+      $("#output table").addClass("table table-condensed")
+    })
+    clearInterval(tagChecker)
+});
+
+</script>
+
+
+<section class="slide" id="example_usage">
+<script type="text/javascript">
+// We assume you use a dataLayer, to load data
+var dataLayer = [{
+  category:"ourdata",
+  nameofstuff:"more"
+}]
+setTimeout(function(){
+  dataLayer.push({'event':'eventNameXYZ','datax':'datay'}) 
+}, 5000)
+</script>
+
+<!-- Google Tag Manager -->
+<noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-CMZD"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-CMZD');</script>
+<!-- End Google Tag Manager -->
+</section>
+
 
 <div class="row-fluid">
 
   <div class="span6">
-    <h2>Jstag Inline example</h2>
-    <p>This showcases usage of inline include of javascript.
-        Although this works fine, the recommended usage is Async for
-        better performance.
-    </p>
+    <h2>Google Tag Manager</h2>
+    
+    <a href="#click" >Link Click Test</a>
+    
   </div>
 
   <div class="span6">
@@ -186,15 +215,6 @@
   </div>
 
 </div>
-
-
-<script type="text/javascript">
-  // for test purposes only to output what was sent, not needed for your implementation
-  jstag.bind("send.finished",function(o,io){
-    $("#output").html(io.debug())
-    $("#output table").addClass("table table-condensed")
-  })
-</script>
       </div>
     </div>
   </div>

@@ -1,9 +1,9 @@
 window.jstag = (function () {
   var t={_q:[],_c:{},ts:(new Date()).getTime()},l=false,w=window,d=document,src="/static/io",
-    as=Array.prototype.slice,sp;
+    as=Array.prototype.slice,sourcePath,tag="io";
   t.init=function(c){
-    sp= c.js ? c.js : c.url||""
-    c.ext=c.ext||".min.js"
+    sourcePath= c.js ? c.js : c.url||""
+    c.ext= c.min===false ? ".min.js" | ".js"
     t._c = c
     return this
   }
@@ -14,7 +14,7 @@ window.jstag = (function () {
     if (d.getElementById(src)) return this; 
     js=d.createElement("script"); 
     js.id=src;
-    js.src=sp+src+t._c.ext; 
+    js.src=sourcePath+"/static/io"+t._c.ext; 
     fjs.parentNode.insertBefore(js, fjs);
     return this;
   }
