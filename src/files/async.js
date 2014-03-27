@@ -13,7 +13,7 @@ window.jstag = (function () {
     // allow url for hosting tag, and collection (to be used  jstag.init({url:"//dev.someserver.mine"})
     url = c.url||url;
     // Minified version?   jstag.init({min:false})
-    ext = c.min===false ? ".js" | ext;
+    ext = c.min===false ? ".js" : ext;
     // which tag?   jstag.init({tag:false})
     tag = c.tag||tag;
     t._c = c;

@@ -6,9 +6,13 @@ cat src/files/io.js > src/files/iow.js
 
 echo "minify async.js"
 uglifyjs -o src/files/async2.min.js src/files/async2.js
+cp src/files/async2.min.js out/async2.min.js
+
 uglifyjs -o src/files/async.min.js src/files/async.js
 cp src/files/async.min.js out/async.min.js
-cp src/files/async2.min.js out/async2.min.js
+
+uglifyjs -o src/files/async.lite.min.js src/files/async.lite.js
+cp src/files/async.lite.min.js out/async.lite.min.js
 
 echo "Minify io.js"
 uglifyjs -o src/files/io.min.js src/files/io.js

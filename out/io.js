@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.16 JS Library for data collection. MIT License.
+// v1.17 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.16"
+    , ioVersion = "1.17"
     , cache = {}
     , uidv
     , didGetId
@@ -18,6 +18,7 @@
     , sesStart
   
   win['jstag'] = jstag;
+  jstag.isLoaded = true;
 
   if (!win.console){
    win.console = {log:function(){}};
@@ -323,6 +324,7 @@
         ((secure) ? "; secure" : "");
     doc.cookie = cv
   }
+  jstag['ckieSet'] = ckieSet;
 
   function addQs(url, n, v) {
     if (url.indexOf("?") < 1) url += "?"
