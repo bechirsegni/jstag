@@ -57,6 +57,7 @@
     , ref: true
     , tagid: 'jstag-csdk'
     , pagedata: {}
+    , version : ioVersion
   })
 
   function isFn(it){return otostr.call(it) === "[object Function]"}
