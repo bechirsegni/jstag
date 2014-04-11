@@ -16,7 +16,7 @@
     body {padding-top: 60px;color: #404040;font: 13px/1.231 'Open Sans', sans-serif;}
     .containerx {width:1100px;}
     #why .icon-large {font-size: 18px;text-align: center;padding-right: 4px;}
-    .CodeMirror {border: 1px solid black;}
+    .CodeMirror {border: 1px solid black;height: 350px;}
     .cm-mustache {color: #0ca;}
     .CodeMirror-scroll {min-height: 200px; overflow: auto;background-color:#fff;}
   </style>
@@ -30,11 +30,11 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="/jstag/out/">JSTag</a>
+        <a class="brand" href="/">JSTag</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
-            <li class="active"><a href="/jstag/out/">Home</a> </li>
-            <li class=""><a href="/jstag/out/testrun/">Test Specs</a></li>
+            <li class="active"><a href="/">Home</a> </li>
+            <li class=""><a href="/testrun/">Test Specs</a></li>
             <!--<li><a href="#contact">Contact</a></li>-->
           </ul>
         </div><!--/.nav-collapse -->
@@ -50,104 +50,110 @@
               <li class="nav-header">Examples</li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/test/">
+                      <a href="/test/">
                           Example
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/twitter/">
+                      <a href="/twitter/">
                           Twitter
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/iframe/">
+                      <a href="/iframe/">
                           Iframe
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/fb/">
+                      <a href="/fb/">
                           Facebook JS
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/fblike/">
+                      <a href="/fblike/">
                           Facebook Like
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/getid/">
+                      <a href="/getid/">
                           Get User Id
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/fbsmall/">
+                      <a href="/fbsmall/">
                           Facebook JS2
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/analyticsjs/">
+                      <a href="/analyticsjs/">
                           Analytics.js
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/inline/">
+                      <a href="/inline/">
                           Inline
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/console/">
+                      <a href="/console/">
                           Console
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/simple/">
+                      <a href="/simple/">
                           Simple
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/qsargs/">
+                      <a href="/qsargs/">
                           Querystring Args
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/callback/">
+                      <a href="/callback/">
                           Callbacks
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/binding/">
+                      <a href="/binding/">
                           Bindings
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/lite/">
+                      <a href="/lite/">
                           Lite
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/gist/">
+                      <a href="/gist/">
                           Gist Viewer
                       </a>
                   </li>
               
                    <li class="inactive">
-                      <a href="/jstag/out/gtm/">
+                      <a href="/gtm/">
                           Google Tag Manager
+                      </a>
+                  </li>
+              
+                   <li class="inactive">
+                      <a href="/jsuser/">
+                          JS User
                       </a>
                   </li>
               
@@ -175,7 +181,7 @@
 <!-- end jstag -->
 
 <section class="slide" id="ex_usage" style="displayx:none; overflow:hidden;height:0px;">
-  jstag.init({cid:"YOUR_ID",url:'//c.lytics.io',ext:".js"})
+  jstag.init({cid:"YOUR_ID",url:'//localhost:5353',ext:".js"})
   
   // edit this and add your own data, possibly add a real cid above
   jstag.send({category:"your_data"})
@@ -231,13 +237,16 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.1/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.1/underscore-min.js"></script>
-  
-  <link rel="stylesheet" href="/jstag/out/codemirror.css">
-  <script src="/jstag/out/codemirror.js"></script>
-  <script src="/jstag/out/mode/css/css.js"></script>
-  <script src="/jstag/out/mode/javascript/javascript.js"></script>
-  <script src="/jstag/out/mode/xml/xml.js"></script>
-  <script src="/jstag/out/mode/htmlmixed/htmlmixed.js"></script>
+  <script  src="/socket.io/socket.io.js"></script><script >var socket = io.connect('/docpad-live-reload');
+socket.on('regenerated',function(){
+	document.location.reload();
+});</script>
+  <link rel="stylesheet" href="/codemirror.css">
+  <script src="/codemirror.js"></script>
+  <script src="/mode/css/css.js"></script>
+  <script src="/mode/javascript/javascript.js"></script>
+  <script src="/mode/xml/xml.js"></script>
+  <script src="/mode/htmlmixed/htmlmixed.js"></script>
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function(){
       var exHtml = $("#example_usage").html() 
