@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>JSTag Event Bindings page | JSTag Open Source Javascript Event Collection Tag</title>
+  <title>JSTag User js page | JSTag Open Source Javascript Event Collection Tag</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400,700">
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
@@ -16,7 +16,7 @@
     body {padding-top: 60px;color: #404040;font: 13px/1.231 'Open Sans', sans-serif;}
     .containerx {width:1100px;}
     #why .icon-large {font-size: 18px;text-align: center;padding-right: 4px;}
-    .CodeMirror {border: 1px solid black;height: 250px;}
+    .CodeMirror {border: 1px solid black;height: 650px;}
     .cm-mustache {color: #0ca;}
     .CodeMirror-scroll {min-height: 200px; overflow: auto;background-color:#fff;}
   </style>
@@ -127,7 +127,7 @@
                       </a>
                   </li>
               
-                   <li class="active">
+                   <li class="inactive">
                       <a href="/jstag/out/binding/">
                           Bindings
                       </a>
@@ -151,7 +151,7 @@
                       </a>
                   </li>
               
-                   <li class="inactive">
+                   <li class="active">
                       <a href="/jstag/out/jsuser/">
                           JS User
                       </a>
@@ -165,38 +165,104 @@
         <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:550px;"></textarea>
         
         <section class="slide" id="example_usage">
-<!-- start jstag  -->
-<script type="text/javascript">
-  window.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",as=Array.prototype.slice,sp;t.init=function(c){sp=c.js?c.js:c.url||"";c.ext=c.ext||".min.js";t._c=c;return this};t.load=function(){var js,fjs=d.getElementsByTagName("script")[0];l=true;if(!("JSON"in w&&Array.prototype.forEach))src+="w";if(d.getElementById(src))return this;js=d.createElement("script");js.id=src;js.src=sp+src+t._c.ext;fjs.parentNode.insertBefore(js,fjs);return this};t.bind=function(e){this._q.push([e,as.call(arguments,1)])};t.ready=function(){this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
-  jstag.init({cid:"YOUR_ID",url:'//c.lytics.io'}).send({category:"mystuff",productid:22})  
-  // NOTE the send at the end of the previous line autmatically sends as it is loaded
-</script>
+  <!-- start jstag  -->
+  <script type="text/javascript">
+(function(w){
+  var otostr = Object.prototype.toString;
+  function isArray(it){return otostr.call(it) === "[object Array]"}
+  w.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",as=Array.prototype.slice,sp;t.init=function(c){sp=c.js?c.js:c.url||"";c.ext=c.ext||".min.js";t._c=c;return this};t.load=function(){var js,fjs=d.getElementsByTagName("script")[0];l=true;if(!("JSON"in w&&Array.prototype.forEach))src+="";if(d.getElementById(src))return this;js=d.createElement("script");js.id=src;js.src=sp+src+t._c.ext;fjs.parentNode.insertBefore(js,fjs);return this};t.bind=function(e){this._q.push([e,as.call(arguments,1)])};t.ready=function(){this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
+  
+  // This initialilizes and loads the js async
+  w.jstag.init({cid:"15",url:"//c.lytics.io"}).load();
+  
+  // when its loaded/ready
+  w.jstag.ready(function(){
+    // send page data
+    jstag.send({});
+    
+    // Load the segments, an object just for ease of if/then ing
+    loadLio(function(segments){
+      if (segments.group1) {
+
+      } else if (segments.group2) {
+
+      }
+    });
+  })
+ 
+  /*
+    We are only going to do the profile view on a split of users
+    ie, not all users even get segments loaded up just to make sure it isn't impacting anything
+
+  */
+  var loadSegments = function(cb) {
+        var lioid = jstag.getid()
+          , segObj = {}
+          , segmentStr = jstag.ckieGet("lio_seg") 
+          , segmentsSplit = []
+
+        if (segmentStr && segmentStr.length > 2) {
+          segmentsSplit = segmentStr.split(",")
+          for (var i = segmentsSplit.length - 1; i >= 0; i--) {
+            segObj[segmentsSplit] = true;
+          };
+          cb(segObj);
+          return
+        }
+        $.ajax({url: 'https://api.lytics.io/api/me/'+jstag.config.cid + "/" + lioid, type: 'GET', dataType: 'jsonp'})
+            .success( function(data) {
+              if (data) {
+                console.log(data);
+                if (data.segments && isArray(data.segments)) {
+                  for (var i = data.segments.length - 1; i >= 0; i--) {
+                    segObj[data.segments[i]] = true;
+                  };
+                  segmentStr = data.segments.join(",")
+                  // we have segments, set session cookie
+                  document.cookie = "lio_seg=" +segmentStr +"; path=/";
+                  cb(segObj);
+                  return
+                }
+              }
+              // we have no segments or data
+              document.cookie = "lio_seg=NONE,ALL; path=/";
+              cb({});
+        });
+  }
+  var loadLio = function(cb){
+    var oneOutOf = 1  // One out of 1 (10, 20) will participate
+
+      , split = jstag.ckieGet("lio_segsplit");
+
+    console.log("split = " + split)
+    if (!split) {
+      split = Math.floor(Math.random() * (oneOutOf + 1)) + 0;
+      // lets remember which split we are a member of
+      jstag.ckieSet("lio_segsplit", split + "");
+    } else {
+      split = parseInt(split);
+    }
+    // Only if they are in split group 1 OutOf (# above) do we even run this test
+    if (split < 10) {
+      loadSegments(cb)
+    }
+  }
+ 
+}(window));
+  </script>
   <!-- end jstag -->
   
-<script type="text/javascript">
-  jstag.bind("io.ready",function(o,io){
-    console.log(o)
-  })
-  jstag.bind("send.before",function(o,io){
-    console.log(o)
-  })
-  jstag.bind("send.finished",function(o,io){
-    console.log(o)
-  })
-</script>
 </section>
 
 
 <div class="row-fluid">
 
   <div class="span6">
-    <h2>Bindings...</h2>
-    Use bindings to insert data into the collection, remove, or edit.   
-    <ul>
-      <li><b>io.ready</b>:   After the tag has been loaded asynchronously</li>
-      <li><b>send.before</b>:   before sending data, last chance to edit/delete/add</li>
-      <li><b>send.finished</b>:  After send has finished</li>
-    </ul>
+    <h2>JS Personalization</h2>
+    <a href="#" id="linktest">Click This link for Event Based Send</a>
+    <h2>Get User Segments</h2>
+    using json api
+   
     
   </div>
 
@@ -207,11 +273,19 @@
 
 </div>
 
+
+
 <script type="text/javascript">
   jstag.bind("send.finished",function(o,io){
     $("#output").html(io.debug())
     $("#output table").addClass("table table-condensed")
   })
+  
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    jstag.send("stream2", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+    //jstag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
+  });
 </script>
       </div>
     </div>
@@ -233,7 +307,7 @@
         $("#cmeditor").val(exHtml);
         var docHtml = CodeMirror.fromTextArea(document.getElementById('cmeditor'), {
             mode: 'htmlmixed',tabMode: 'indent',lineNumbers: true,
-            overflow:true,indentUnit: 4,height:"250px"
+            overflow:true,indentUnit: 4,height:"650px"
         });
       }
     })

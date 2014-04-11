@@ -16,7 +16,7 @@
     body {padding-top: 60px;color: #404040;font: 13px/1.231 'Open Sans', sans-serif;}
     .containerx {width:1100px;}
     #why .icon-large {font-size: 18px;text-align: center;padding-right: 4px;}
-    .CodeMirror {border: 1px solid black;}
+    .CodeMirror {border: 1px solid black;height: 250px;}
     .cm-mustache {color: #0ca;}
     .CodeMirror-scroll {min-height: 200px; overflow: auto;background-color:#fff;}
   </style>
@@ -151,12 +151,18 @@
                       </a>
                   </li>
               
+                   <li class="inactive">
+                      <a href="/jstag/out/jsuser/">
+                          JS User
+                      </a>
+                  </li>
+              
             </ul>
           </div>
       </div>
       <div class="span10" id="contentContainer">
         
-        <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:350px;"></textarea>
+        <textarea id="cmeditor" name="cmeditor" class="demojs CodeMirror-scroll"  style="height:550px;"></textarea>
         
         <script type="text/javascript">
   window.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",as=Array.prototype.slice,sp;t.init=function(c){sp=c.js?c.js:c.url||"";c.ext=c.ext||".min.js";t._c=c;return this};t.load=function(){var js,fjs=d.getElementsByTagName("script")[0];l=true;if(!("JSON"in w&&Array.prototype.forEach))src+="w";if(d.getElementById(src))return this;js=d.createElement("script");js.id=src;js.src=sp+src+t._c.ext;fjs.parentNode.insertBefore(js,fjs);return this};t.bind=function(e){this._q.push([e,as.call(arguments,1)])};t.ready=function(){this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
