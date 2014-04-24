@@ -1,5 +1,9 @@
 window.jstag = (function () {
-  var t={_q:[],_c:{},ts:(new Date()).getTime()}
+  var t={
+        _q:[]
+        , _c:{}
+        , ts:(new Date()).getTime()
+      }
     , l=false
     , w=window
     , d=document
@@ -32,9 +36,11 @@ window.jstag = (function () {
     return this;
   }
   t.bind=function(e){
+    if (!l) this.load();
     this._q.push([e,as.call(arguments,1)]);
   }
   t.ready=function(){
+    if (!l) this.load();
     this._q.push(["ready",as.call(arguments)]);
   }
   t.send=function(){
