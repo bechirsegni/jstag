@@ -47,7 +47,7 @@ docpadConfig = {
 		getRoot: ->
 			ev = @getEnvironments()
 			if 'development' in ev
-				""
+				"/jstag/out"
 			else
 				"/jstag/out"
 
