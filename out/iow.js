@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.17 JS Library for data collection. MIT License.
+// v1.18 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.17"
+    , ioVersion = "1.18"
     , cache = {}
     , uidv
     , didGetId
@@ -52,7 +52,7 @@
     , sesname:"seerses"
     , stream: undefined
     , sessecs: 1800 
-    , channel:'Form'//  Form,Gif
+    , channel:'Gif'//  Form,Gif
     , qsargs: []
     , ref: true
     , tagid: 'jstag-csdk'
