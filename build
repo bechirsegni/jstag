@@ -18,6 +18,10 @@ echo "Minify io.js"
 uglifyjs -o src/files/io.min.js src/files/io.js
 uglifyjs -o out/io.min.js src/files/io.js
 
+echo "Minify io.lite.js"
+uglifyjs -o src/files/io.lite.min.js src/files/io.lite.js
+uglifyjs -o out/io.lite.min.js src/files/io.lite.js
+
 echo "Minify iow.js "
 uglifyjs -o src/files/iow.min.js src/files/iow.js
 cp src/files/iow.min.js out/iow.min.js
