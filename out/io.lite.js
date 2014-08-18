@@ -1,10 +1,10 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.0.1 JS Library for data collection. MIT License.
+// v1.0.2 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
     , ckie = doc.cookie
-    , ioVersion = "l.1.0"
+    , ioVersion = "l.0.2"
     , uidv
     , l = 'length'
     , dref = referrer()
