@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.18 JS Library for data collection. MIT License.
+// v1.19 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -548,6 +548,12 @@
       if (didGetId) {
         o.data["_getid"] = "t"
       }
+      // handle saving optimizely id
+      var optzly = ckieGet("optimizelyEndUserId");
+      if (optzly) {
+        o.data["optimizelyid"] = optzly;
+      }
+
     }
   }
   // make sure we only run once
