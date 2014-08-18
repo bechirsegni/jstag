@@ -548,6 +548,12 @@
       if (didGetId) {
         o.data["_getid"] = "t"
       }
+      // handle saving optimizely id
+      var optzly = ckieGet("optimizelyEndUserId");
+      if (optzly) {
+        o.data["optimizelyid"] = optzly;
+      }
+
     }
   }
   // make sure we only run once
