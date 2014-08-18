@@ -267,6 +267,11 @@
     if (!("_uid" in data)) { // don't replace uid if supplied
       data["_uid"] = getid();
     }
+    // handle saving optimizely id
+    var optzly = ckieGet("optimizelyEndUserId");
+    if (optzly) {
+      data["optimizelyid"] = optzly;
+    }
   }
 
   function encode(v){
