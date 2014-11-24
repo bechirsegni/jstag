@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.20 JS Library for data collection. MIT License.
+// v1.21 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.20"
+    , ioVersion = "1.21"
     , cache = {}
     , uidv
     , didGetId
@@ -43,6 +43,7 @@
     , id: undefined
     , cid : undefined
     , getid : makeid
+    , loadid: false
     , serializer:toString
     , pipeline:['identity','analyze']
     , delay:2000
@@ -144,6 +145,7 @@
       jstag.setid(s16())
     }
   }
+
   // setid
   jstag.setid = function(id){
     uidv = id
@@ -192,6 +194,9 @@
    */
   function connect(opts){
     config = extend(jstag.config,opts,true)
+    if (config.loadid) {
+      config.getid = jqgetid;
+    }
     return jstag
   }
   if ('_c' in jstag) connect(jstag._c)
