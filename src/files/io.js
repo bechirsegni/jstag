@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.21 JS Library for data collection. MIT License.
+// v1.22 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,9 +7,10 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.21"
+    , ioVersion = "1.22"
     , cache = {}
     , uidv
+    , changeId
     , didGetId
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString
@@ -149,6 +150,10 @@
   // setid
   jstag.setid = function(id){
     uidv = id
+    var eid = ckieGet(config.cookie);
+    if (eid && eid[l] && eid != "undefined") {
+      changeId = eid
+    }
     var expires = new Date();
     expires.setTime(expires.getTime() + 7776000 * 1000)
     ckieSet(config.cookie, id, expires)
@@ -552,6 +557,9 @@
       }
       if (didGetId) {
         o.data["_getid"] = "t"
+      }
+      if (changeId) {
+        o.data["_uido"] = changeId
       }
       // handle saving optimizely id
       var optzly = ckieGet("optimizelyEndUserId");
