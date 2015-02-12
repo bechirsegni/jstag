@@ -135,6 +135,10 @@
    * @param cb = callback function (mandatory)
   */
   function jqgetid(cb){
+    if (!jQuery) {
+      jstag.setid(s16())
+      return
+    }
     if (jQuery && jQuery.ajax && isFn(jQuery.ajax)) {
       var idurl = config.url + config.idpath + config.cid;
       jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
@@ -142,8 +146,6 @@
         didGetId = "t"
         cb(json)
       }});
-    } else {
-      jstag.setid(s16())
     }
   }
 
