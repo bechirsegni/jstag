@@ -667,6 +667,12 @@
   }
   jstag['pageView'] = pageView
   
+  // Used to identify a user when you have a strong
+  //   identity, aka logging in, etc
+  // 
+  // identify(userId, data)
+  //  @userId = strong identity, email, hashed email, user_id from db
+  //  @data = object of key:value properties to collect
   function identify(){
     var uid = "", stream="default",data={},cb, args=arguments;
     uid = args[0]
