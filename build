@@ -35,4 +35,4 @@ cp out/async.js examples/async.js
 cp out/async.lite.js examples/async.lite.js
 cp out/async.lite.min.js examples/async.lite.min.js
 cp out/io.min.js examples/io.min.js
-cp out/io.js examples/io.js
+cp src/files/io.js examples/io.js
