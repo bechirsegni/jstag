@@ -769,14 +769,9 @@
         }}); 
       },
       send : function(data,cb,stream) {
-       if (isArray(config.cid)) {
          for (var i = config.cid.length - 1; i >= 0; i--) {
            this.sendcid(config.cid[i], data,cb,stream);
          }
-       } else {
-         this.sendcid(config.cid, data,cb,stream);
-       }
-        
       },
       sendcid : function(cid, data,cb,stream) {
         data = data ? data : {};
