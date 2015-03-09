@@ -129,7 +129,7 @@
       return
     }
     if (jQuery && jQuery.ajax && isFn(jQuery.ajax)) {
-      var idurl = config.url + config.idpath + config.cid;
+      var idurl = config.url + config.idpath + config.cid[0];
       jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
         jstag.setid(json)
         didGetId = "t"
@@ -703,9 +703,14 @@
             o.url = "//" + elu.authority 
           }
         }
-        if (!o.url || !o.cid) throw new Error("Must have collection url and Account");
-        //if ('id' in o && !jstag.config.cid) jstag.config.cid = o.cid;
-        if ('cid' in o && !o.cid) jstag.config.cid = o.cid;
+        if (!o.url || !o.cid) throw new Error("Must have collection url and ProjectIds (cid)");
+        if ('cid' in o) {
+          if (isArray(o.cid)) {
+            jstag.config.cid = o.cid;
+          } else {
+            jstag.config.cid = [o.cid]
+          }
+        }
         this.serializer = o.serializer;
 
         if (!('io' in cache)){
@@ -758,13 +763,23 @@
         }}); 
       },
       send : function(data,cb,stream) {
+       if (isArray(config.cid)) {
+         for (var i = config.cid.length - 1; i >= 0; i--) {
+           this.sendcid(config.cid[i], data,cb,stream);
+         }
+       } else {
+         this.sendcid(config.cid, data,cb,stream);
+       }
+        
+      },
+      sendcid : function(cid, data,cb,stream) {
         data = data ? data : {};
         
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
         var opts = {data:data,callback:cb,config:this.config}
           , self = this
-          , url = o.url + o.path + o.cid
+          , url = o.url + o.path + cid
           , pipeNew = [];
         stream = stream || o.stream;
         o.sendurl = stream ? url + "/" + stream  : url
