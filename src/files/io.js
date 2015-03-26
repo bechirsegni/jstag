@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.23 JS Library for data collection. MIT License.
+// v1.24 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.23"
+    , ioVersion = "1.24"
     , cache = {}
     , uidv
     , changeId
@@ -315,8 +315,10 @@
   }
 
   function ckieSet(name, value, expires, path, domain, secure) {
+    var subdomain = domain;
     if (!domain && uri && uri.host){
       var hp = uri.host.split(".");
+      subdomain = uri.host;
       if (hp.length > 1){
         domain = "." + hp[hp.length-2] +"." + hp[hp.length-1]
       }
@@ -327,7 +329,13 @@
         ((path) ? "; path=" + path : "") +
         ((domain) ? "; domain=" + domain : "") +
         ((secure) ? "; secure" : "");
-    doc.cookie = cv
+    var cvsub = name + "=" + escape(value) +
+        ((expires) ? "; expires=" + expires.toGMTString() : "") +
+        ((path) ? "; path=" + path : "") +
+        ((subdomain) ? "; domain=" + subdomain : "") +
+        ((secure) ? "; secure" : "");
+    doc.cookie = cv;
+    doc.cookie = cvsub;
   }
   jstag['ckieSet'] = ckieSet;
 
