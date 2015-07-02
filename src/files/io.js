@@ -102,7 +102,7 @@
     while (i--) uri[o.key[i]] = m[i] || "";
     uri[o.q.name] = {};
     uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-        if ($1) uri[o.q.name][$1] = $2;
+        if ($1) uri[o.q.name][$1] = decodeURIComponent($2);
     });
     return uri;
   }
@@ -468,7 +468,7 @@
       var ref
       for (var k in uri.qs) {
         if (k.indexOf("utm_") === 0){
-          pageData[k] = decodeURIComponent(uri.qs[k]);
+          pageData[k] = uri.qs[k];
         }
       }
       if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
@@ -476,7 +476,7 @@
         for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
           qsa = jstag.config.qsargs[i]
           if (qsa in uri.qs){
-            pageData[qsa] = decodeURIComponent(uri.qs[qsa]);
+            pageData[qsa] = uri.qs[qsa];
           }
         }
       }
