@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.25 JS Library for data collection. MIT License.
+// v1.26 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.25"
+    , ioVersion = "1.26"
     , cache = {}
     , uidv
     , changeId
