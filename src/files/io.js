@@ -19,7 +19,7 @@
     , sesCkieVal = undefined
     , isSesStart = false
     , pageData = {}
-  
+
   win['jstag'] = jstag;
   jstag.isLoaded = true;
 
@@ -42,7 +42,7 @@
     , cookie:"seerid"
     , sesname:"seerses"
     , stream: undefined
-    , sessecs: 1800 
+    , sessecs: 1800
     , channel:'Gif'//  Form,Gif
     , qsargs: []
     , ref: true
@@ -203,9 +203,9 @@
   jstag["init"] = jstag['connect'] = connect;
 
   /* ------------- event binding -------------------
-   * 
+   *
   **/
-  
+
   var events = {}, evtConfig = {onetime:false}
   /**
    * Bind events:  accepts params, but also the cb function
@@ -232,7 +232,7 @@
   jstag['bind'] = bind;
 
   /**
-   * Emit events 
+   * Emit events
    * @param the event name filter (string) to bind to
   **/
   function emit(evt){
@@ -260,20 +260,20 @@
     //})
   }
   jstag['emit'] = emit;
- 
+
   /**
    * Replace the temporary Q object, iterating through and
    * calling the actual functions with arguments
    * the async tag provides a set of stub's which actually don't work
-   * but instead get queued into Q.  
+   * but instead get queued into Q.
   **/
   function handleQitem(q){
     if (isString(q[1]) && q[1] in jstag ){
       // these are alises for not yet created fn (when put in q)
-      //  q[0]    q[1]     
+      //  q[0]    q[1]
       // "ready", "send"
       // "ready", "send", {data:stuff}
-      // "ready", "send", {data:stuff}, fn() 
+      // "ready", "send", {data:stuff}, fn()
       bind(q[0],function(){
         jstag[q[1]].apply(jstag,as.call(q[2]? q[2] : {}))
       })
@@ -296,20 +296,20 @@
    * Get a cookie
    */
   function ckieGet(name){
-    if (ckie[l] > 0) { 
-      var begin = ckie.indexOf(name+"="), end; 
-      if (begin != -1) { 
-        begin += name.length+1; 
+    if (ckie[l] > 0) {
+      var begin = ckie.indexOf(name+"="), end;
+      if (begin != -1) {
+        begin += name.length+1;
         end = ckie.indexOf(";", begin);
         if (end == -1) end = ckie[l];
-        return unescape(ckie.substring(begin, end)); 
-      } 
+        return unescape(ckie.substring(begin, end));
+      }
     }
-    return null; 
+    return null;
   }
   // expose it publicly
   jstag['ckieGet'] = ckieGet;
-  
+
   function ckieDel(name) {
     doc.cookie=name+"=; path=/; expires=Monday, 19-Aug-1996 05:00:00 GMT";
   }
@@ -391,7 +391,7 @@
           else url += "&"
           return url + data
         }
-        
+
       }
     },
     /**
@@ -591,22 +591,24 @@
       ns = ""
     }
     for (var p in data){
-      key = encode(p);
-      if (ns !== "") {
-        key = ns + '.' + key
-      }
-      if (isObject(data[p])){
-        as.push(toString(data[p],p))
-      } else if (isFn(data[p])) {
-        as.push(key + '=' + encode(data[p]()))
-      } else if (isArray(data[p])) {
-        for (var ai = data[p].length - 1; ai >= 0; ai--) {
-          as.push(key + '=' + encode(data[p][ai]))
+      if (data.hasOwnProperty(p)) {
+        key = encode(p);
+        if (ns !== "") {
+          key = ns + '.' + key
         }
-      } else if (isString(data[p]) && data[p].length > 0) {
-        as.push(key + '=' + encode(data[p]))
-      } else if (data[p] !== null && data[p] !== undefined ){
-        as.push(key + '=' + encode(data[p]))
+        if (isObject(data[p])){
+          as.push(toString(data[p],p))
+        } else if (isFn(data[p])) {
+          as.push(key + '=' + encode(data[p]()))
+        } else if (isArray(data[p])) {
+          for (var ai = data[p].length - 1; ai >= 0; ai--) {
+            as.push(key + '=' + encode(data[p][ai]))
+          }
+        } else if (isString(data[p]) && data[p].length > 0) {
+          as.push(key + '=' + encode(data[p]))
+        } else if (data[p] !== null && data[p] !== undefined ){
+          as.push(key + '=' + encode(data[p]))
+        }
       }
     }
     return as.join("&");
@@ -626,7 +628,7 @@
 
   /**
    * @Function jstag.send
-   * public function for send, note this send will overwrite 
+   * public function for send, note this send will overwrite
    * the temporary one in the async function
    * @param stream:  (string) optional name of stream to send to
    * @param data:  the javascript object to be sent
@@ -674,10 +676,10 @@
     send(data,cb,stream)
   }
   jstag['pageView'] = pageView
-  
+
   // Used to identify a user when you have a strong
   //   identity, aka logging in, etc
-  // 
+  //
   // identify(userId, data)
   //  @userId = strong identity, email, hashed email, user_id from db
   //  @data = object of key:value properties to collect
@@ -705,7 +707,7 @@
       , o = null
       , pitem = null;
 
-    
+
     return {
       init: function(opts){
         self = this
@@ -714,7 +716,7 @@
           var tagel = doc.getElementById(o.tagid), elu = null;
           if (tagel) {
             elu = parseUri(tagel.getAttribute("src"))
-            o.url = "//" + elu.authority 
+            o.url = "//" + elu.authority
           }
         }
         if (!o.url || !o.cid) throw new Error("Must have collection url and ProjectIds (cid)");
@@ -774,7 +776,7 @@
             cb(opts,self);
           }
           jstag.emit("send.finished",opts,self)
-        }}); 
+        }});
       },
       send : function(data,cb,stream) {
         if (isArray(config.cid)) {
@@ -787,7 +789,7 @@
       },
       sendcid : function(cid, data,cb,stream) {
         data = data ? data : {};
-        
+
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
         var opts = {data:data,callback:cb,config:this.config}
@@ -824,7 +826,7 @@
         } else {
           self.collect(opts,cb)
         }
-        
+
       },
       debug:function(){
         return "<table><tr><th>field</th><th>value</th></tr>" + oToS(this.data) +
@@ -851,17 +853,17 @@
   if (win && 'jstagAsyncInit' in win && isFn(win.jstagAsyncInit)){
     win.jstagAsyncInit();
   }
-  
+
 
   if (!("ready" in jstag)){
     jstag.ready = function(){}
   }
-  
-  jstag['load'] = function() {return this}; 
+
+  jstag['load'] = function() {return this};
 
   replaceTempQ();
   jstag.emit("ready")
-  
+
 
 }(window,document,window.navigator));
 
