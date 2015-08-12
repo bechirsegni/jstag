@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.21 JS Library for data collection. MIT License.
+// v1.27 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,36 +7,26 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.21"
+    , ioVersion = "1.27"
     , cache = {}
     , uidv
+    , changeId
     , didGetId
     , as = Array.prototype.slice
     , otostr = Object.prototype.toString
     , dref = referrer()
     , uri = parseUri()
-    , sesStart
-  
+    , sesCkieVal = undefined
+    , isSesStart = false
+    , pageData = {}
+
   win['jstag'] = jstag;
   jstag.isLoaded = true;
 
   if (!win.console){
-   win.console = {log:function(){}};
+    win.console = {log:function(){}};
   }
 
-  /**
-   * the public config object for io, can be set in advance
-   * or you can pass into the init constructor
-   *
-   * @cfg {Object} config just object of properties
-   * @cfg {Function} [config.serializer=toString]
-   * @cfg {Array} [config.pipeline='identity','analyze'] the methods to run on init
-   * @cfg {Number} [config.delay=200] in milliseconds
-   * @cfg {String} [config.cookie="seerid"] the default cookie name
-   * @cfg {String} [config.url='http://c.yourdomain.com']
-   * @cfg {String} [config.id=""] 
-   * @cfg {String} stream = default = null, if exists will append to path /c/cid/stream
-   */
   jstag.config = extend(config, {
     url:''
     , Q:[]
@@ -52,7 +42,7 @@
     , cookie:"seerid"
     , sesname:"seerses"
     , stream: undefined
-    , sessecs: 1800 
+    , sessecs: 1800
     , channel:'Gif'//  Form,Gif
     , qsargs: []
     , ref: true
@@ -112,7 +102,7 @@
     while (i--) uri[o.key[i]] = m[i] || "";
     uri[o.q.name] = {};
     uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-        if ($1) uri[o.q.name][$1] = $2;
+        if ($1) uri[o.q.name][$1] = decodeURIComponent($2);
     });
     return uri;
   }
@@ -134,25 +124,33 @@
    * @param cb = callback function (mandatory)
   */
   function jqgetid(cb){
+    if (!jQuery) {
+      jstag.setid(s16())
+      return
+    }
     if (jQuery && jQuery.ajax && isFn(jQuery.ajax)) {
-      var idurl = config.url + config.idpath + config.cid;
+      var idurl = config.url + config.idpath + config.cid[0];
       jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
         jstag.setid(json)
         didGetId = "t"
         cb(json)
       }});
-    } else {
-      jstag.setid(s16())
     }
   }
 
   // setid
   jstag.setid = function(id){
     uidv = id
+    var eid = ckieGet(config.cookie);
+    if (eid && eid[l] && eid != "undefined") {
+      changeId = eid
+    }
     var expires = new Date();
     expires.setTime(expires.getTime() + 7776000 * 1000)
     ckieSet(config.cookie, id, expires)
   }
+
+
   /**
    * the getid forces the id to load in advance
   */
@@ -197,6 +195,7 @@
     if (config.loadid) {
       config.getid = jqgetid;
     }
+    pageAnalysis();
     return jstag
   }
   if ('_c' in jstag) connect(jstag._c)
@@ -204,9 +203,9 @@
   jstag["init"] = jstag['connect'] = connect;
 
   /* ------------- event binding -------------------
-   * 
+   *
   **/
-  
+
   var events = {}, evtConfig = {onetime:false}
   /**
    * Bind events:  accepts params, but also the cb function
@@ -233,7 +232,7 @@
   jstag['bind'] = bind;
 
   /**
-   * Emit events 
+   * Emit events
    * @param the event name filter (string) to bind to
   **/
   function emit(evt){
@@ -261,20 +260,20 @@
     //})
   }
   jstag['emit'] = emit;
- 
+
   /**
    * Replace the temporary Q object, iterating through and
    * calling the actual functions with arguments
    * the async tag provides a set of stub's which actually don't work
-   * but instead get queued into Q.  
+   * but instead get queued into Q.
   **/
   function handleQitem(q){
     if (isString(q[1]) && q[1] in jstag ){
       // these are alises for not yet created fn (when put in q)
-      //  q[0]    q[1]     
+      //  q[0]    q[1]
       // "ready", "send"
       // "ready", "send", {data:stuff}
-      // "ready", "send", {data:stuff}, fn() 
+      // "ready", "send", {data:stuff}, fn()
       bind(q[0],function(){
         jstag[q[1]].apply(jstag,as.call(q[2]? q[2] : {}))
       })
@@ -297,27 +296,29 @@
    * Get a cookie
    */
   function ckieGet(name){
-    if (ckie[l] > 0) { 
-      var begin = ckie.indexOf(name+"="), end; 
-      if (begin != -1) { 
-        begin += name.length+1; 
+    if (ckie[l] > 0) {
+      var begin = ckie.indexOf(name+"="), end;
+      if (begin != -1) {
+        begin += name.length+1;
         end = ckie.indexOf(";", begin);
         if (end == -1) end = ckie[l];
-        return unescape(ckie.substring(begin, end)); 
-      } 
+        return unescape(ckie.substring(begin, end));
+      }
     }
-    return null; 
+    return null;
   }
   // expose it publicly
   jstag['ckieGet'] = ckieGet;
-  
+
   function ckieDel(name) {
     doc.cookie=name+"=; path=/; expires=Monday, 19-Aug-1996 05:00:00 GMT";
   }
 
   function ckieSet(name, value, expires, path, domain, secure) {
+    var subdomain = domain;
     if (!domain && uri && uri.host){
       var hp = uri.host.split(".");
+      subdomain = uri.host;
       if (hp.length > 1){
         domain = "." + hp[hp.length-2] +"." + hp[hp.length-1]
       }
@@ -328,7 +329,13 @@
         ((path) ? "; path=" + path : "") +
         ((domain) ? "; domain=" + domain : "") +
         ((secure) ? "; secure" : "");
-    doc.cookie = cv
+    var cvsub = name + "=" + escape(value) +
+        ((expires) ? "; expires=" + expires.toGMTString() : "") +
+        ((path) ? "; path=" + path : "") +
+        ((subdomain) ? "; domain=" + subdomain : "") +
+        ((secure) ? "; secure" : "");
+    doc.cookie = cv;
+    doc.cookie = cvsub;
   }
   jstag['ckieSet'] = ckieSet;
 
@@ -384,7 +391,7 @@
           else url += "&"
           return url + data
         }
-        
+
       }
     },
     /**
@@ -456,15 +463,12 @@
     }
     return false
   }
-  // the core page analysis functions, an array of options
-  var pipeline = {
-    analyze: function(o){
-      if (!("_e" in o.data)) o.data["_e"] = "pv";
-      var ses = ckieGet(jstag.config.sesname)
-        , ref
+  function pageAnalysis(){
+      sesCkieVal = ckieGet(jstag.config.sesname)
+      var ref
       for (var k in uri.qs) {
         if (k.indexOf("utm_") === 0){
-          o.data[k] = uri.qs[k]
+          pageData[k] = uri.qs[k];
         }
       }
       if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
@@ -472,38 +476,43 @@
         for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
           qsa = jstag.config.qsargs[i]
           if (qsa in uri.qs){
-            o.data[qsa] = uri.qs[qsa]
+            pageData[qsa] = uri.qs[qsa];
           }
         }
       }
 
-      if (!ses) {
-        o.data['_sesstart'] = "1"
+      if (!sesCkieVal) {
+        pageData['_sesstart'] = "1"
       }
 
-      if (!("_ref" in o.data)) {
-        if (dref && dref[l] > 1){
-          var rh = dref.toString().match(/\/\/(.*)\//);
-          if (rh && rh[1].indexOf(dloc.host) == -1) {
-            o.data['_ref'] = dref.replace("http://","").replace("https://","");
-            if (!ses) {
-              o.data['_sesref'] = dref.replace("http://","").replace("https://","");
-            }
+      if (dref && dref[l] > 1){
+        var rh = dref.toString().match(/\/\/(.*)\//);
+        if (rh && rh[1].indexOf(dloc.host) == -1) {
+          pageData['_ref'] = dref.replace("http://","").replace("https://","");
+          if (!sesCkieVal) {
+            pageData['_sesref'] = dref.replace("http://","").replace("https://","");
           }
         }
-      }  
+      }
 
       // update the session time
       var expires = new Date();
       expires.setTime(expires.getTime() + jstag.config.sessecs * 1000)
       ckieSet(jstag.config.sesname,"e", expires)
       // some browser items
-      o.data["_tz"] = parseInt(expires.getTimezoneOffset() / 60 * -1) || "0";
-      o.data["_ul"] = nav.appName == "Netscape" ? nav.language : nav.userLanguage;
+      pageData["_tz"] = parseInt(expires.getTimezoneOffset() / 60 * -1) || "0";
+      pageData["_ul"] = nav.appName == "Netscape" ? nav.language : nav.userLanguage;
       if (typeof (screen) == "object") {
-        o.data["_sz"] = screen.width + "x" + screen.height;
+        pageData["_sz"] = screen.width + "x" + screen.height;
       }
-
+  }
+  // the core page analysis functions, an array of options
+  var pipeline = {
+    analyze: function(o){
+      if (!("_e" in o.data)) o.data["_e"] = "pv";
+      for (var k in pageData) {
+        o.data[k] = pageData[k];
+      }
     },
     identity: function(o){
       // set mobile flags
@@ -553,12 +562,15 @@
       if (didGetId) {
         o.data["_getid"] = "t"
       }
+      if (changeId) {
+        o.data["_uido"] = changeId
+      }
       // handle saving optimizely id
       var optzly = ckieGet("optimizelyEndUserId");
       if (optzly) {
         o.data["optimizelyid"] = optzly;
       }
-
+      if (!("_v" in o.data)) o.data["_v"] =  ioVersion;
     }
   }
   // make sure we only run once
@@ -579,22 +591,29 @@
       ns = ""
     }
     for (var p in data){
-      key = encode(p);
-      if (ns !== "") {
-        key = ns + '.' + key
-      }
-      if (isObject(data[p])){
-        as.push(toString(data[p],p))
-      } else if (isFn(data[p])) {
-        as.push(key + '=' + encode(data[p]()))
-      } else if (isArray(data[p])) {
-        for (var ai = data[p].length - 1; ai >= 0; ai--) {
-          as.push(key + '=' + encode(data[p][ai]))
+      if (data.hasOwnProperty(p)) {
+        key = encode(p);
+        if (ns !== "") {
+          key = ns + '.' + key
         }
-      } else if (isString(data[p]) && data[p].length > 0) {
-        as.push(key + '=' + encode(data[p]))
-      } else if (data[p] !== null && data[p] !== undefined ){
-        as.push(key + '=' + encode(data[p]))
+        if (isObject(data[p])){
+          as.push(toString(data[p],p))
+        } else if (isFn(data[p])) {
+          as.push(key + '=' + encode(data[p]()))
+        } else if (isArray(data[p])) {
+          as.push(key + "_len=" + data[p].length)
+          for (var ai = data[p].length - 1; ai >= 0; ai--) {
+            if (isObject(data[p][ai])){
+              as.push(toString(data[p][ai], key))
+            } else if (data[p][ai] !== null && data[p][ai] !== undefined ){
+              as.push(key + '=' + encode(data[p][ai]))
+            }
+          }
+        } else if (isString(data[p]) && data[p].length > 0) {
+          as.push(key + '=' + encode(data[p]))
+        } else if (data[p] !== null && data[p] !== undefined ){
+          as.push(key + '=' + encode(data[p]))
+        }
       }
     }
     return as.join("&");
@@ -614,7 +633,7 @@
 
   /**
    * @Function jstag.send
-   * public function for send, note this send will overwrite 
+   * public function for send, note this send will overwrite
    * the temporary one in the async function
    * @param stream:  (string) optional name of stream to send to
    * @param data:  the javascript object to be sent
@@ -641,7 +660,51 @@
     }
   }
   jstag['send'] = send
-  
+
+  function pageView(){
+    var stream = "default",data,cb, args=arguments
+    if (isString(args[0])){
+      stream = args[0]
+      data = args[1]
+      if (args.length===3) cb = args[2]
+    } else {
+      data = args[0]
+      if (args.length===2) cb = args[1]
+    }
+    if (!(isObject(data))){
+      data = {}
+    }
+    if (!("_e" in data)) data["_e"] = "pv";
+    for (var k in pageData) {
+      data[k] = pageData[k];
+    }
+    send(data,cb,stream)
+  }
+  jstag['pageView'] = pageView
+
+  // Used to identify a user when you have a strong
+  //   identity, aka logging in, etc
+  //
+  // identify(userId, data)
+  //  @userId = strong identity, email, hashed email, user_id from db
+  //  @data = object of key:value properties to collect
+  function identify(){
+    var uid = "", stream="default",data={},cb, args=arguments;
+    uid = args[0]
+    if (isString(args[1])){
+      stream = args[1]
+      data = args[2]
+      if (args.length===4) cb = args[3]
+    } else {
+      data = args[1]
+      if (args.length===3) cb = args[2]
+    }
+    if (!data) data = {};
+    data["user_id"] = uid;
+    send(data,cb,stream)
+  }
+  jstag['identify'] = identify
+
   Io.prototype = function(){
 
     var _pipe = []
@@ -649,7 +712,7 @@
       , o = null
       , pitem = null;
 
-    
+
     return {
       init: function(opts){
         self = this
@@ -658,12 +721,17 @@
           var tagel = doc.getElementById(o.tagid), elu = null;
           if (tagel) {
             elu = parseUri(tagel.getAttribute("src"))
-            o.url = "//" + elu.authority 
+            o.url = "//" + elu.authority
           }
         }
-        if (!o.url || !o.cid) throw new Error("Must have collection url and Account");
-        //if ('id' in o && !jstag.config.cid) jstag.config.cid = o.cid;
-        if ('cid' in o && !o.cid) jstag.config.cid = o.cid;
+        if (!o.url || !o.cid) throw new Error("Must have collection url and ProjectIds (cid)");
+        if ('cid' in o) {
+          if (isArray(o.cid)) {
+            jstag.config.cid = o.cid;
+          } else {
+            jstag.config.cid = [o.cid]
+          }
+        }
         this.serializer = o.serializer;
 
         if (!('io' in cache)){
@@ -713,16 +781,25 @@
             cb(opts,self);
           }
           jstag.emit("send.finished",opts,self)
-        }}); 
+        }});
       },
       send : function(data,cb,stream) {
+        if (isArray(config.cid)) {
+          for (var i = config.cid.length - 1; i >= 0; i--) {
+            this.sendcid(config.cid[i], data,cb,stream);
+          }
+        } else {
+          this.sendcid(config.cid, data,cb,stream);
+        }
+      },
+      sendcid : function(cid, data,cb,stream) {
         data = data ? data : {};
-        
+
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
         var opts = {data:data,callback:cb,config:this.config}
           , self = this
-          , url = o.url + o.path + o.cid
+          , url = o.url + o.path + cid
           , pipeNew = [];
         stream = stream || o.stream;
         o.sendurl = stream ? url + "/" + stream  : url
@@ -754,7 +831,7 @@
         } else {
           self.collect(opts,cb)
         }
-        
+
       },
       debug:function(){
         return "<table><tr><th>field</th><th>value</th></tr>" + oToS(this.data) +
@@ -781,17 +858,17 @@
   if (win && 'jstagAsyncInit' in win && isFn(win.jstagAsyncInit)){
     win.jstagAsyncInit();
   }
-  
+
 
   if (!("ready" in jstag)){
     jstag.ready = function(){}
   }
-  
-  jstag['load'] = function() {return this}; 
+
+  jstag['load'] = function() {return this};
 
   replaceTempQ();
   jstag.emit("ready")
-  
+
 
 }(window,document,window.navigator));
 
