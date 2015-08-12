@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.26 JS Library for data collection. MIT License.
+// v1.27 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.26"
+    , ioVersion = "1.27"
     , cache = {}
     , uidv
     , changeId
@@ -601,8 +601,13 @@
         } else if (isFn(data[p])) {
           as.push(key + '=' + encode(data[p]()))
         } else if (isArray(data[p])) {
+          as.push(key + "_len=" + data[p].length)
           for (var ai = data[p].length - 1; ai >= 0; ai--) {
-            as.push(key + '=' + encode(data[p][ai]))
+            if (isObject(data[p][ai])){
+              as.push(toString(data[p][ai], key))
+            } else if (data[p][ai] !== null && data[p][ai] !== undefined ){
+              as.push(key + '=' + encode(data[p][ai]))
+            }
           }
         } else if (isString(data[p]) && data[p].length > 0) {
           as.push(key + '=' + encode(data[p]))
