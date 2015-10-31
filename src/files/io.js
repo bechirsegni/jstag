@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.28 JS Library for data collection. MIT License.
+// v1.29 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.28"
+    , ioVersion = "1.29"
     , cache = {}
     , uidv
     , changeId
@@ -780,15 +780,23 @@
         jstag.emit("io.ready",this)
       },
       collect:function(opts,cb){
-        var self = this, dataout = {}
+        var self = this, dataout = {}, o = config, dataMsg;
 
         jstag.emit("send.before", opts)
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
         dataout = extend(opts.data,config.pagedata,false);
+
+        dataMsg = this.serializer(dataout);
+
+        // uri max length = ~2000
+        if (isString(dataMsg) && dataMsg.length > 1900) {
+          this.channel = new jstag.channels['Form'](o);
+        }
+
         // now send
-        this.channel.send(this.serializer(dataout),{callback:function(to){
+        this.channel.send(dataMsg,{callback:function(to){
           opts.returndata = to
           if (isFn(cb)){
             cb(opts,self);
