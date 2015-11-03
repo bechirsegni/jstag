@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.27 JS Library for data collection. MIT License.
+// v1.29 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.27"
+    , ioVersion = "1.29"
     , cache = {}
     , uidv
     , changeId
@@ -583,12 +583,22 @@
   /**
    * toString name=value&   serializer, converts objects to flat names
    * ie {user:{id:12,name:"aaron"}} becomes user.id=12&user.name=aaron
-   * and {groups:["admin","api"]} becomes groups=[admin,api]
+   * and {groups:["admin","api"]} becomes groups=admin&groups=api&groups_len=2
   */
   function toString(data, ns){
     var as = [], key = "";
     if (arguments.length == 1){
       ns = ""
+    }
+    // If we have a top level array?   what to do?
+    if (isArray(data)){
+      if (window.JSON) {
+        as.push("_json=" + encode(JSON.stringify(data)));
+      }
+      for (var i = data.length - 1; i >= 0; i--) {
+        as.push(toString(data[i], ns))
+      };
+      return as.join("&");
     }
     for (var p in data){
       if (data.hasOwnProperty(p)) {
@@ -601,7 +611,10 @@
         } else if (isFn(data[p])) {
           as.push(key + '=' + encode(data[p]()))
         } else if (isArray(data[p])) {
-          as.push(key + "_len=" + data[p].length)
+          as.push(key + "_len=" + data[p].length);
+          if (window.JSON) {
+            as.push(key + "_json=" + encode(window.JSON.stringify(data[p])));
+          }
           for (var ai = data[p].length - 1; ai >= 0; ai--) {
             if (isObject(data[p][ai])){
               as.push(toString(data[p][ai], key))
@@ -767,15 +780,24 @@
         jstag.emit("io.ready",this)
       },
       collect:function(opts,cb){
-        var self = this, dataout = {}
+        var self = this, dataout = {}, o = config, dataMsg;
 
         jstag.emit("send.before", opts)
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
         dataout = extend(opts.data,config.pagedata,false);
+
+        dataMsg = this.serializer(dataout);
+
+        var currentChannel = this.channel;
+        // uri max length = ~2000
+        if (isString(dataMsg) && (dataMsg.length + o.sendurl.length) > 2000) {
+          currentChannel = new jstag.channels['Form'](o);
+        }
+
         // now send
-        this.channel.send(this.serializer(dataout),{callback:function(to){
+        currentChannel.send(dataMsg,{callback:function(to){
           opts.returndata = to
           if (isFn(cb)){
             cb(opts,self);
