@@ -790,13 +790,14 @@
 
         dataMsg = this.serializer(dataout);
 
+        var currentChannel = this.channel;
         // uri max length = ~2000
-        if (isString(dataMsg) && dataMsg.length > 1900) {
-          this.channel = new jstag.channels['Form'](o);
+        if (isString(dataMsg) && (dataMsg.length + o.sendurl.length) > 2000) {
+          currentChannel = new jstag.channels['Form'](o);
         }
 
         // now send
-        this.channel.send(dataMsg,{callback:function(to){
+        currentChannel.send(dataMsg,{callback:function(to){
           opts.returndata = to
           if (isFn(cb)){
             cb(opts,self);
