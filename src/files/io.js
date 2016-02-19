@@ -65,13 +65,43 @@
    * @returns target
   */
   function extend(target, source, overwrite){
+    // Variables
+    var extended = {};
+    var deep = false;
+    var i = 0;
+    var arguments = [target, source];
+    var length = arguments.length;
+
+    // make sure we have a source, if not just return the target
     if (!source) return target;
-    for (var p in source){
-      if (source.hasOwnProperty(p) && (!(p in target) || overwrite)){
-        target[p] = source[p]
-      }
+
+    // Check if a deep merge
+    if ( Object.prototype.toString.call( arguments[0] ) === '[object Boolean]' ) {
+        deep = arguments[0];
+        i++;
     }
-    return target;
+
+    // Merge the object into the extended object
+    var merge = function (obj) {
+        for ( var prop in obj ) {
+            if ( Object.prototype.hasOwnProperty.call( obj, prop ) || overwrite ) {
+                // If deep merge and property is an object, merge properties
+                if ( deep && Object.prototype.toString.call(obj[prop]) === '[object Object]' ) {
+                    extended[prop] = extend( true, extended[prop], obj[prop] );
+                } else {
+                    extended[prop] = obj[prop];
+                }
+            }
+        }
+    };
+
+    // Loop through each object and conduct a merge
+    for ( ; i < length; i++ ) {
+        var obj = arguments[i];
+        merge(obj);
+    }
+
+    return extended;
   }
 
   /*
@@ -149,7 +179,6 @@
     expires.setTime(expires.getTime() + 7776000 * 1000)
     ckieSet(config.cookie, id, expires)
   }
-
 
   /**
    * the getid forces the id to load in advance
@@ -662,6 +691,7 @@
       data = args[0]
       if (args.length===2) cb = args[1]
     }
+
     if ('io' in cache && isArray(cache['io'])){
       // it is possible to create more than 1 sender, send events multiple locations
       for (var i = cache['io'].length - 1; i >= 0; i--) {
@@ -752,6 +782,7 @@
         } else {
           cache['io'].push(this)
         }
+
         this.channel = new jstag.channels[o.channel](o);
 
         // define pipeline
@@ -814,8 +845,8 @@
           this.sendcid(config.cid, data,cb,stream);
         }
       },
-      sendcid : function(cid, data,cb,stream) {
-        data = data ? data : {};
+      sendcid : function(cid, inData,cb,stream) {
+        var data = extend(data, inData) || {};
 
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
@@ -835,6 +866,7 @@
             pipeNew.push(_pipe[i])
           }
         }
+
         _pipe = pipeNew
 
         // now for the actual collection
