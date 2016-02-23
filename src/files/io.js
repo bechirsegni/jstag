@@ -841,8 +841,8 @@
           this.sendcid(config.cid, data,cb,stream);
         }
       },
-      sendcid : function(cid, inData,cb,stream) {
-        var data = extend(inData, data) || {};
+      sendcid : function(cid, payload, cb, stream) {
+        var data = extend(data, payload) || {};
 
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
