@@ -68,12 +68,11 @@
     var extended = {},
         deep = false,
         i = 0,
-        args = [target, source],
         length = arguments.length;
 
     // Check if a deep merge
-    if ( Object.prototype.toString.call( args[0] ) === '[object Boolean]' ) {
-        deep = args[0];
+    if ( Object.prototype.toString.call( arguments[0] ) === '[object Boolean]' ) {
+        deep = arguments[0];
         i++;
     }
 
@@ -248,7 +247,7 @@
    * @param options:  {onetime:true(default=false)}
   **/
   function bind(filter,cb,opts){
-    cb.opts = extend(opts)
+    cb.opts = extend({}, opts)
     if (!(filter in events)){
       events[filter] = [cb]
     } else {
