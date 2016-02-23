@@ -27,7 +27,7 @@
     win.console = {log:function(){}};
   }
 
-  jstag.config = extend(config, {
+  jstag.config = extend({
     url:''
     , Q:[]
     , id: undefined
@@ -49,7 +49,7 @@
     , tagid: 'jstag-csdk'
     , pagedata: {}
     , version : ioVersion
-  })
+  }, config)
 
   function isFn(it){return otostr.call(it) === "[object Function]"}
   function isObject(it){return otostr.call(it) === "[object Object]"}
@@ -64,27 +64,23 @@
    *   target with source properties default = false.
    * @returns target
   */
-  function extend(target, source, overwrite){
-    // Variables
-    var extended = {};
-    var deep = false;
-    var i = 0;
-    var arguments = [target, source];
-    var length = arguments.length;
-
-    // make sure we have a source, if not just return the target
-    if (!source) return target;
+  function extend(){
+    var extended = {},
+        deep = false,
+        i = 0,
+        args = [target, source],
+        length = arguments.length;
 
     // Check if a deep merge
-    if ( Object.prototype.toString.call( arguments[0] ) === '[object Boolean]' ) {
-        deep = arguments[0];
+    if ( Object.prototype.toString.call( args[0] ) === '[object Boolean]' ) {
+        deep = args[0];
         i++;
     }
 
     // Merge the object into the extended object
     var merge = function (obj) {
         for ( var prop in obj ) {
-            if ( Object.prototype.hasOwnProperty.call( obj, prop ) || overwrite ) {
+            if ( Object.prototype.hasOwnProperty.call( obj, prop ) ) {
                 // If deep merge and property is an object, merge properties
                 if ( deep && Object.prototype.toString.call(obj[prop]) === '[object Object]' ) {
                     extended[prop] = extend( true, extended[prop], obj[prop] );
@@ -220,7 +216,8 @@
    * The connect/init function accepts config object
    */
   function connect(opts){
-    config = extend(jstag.config,opts,true)
+    // overrite the target with the source
+    config = extend(jstag.config, opts)
     if (config.loadid) {
       config.getid = jqgetid;
     }
@@ -251,7 +248,7 @@
    * @param options:  {onetime:true(default=false)}
   **/
   function bind(filter,cb,opts){
-    cb.opts = extend(opts?opts:{},opts)
+    cb.opts = extend(opts)
     if (!(filter in events)){
       events[filter] = [cb]
     } else {
@@ -817,7 +814,7 @@
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
-        dataout = extend(opts.data,config.pagedata,false);
+        dataout = extend(config.pagedata, opts.data);
 
         dataMsg = this.serializer(dataout);
 
@@ -846,7 +843,7 @@
         }
       },
       sendcid : function(cid, inData,cb,stream) {
-        var data = extend(data, inData) || {};
+        var data = extend(inData, data) || {};
 
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
