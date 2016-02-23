@@ -215,7 +215,6 @@
    * The connect/init function accepts config object
    */
   function connect(opts){
-    // overrite the target with the source
     config = extend(jstag.config, opts)
     if (config.loadid) {
       config.getid = jqgetid;
