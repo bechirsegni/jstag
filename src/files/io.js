@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.29"
+    , ioVersion = "1.30"
     , cache = {}
     , uidv
     , changeId
@@ -849,7 +849,7 @@
           , self = this
           , url = o.url + o.path + cid
           , pipeNew = [];
-        stream = stream || o.stream;
+        stream = stream || jstag.config.stream;
         o.sendurl = stream ? url + "/" + stream  : url
         if (o.sendurl.indexOf("_uidn=") == -1 && config.cookie != "seerid") {
           o.sendurl = addQs(o.sendurl, "_uidn", config.cookie)
