@@ -849,7 +849,7 @@
           , self = this
           , url = o.url + o.path + cid
           , pipeNew = [];
-        stream = stream || o.stream;
+        stream = stream || jstag.config.stream;
         o.sendurl = stream ? url + "/" + stream  : url
         if (o.sendurl.indexOf("_uidn=") == -1 && config.cookie != "seerid") {
           o.sendurl = addQs(o.sendurl, "_uidn", config.cookie)
