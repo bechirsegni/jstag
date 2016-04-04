@@ -33,7 +33,7 @@
     , id: undefined
     , cid : undefined
     , getid : makeid
-    , loadid: false
+    , loadid: undefined
     , serializer:toString
     , pipeline:['identity','analyze']
     , delay:2000
