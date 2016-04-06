@@ -1,5 +1,5 @@
 /* jshint laxcomma:true, sub:true, asi:true */
-// v1.29 JS Library for data collection. MIT License.
+// v1.31 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.29"
+    , ioVersion = "1.31"
     , cache = {}
     , uidv
     , changeId
@@ -27,13 +27,13 @@
     win.console = {log:function(){}};
   }
 
-  jstag.config = extend(config, {
+  jstag.config = extend({
     url:''
     , Q:[]
     , id: undefined
     , cid : undefined
     , getid : makeid
-    , loadid: false
+    , loadid: undefined
     , serializer:toString
     , pipeline:['identity','analyze']
     , delay:2000
@@ -49,7 +49,7 @@
     , tagid: 'jstag-csdk'
     , pagedata: {}
     , version : ioVersion
-  })
+  }, config)
 
   function isFn(it){return otostr.call(it) === "[object Function]"}
   function isObject(it){return otostr.call(it) === "[object Object]"}
@@ -64,14 +64,39 @@
    *   target with source properties default = false.
    * @returns target
   */
-  function extend(target, source, overwrite){
-    if (!source) return target;
-    for (var p in source){
-      if (source.hasOwnProperty(p) && (!(p in target) || overwrite)){
-        target[p] = source[p]
-      }
+  function extend(){
+    var extended = {},
+        deep = false,
+        i = 0,
+        length = arguments.length;
+
+    // Check if a deep merge
+    if ( Object.prototype.toString.call( arguments[0] ) === '[object Boolean]' ) {
+        deep = arguments[0];
+        i++;
     }
-    return target;
+
+    // Merge the object into the extended object
+    var merge = function (obj) {
+        for ( var prop in obj ) {
+            if ( Object.prototype.hasOwnProperty.call( obj, prop ) ) {
+                // If deep merge and property is an object, merge properties
+                if ( deep && Object.prototype.toString.call(obj[prop]) === '[object Object]' ) {
+                    extended[prop] = extend( true, extended[prop], obj[prop] );
+                } else {
+                    extended[prop] = obj[prop];
+                }
+            }
+        }
+    };
+
+    // Loop through each object and conduct a merge
+    for ( ; i < length; i++ ) {
+        var obj = arguments[i];
+        merge(obj);
+    }
+
+    return extended;
   }
 
   /*
@@ -150,7 +175,6 @@
     ckieSet(config.cookie, id, expires)
   }
 
-
   /**
    * the getid forces the id to load in advance
   */
@@ -191,7 +215,7 @@
    * The connect/init function accepts config object
    */
   function connect(opts){
-    config = extend(jstag.config,opts,true)
+    config = extend(jstag.config, opts)
     if (config.loadid) {
       config.getid = jqgetid;
     }
@@ -222,7 +246,7 @@
    * @param options:  {onetime:true(default=false)}
   **/
   function bind(filter,cb,opts){
-    cb.opts = extend(opts?opts:{},opts)
+    cb.opts = extend({}, opts)
     if (!(filter in events)){
       events[filter] = [cb]
     } else {
@@ -662,6 +686,7 @@
       data = args[0]
       if (args.length===2) cb = args[1]
     }
+
     if ('io' in cache && isArray(cache['io'])){
       // it is possible to create more than 1 sender, send events multiple locations
       for (var i = cache['io'].length - 1; i >= 0; i--) {
@@ -752,6 +777,7 @@
         } else {
           cache['io'].push(this)
         }
+
         this.channel = new jstag.channels[o.channel](o);
 
         // define pipeline
@@ -786,7 +812,7 @@
         this.data = opts.data;
         opts.data['_ca'] = "jstag1";
 
-        dataout = extend(opts.data,config.pagedata,false);
+        dataout = extend(config.pagedata, opts.data);
 
         dataMsg = this.serializer(dataout);
 
@@ -814,8 +840,8 @@
           this.sendcid(config.cid, data,cb,stream);
         }
       },
-      sendcid : function(cid, data,cb,stream) {
-        data = data ? data : {};
+      sendcid : function(cid, payload, cb, stream) {
+        var data = extend(data, payload) || {};
 
         data["_ts"] = new Date().getTime();
         // todo, support json or n/v serializer?
@@ -823,7 +849,7 @@
           , self = this
           , url = o.url + o.path + cid
           , pipeNew = [];
-        stream = stream || o.stream;
+        stream = stream || jstag.config.stream;
         o.sendurl = stream ? url + "/" + stream  : url
         if (o.sendurl.indexOf("_uidn=") == -1 && config.cookie != "seerid") {
           o.sendurl = addQs(o.sendurl, "_uidn", config.cookie)
@@ -835,6 +861,7 @@
             pipeNew.push(_pipe[i])
           }
         }
+
         _pipe = pipeNew
 
         // now for the actual collection

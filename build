@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-echo "Create iow.js"
-cat src/files/io.js > src/files/iow.js
-#cat src/files/shim.js src/files/io.js  > src/files/iow.js
-
 echo "minify async.js"
 uglifyjs -o src/files/async2.min.js src/files/async2.js
 cp src/files/async2.min.js out/async2.min.js
@@ -23,16 +19,12 @@ echo "Minify io.lite.js"
 uglifyjs -o src/files/io.lite.min.js src/files/io.lite.js
 uglifyjs -o out/io.lite.min.js src/files/io.lite.js
 
-echo "Minify iow.js "
-uglifyjs -o src/files/iow.min.js src/files/iow.js
-cp src/files/iow.min.js out/iow.min.js
-
-
 # go ahead and run docpad generate just in case
 # use the env=static to remove live-reload
 #docpad generate --env static
 
 echo "Copy js files to examples"
+mkdir -p examples
 cp out/async.js examples/async.js
 cp out/async.lite.js examples/async.lite.js
 cp out/async.lite.min.js examples/async.lite.min.js
