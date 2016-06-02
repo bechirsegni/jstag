@@ -1,5 +1,5 @@
 // verify that the core async tag gets loaded and has the necessary functions defined
-describe("initialization", function() {
+describe("async:initialization", function() {
   it("jstag should exist but should not be loaded", function() {
     // validate
     expect(window.jstag).toBeDefined();
@@ -16,7 +16,7 @@ describe("initialization", function() {
 });
 
 // verify that the config is loaded, populated and events fired before io loads are stored
-describe("pre-initialization queue", function() {
+describe("async:pre-initialization queue", function() {
   it("queue should capture events and store them", function() {
     // attempt some sends
     window.jstag.send({"sample1":true});

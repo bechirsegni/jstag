@@ -22,14 +22,15 @@ var TESTCID = "bogusaccountid";
 var TESTURL = "//c.lytics.io";
 
 
-gulp.task('build', function () {
-	gulp.src('src/*.js')
+gulp.task('build', function (done) {
+	gulp.src(['src/async.js', 'src/io.js'])
 		.pipe(gulp.dest('out'))
     	.pipe(uglify())
     	.pipe(rename({
       		suffix: '.min'
     	}))
     	.pipe(gulp.dest('out'))
+      done();
 });
 
 gulp.task('fixtures', function () {
@@ -39,11 +40,12 @@ gulp.task('fixtures', function () {
     .pipe(gulp.dest('tests/fixtures'))
 });
 
-gulp.task('fixtures:test', function () {
+gulp.task('fixtures:test', function (done) {
   gulp.src('src/initobj.js')
     .pipe(replace('{{cid}}', TESTCID))
     .pipe(replace('{{url}}', TESTURL))
     .pipe(gulp.dest('tests/fixtures'))
+    done();
 });
 
 gulp.task('preview', function () {
@@ -73,6 +75,7 @@ gulp.task('iotest', function (done) {
     singleRun: true,
     files: [
       'out/async.min.js',
+      'tests/fixtures/initobj.js',
       'out/io.min.js',
       'tests/*IoSpec.js'
     ],
@@ -84,6 +87,6 @@ gulp.task('watch', function () {
   gulp.watch('src/**/*', ['build']);
 });
 
-gulp.task('test', ['build', 'fixtures:test', 'asynctest', 'iotest']);
-gulp.task('compile', ['build']);
-gulp.task('default', ['build', 'preview', 'watch']);
+gulp.task('test', gulp.series('fixtures:test', 'build', 'asynctest', 'iotest'));
+gulp.task('compile', gulp.series('build'));
+gulp.task('default', gulp.series('build', 'preview', 'watch'));

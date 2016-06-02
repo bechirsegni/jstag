@@ -28,7 +28,7 @@
   }
 
   jstag.config = extend({
-    url:''
+    url: ''
     , Q:[]
     , id: undefined
     , cid : undefined
@@ -755,6 +755,7 @@
       init: function(opts){
         self = this
         o = config
+
         if (!o.url || o.url === ''){
           var tagel = doc.getElementById(o.tagid), elu = null;
           if (tagel) {
@@ -762,7 +763,13 @@
             o.url = "//" + elu.authority
           }
         }
-        if (!o.url || !o.cid) throw new Error("Must have collection url and ProjectIds (cid)");
+
+        if (!o.url || !o.cid){
+          throw new Error("Must have collection url and ProjectIds (cid)");
+        }
+
+        jstag.config.url = o.url;
+
         if ('cid' in o) {
           if (isArray(o.cid)) {
             jstag.config.cid = o.cid;
