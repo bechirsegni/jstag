@@ -1,0 +1,74 @@
+---
+title: "JSTag test page"
+name: "Example"
+pageOrder: 1
+cmheight: "300px"
+---
+
+<section class="slide" id="example_usage">
+  <!-- start jstag  -->
+  <script type="text/javascript">
+  window.jstag=function(){var t={_q:[],_c:{},ts:(new Date).getTime()},l=false,w=window,d=document,src="/static/io",ext=".min.js",as=Array.prototype.slice,js="//c.lytics.io",url="//c.lytics.io",tag="io";t.init=function(c){url=c.url||url;ext=c.min===false?".js":ext;tag=c.tag||tag;t._c=c;return this};t.load=function(){var jsel,scriptEl=d.getElementsByTagName("script")[0];l=true;if(d.getElementById(src))return this;jsel=d.createElement("script");src=js+"/static/"+tag+ext;jsel.id=src;jsel.src=src;scriptEl.parentNode.insertBefore(jsel,scriptEl);return this};t.bind=function(e){if(!l)this.load();this._q.push([e,as.call(arguments,1)])};t.ready=function(){if(!l)this.load();this._q.push(["ready",as.call(arguments)])};t.send=function(){if(!l)this.load();this._q.push(["ready","send",as.call(arguments)]);return this};return t}();
+  
+  jstag
+    .init({cid:"YOUR_ID",url:'<%= @getUrl() %>', min:false})
+    .send({category:"mystuff",productid:22})  
+  </script>
+  <!-- end jstag -->
+  
+<script type="text/javascript">
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    // send arbitrary data on events
+    jstag.send({
+      "_ev":"share"
+      , hello:"world"
+      ,share_type:"twitter"
+      ,"cart_total":55
+      ,"my_type":"swim"
+      ,"cart_add":1234
+      ,"cart_load_fromdb":"1" 
+    });
+  });
+</script>
+</section>
+
+
+<div class="row-fluid">
+
+  <div class="span6">
+    <h2>Events...</h2>
+    <a href="#" id="linktest">Click This link for Event Based Send</a>
+    <h2>Campaigns...</h2>
+    Capture Campaign data using Google Analtyics Parameters (utm_source ...)
+    <a href="?utm_source=jstag&utm_medium=banner" id="linktest">Click This link to try it out</a>
+    See details on <a href="http://support.google.com/analytics/bin/answer.py?hl=en&answer=1033867"> google</a>
+      <br /><br />
+    
+    
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+
+
+<script type="text/javascript">
+  jstag.bind("send.finished",function(o,io){
+    $("#output").html(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
+  
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    jstag.send("stream2", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+    //jstag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
+  });
+</script>
+
+
+

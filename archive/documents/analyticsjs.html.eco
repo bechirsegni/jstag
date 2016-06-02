@@ -1,0 +1,92 @@
+---
+title: "JSTag analytics.js example"
+name: "Analytics.js"
+pageOrder: 5
+cmheight: "200px"
+---
+
+<section class="slide" id="example_usage">
+<script>
+  window.analyticsInit = function(analytics) {
+    analytics.initialize({
+      "Google Analytics":{"trackingId":"","universalClient":true,"domain":"","ignoreReferrer":"","doubleClick":false,"enhancedLinkAttribution":false,"initialPageview":true,"universal":true,"mobileTrackingId":"","reportUncaughtExceptions":false,"useHttps":0,
+        "serversideTrackingId":"YOUR-UA"
+      }
+      ,"Lytics":{"cid":"YOUR_ID"}
+    });
+  }
+  var analytics=analytics||[];
+  (function(){
+    var e=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group"]
+      ,t=function(e){
+        return function(){
+          analytics.push([e].concat(Array.prototype.slice.call(arguments,0)))
+        }
+      };
+    for(var n=0;n<e.length;n++)analytics[e[n]]=t(e[n]);
+    var t=document.createElement("script");t.type="text/javascript";t.async=!0
+    t.src="//c.lytics.io/static/analytics.glo.min.js";
+    var n=document.getElementsByTagName("script")[0];
+    n.parentNode.insertBefore(t,n)
+  })()
+
+</script>
+  
+<script type="text/javascript">
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    // send arbitrary data on events, change name:value to be your data
+    analytics.track("eventname", {
+      "_ev":"share", hello:"world",share_type:"twitter",
+      "cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" 
+    });
+  });
+</script>
+</section>
+
+
+<div class="row-fluid">
+
+  <div class="span6">
+    <h2>Analytics.js</h2>
+    This an example showing usage with <a href="https://github.com/segmentio/analytics.js">github.com/segmentio/analytics.js</a> an open-source
+    tag management that wraps multiple other tags.   Or use the excellent Service from <a href="http://segment.io">Segment.io</a>.   
+     Full list of providers <a href="https://github.com/segmentio/analytics.js/tree/master/src/providers">https://github.com/segmentio/analytics.js/tree/master/src/providers</a>
+    <h2>Events...</h2>
+    <a href="#" id="linktest">Click This link for Event Based Send</a>
+      <br /><br />
+    <pre>
+  // example of loading kiss, google, lytics
+  window.analytics.initialize({
+      'Google Analytics' : 'UA-XXXXXX-XX'
+      , 'Lytics' : {cid : 'lio-XXXXXX'}
+      , 'KISSmetrics' : 'XXXXXXXXXX'
+  });
+  </pre>
+    
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+
+
+<script type="text/javascript">
+  window.jstagAsyncInit = function(){
+    jstag.bind("send.finished",function(o,io){
+      $("#output").html(io.debug())
+      $("#output table").addClass("table table-condensed")
+    })
+   }
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    analytics.track("eventname", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+  });
+</script>
+
+
+

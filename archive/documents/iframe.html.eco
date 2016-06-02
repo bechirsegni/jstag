@@ -1,0 +1,48 @@
+---
+title: "JSTag usage in iframe"
+name: "Iframe"
+pageOrder: 2
+supress_cm: true
+---
+
+<div class="row-fluid">
+
+  <div class="span6">
+    <a href="#" id="linktest">Event Based Send</a>
+
+    <h2>Jstag in iframe</h2>
+    View source on this iframe.   Operating inside of iframes
+    is different, so this show's how a browser will react to an iframe
+    (you can't write cookies in many browsers inside of iframes.)
+    <iframe src="<%= @getRoot() %>/iframetestbasic/" width="100%" height="500px"></iframe>
+  </div>
+
+  <div class="span6">
+    <h2>Debug Output</h2>
+    <div id="output"></div>
+  </div>
+
+</div>
+
+<%-@partial('tag.html.eco',@)%>
+
+<script type="text/javascript">
+  jstag.send({"category":"hello","catid":6},function(o,io){
+    try{
+      console.log("hello, cb " + JSON.stringify(o))
+    } catch (e){}
+  });
+
+  jstag.bind("send.finished",function(o,io){
+    $("#output").html(io.debug())
+    $("#output table").addClass("table table-condensed")
+  })
+  
+  $("#linktest").click(function(e){
+    e.preventDefault();
+    jstag.send("stream2", {"_ev":"share", hello:"world",share_type:"twitter","cart_total":55,"my_type":"swim","cart_add":1234,"cart_load_fromdb":"1" });
+    //jstag.send({cart_checkout_ct:4,checkout_total:312.55,timttocheckout:1})
+  });
+</script>
+<!-- end jstag -->
+
