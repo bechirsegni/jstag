@@ -76,7 +76,7 @@ gulp.task('iotest', function (done) {
     files: [
       'out/async.min.js',
       'tests/fixtures/initobj.js',
-      'out/io.min.js',
+      'out/io.js',
       'tests/*IoSpec.js'
     ],
     port: 9976,
