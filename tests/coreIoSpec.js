@@ -145,6 +145,8 @@ describe("testing the jstag.pageView", function () {
   it("should add / alter the _e param and start session", function () {
     expect(async1.dataMsg).toEqual('_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
   });
+
+  console.llog
 });
 
 // pageView
@@ -170,8 +172,100 @@ describe("testing the jstag.identify", function () {
   });
 });
 
-// gif
-// form
-// cookies
-// multiple cids
-// passing an array
+// verify that we can block all sends and then flush the queue to handle state aware entity lookup
+describe("io:block:false", function() {
+  var async1, count=0;
+
+  function testSend(done) {
+    jstag.send("streamname", {"test":"test"}, function(opts, self){
+      async1 = opts;
+      count++;
+      if(count >= 1){
+        done();
+      }
+    });
+  }
+
+  beforeEach(function (done) {
+      window.jstag.block(false);
+      testSend(done);
+  });
+
+  it("should not fill up the queue when the block flag is set to false", function() {
+    expect(window.jstag.config.blockload).toBe(false);
+    expect(window.jstag.config.payloadQueue.length).toEqual(0);
+    expect(async1.dataMsg).toEqual('test=test&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+  });
+});
+
+describe("verify that events fire after they have been added to queue by block", function() {
+  var async1, async2, count=0;
+
+  function testSend(done) {
+    jstag.block(true);
+
+    jstag.send("streamname", {"test":"test"}, function(opts, self){
+      async1 = opts;
+      count++;
+      if(count >= 2){
+        done();
+      }
+    });
+
+    jstag.send("streamname", {"test2":"test2"}, function(opts, self){
+      async2 = opts;
+      count++;
+      if(count >= 2){
+        done();
+      }
+    });
+
+    expect(jstag.config.blockload).toBe(true);
+    expect(jstag.config.payloadQueue.length).toEqual(2);
+
+    jstag.block(false);
+  }
+
+  beforeEach(function (done) {
+    testSend(done);
+  });
+
+  it("should receive outbound query params for previously blocked sends", function() {
+    expect(async1.dataMsg).toEqual('test=test&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+    expect(async2.dataMsg).toEqual('test2=test2&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+  });
+});
+
+// verify that we can block all sends and then flush the queue to handle state aware entity lookup
+describe("blah blah blah", function() {
+  var async1;
+
+  function testSend(done) {
+    jstag.block(true);
+
+    jstag.send("streamname", {"test":"test"});
+    jstag.send("streamname", {"test2":"test2"});
+
+    expect(jstag.config.blockload).toBe(true);
+    expect(jstag.config.payloadQueue.length).toEqual(2);
+
+    jstag.mock("streamname", {"test3":"test3"}, function(opts, self){
+      async1 = opts;
+      done();
+    });
+  }
+
+  beforeEach(function (done) {
+    testSend(done);
+  });
+
+  it("blah blah blah", function() {
+    expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+  });
+});
+
+// // gif
+// // form
+// // cookies
+// // multiple cids
+// // passing an array

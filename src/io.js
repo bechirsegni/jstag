@@ -1,3 +1,6 @@
+// jstag.send({"one":"one"});
+// jstag.send({"two":"two"});
+
 /* jshint laxcomma:true, sub:true, asi:true */
 // v1.31 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
@@ -31,13 +34,15 @@
   jstag.config = extend({
     url: ''
     , Q:[]
+    , payloadQueue:[]
     , id: undefined
     , cid : undefined
     , getid : makeid
     , loadid: undefined
-    , serializer:toString
+    , serializer: toString
     , pipeline:['identity','analyze']
-    , delay:2000
+    , delay: 2000
+    , blockload: false
     , path: '/c/'
     , idpath: '/cid/'
     , cookie:"seerid"
@@ -425,7 +430,9 @@
             this.images.push(img);
             if (arguments.length === 2 && o && isFn(o.callback)){
               o.callback.hasRun=false;
-              if (img.onload) img.onload = onFinish();
+              if(img.onload){
+                img.onload = onFinish();
+              }
               win.setTimeout(function(){onFinish({timeout:true})}, jstag.config.delay);
             }
             img.src=this.getUrl(data);
@@ -756,14 +763,49 @@
   }
   jstag['parseEvent'] = parseEvent;
 
-    /**
+  /**
+   * @Function jstag.block
+   * public function to prevent events from being processed through to collections
+   * @param status:  (boolean) setting to false will flush queue
+  */
+  function block(status){
+    if(status===true){
+      jstag.config.blockload = true;
+    }else if(status===false){
+      // status changed to false, process the payloadQueue
+      jstag.config.blockload = false;
+
+      for (var i = 0; i < jstag.config.payloadQueue.length; i++) {
+        sendHandler(jstag.config.payloadQueue[i]);
+      }
+
+      jstag.config.payloadQueue = [];
+    }else{
+      // invalid status
+      throw "invalid jstag.block status requested";
+    }
+  }
+  jstag['block'] = block;
+
+  /**
    * @Function jstag.sendHandler
    * private function for handling sends of all types
    * @param payload:  (obj) prepped payload
   */
   function sendHandler(payload){
+    // if we are blocking the sends add them to the queue
+    if(jstag.config.blockload && !payload.mock){
+      jstag.config.payloadQueue.push(payload);
+      return;
+    }
+
     if(payload.mock){
-      tempqdata = mergeTempQ();
+      var tempqdata = {};
+
+      for (var mq = 0, mqlen = jstag.config.payloadQueue.length; mq < mqlen; mq++){
+        tempqdata = extend(tempqdata, jstag.config.payloadQueue[mq].data);
+      }
+
       payload.data = extend(tempqdata, payload.data);
     }
 
@@ -1046,4 +1088,8 @@
   jstag.emit("ready")
 
 }(window,document,window.navigator));
+
+
+// proccess async queue, add to main queue
+
 
