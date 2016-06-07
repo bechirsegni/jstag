@@ -1,7 +1,5 @@
-// verify that the core async tag gets loaded and has the necessary functions defined
-describe("io:initialization", function() {
+describe("verify that the core async tag gets loaded and has the necessary functions defined", function() {
   it("jstag should exist but should not be loaded", function() {
-    // validate
     expect(window.jstag).toBeDefined();
     expect(window.jstag.isLoaded).toBe(true);
   });
@@ -15,8 +13,7 @@ describe("io:initialization", function() {
   });
 });
 
-// ensure the parse event function can handle all the send/mock payload possibilities
-describe("io:parseEvent", function() {
+describe("ensure the parse event function can handle all the send/mock payload possibilities", function() {
   var resp, cb, obj;
   cb = function(){console.log('here');};
   obj = {"test":"one"};
@@ -113,7 +110,7 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
       testSend(done);
   });
 
-  it("Should be true if the async call has completed", function () {
+  it("should be true if the async call has completed", function () {
       // first send should not include uid, but does include sesstart
       expect(async1.dataMsg).toEqual('one=one&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_v=1.31&_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_ca=jstag1');
 
@@ -124,8 +121,7 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
   });
 });
 
-// pageView
-describe("testing the jstag.pageView", function () {
+describe("verify that we can properly process a pageview event", function () {
   var async1, count=0;
 
   function testPageView(done) {
@@ -142,15 +138,14 @@ describe("testing the jstag.pageView", function () {
       testPageView(done);
   });
 
-  it("should add / alter the _e param and start session", function () {
+  it("should add and/or alter the _e param and start session", function () {
     expect(async1.dataMsg).toEqual('_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
   });
 
   console.llog
 });
 
-// pageView
-describe("testing the jstag.identify", function () {
+describe("verify that we can properly process an identify event", function () {
   var async1, count=0;
 
   function testIdentify(done) {
@@ -172,8 +167,7 @@ describe("testing the jstag.identify", function () {
   });
 });
 
-// verify that we can block all sends and then flush the queue to handle state aware entity lookup
-describe("io:block:false", function() {
+describe("verify that we can block all sends and then flush the queue to handle state aware entity lookup", function() {
   var async1, count=0;
 
   function testSend(done) {
@@ -236,8 +230,7 @@ describe("verify that events fire after they have been added to queue by block",
   });
 });
 
-// verify that we can block all sends and then flush the queue to handle state aware entity lookup
-describe("blah blah blah", function() {
+describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
   var async1;
 
   function testSend(done) {
@@ -259,13 +252,86 @@ describe("blah blah blah", function() {
     testSend(done);
   });
 
-  it("blah blah blah", function() {
+  it("should merge the payload from the two blocked events and one mock event", function() {
     expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
   });
 });
 
-// // gif
-// // form
-// // cookies
-// // multiple cids
-// // passing an array
+describe("verify that we can get and set cookies as well as that the core cookies are set (seerid and seerses)", function() {
+  it("should have core lytics cookies", function() {
+    expect(jstag.ckieGet('seerses')).toBeTruthy();
+    expect(jstag.ckieGet('seerid')).toBeTruthy();
+  });
+
+  it("should be able to set cookies on the domain", function() {
+    jstag.ckieSet('testone', 'one');
+    jstag.ckieSet('testtwo', 'two');
+    expect(jstag.ckieGet('testone')).toEqual('one');
+    expect(jstag.ckieGet('testtwo')).toEqual('two');
+  });
+});
+
+describe("verify that our extend method works on multiple objects", function() {
+  it("should extend an empty object", function() {
+    var test = {}, resp = jstag.extend(test, {"one":1, "two":2});
+    expect(resp.one).toEqual(1);
+    expect(resp.two).toEqual(2);
+
+    // make sure we dont mutate
+    expect(test).toEqual({});
+  });
+
+  it("should extend an existing object", function() {
+    var test = {"one":"imgettingremoved", "three":3}, resp = jstag.extend(test, {"one":1, "two":2});
+    expect(resp.one).toEqual(1);
+    expect(resp.two).toEqual(2);
+    expect(resp.three).toEqual(3);
+
+    // make sure we dont mutate
+    expect(test).toEqual({"one":"imgettingremoved", "three":3});
+  });
+
+  it("should accept multiple objects at once", function() {
+    var testa = {"one":"imgettingremoved", "two":2},
+        testb = {"one":"imheretostay", "two":"one"},
+        testc = {"two":"two", "three":{"a":"a", "b":"b"}},
+        resp = jstag.extend(testa, testb, testc);
+
+    expect(resp.one).toEqual("imheretostay");
+    expect(resp.two).toEqual("two");
+    expect(resp.three).toEqual({"a":"a", "b":"b"});
+
+    // make sure we dont mutate
+    expect(testa).toEqual({"one":"imgettingremoved", "two":2});
+    expect(testb).toEqual({"one":"imheretostay", "two":"one"});
+    expect(testc).toEqual({"two":"two", "three":{"a":"a", "b":"b"}});
+  });
+});
+
+// process as gif
+// describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
+//   it("should merge the payload from the two blocked events and one mock event", function() {
+//     expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+//   });
+// }
+
+// process as form
+// describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
+//   it("should merge the payload from the two blocked events and one mock event", function() {
+//     expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+//   });
+// }
+
+// handle multiple cids
+// describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
+//   it("should merge the payload from the two blocked events and one mock event", function() {
+//     expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+//   });
+// }
+
+// handle array instead of object
+// describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
+//   it("should merge the payload from the two blocked events and one mock event", function() {
+//     expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+//   });
+// }

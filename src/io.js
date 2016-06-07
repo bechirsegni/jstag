@@ -349,6 +349,9 @@
    * Get a cookie
    */
   function ckieGet(name){
+    // refresh cookie
+    ckie = doc.cookie;
+
     if (ckie[l] > 0) {
       var begin = ckie.indexOf(name+"="), end;
       if (begin != -1) {
