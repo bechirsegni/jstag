@@ -24,23 +24,23 @@ describe("io:parseEvent", function() {
   it("should create the correct payload from a wide variety of send/mock events", function() {
     // no object : invalid call
     resp = jstag.parseEvent();
-    expect(resp).toEqual({ data: undefined, callback: undefined, stream: undefined, mock: false });
+    expect(resp).toEqual({ data: {}, callback: undefined, stream: "default", mock: false });
 
     // just a stream and no object : invalid call
     resp = jstag.parseEvent();
-    expect(jstag.parseEvent("fakestream")).toEqual({ data: undefined, callback: undefined, stream: "fakestream", mock: false });
+    expect(jstag.parseEvent("fakestream")).toEqual({ data: {}, callback: undefined, stream: "fakestream", mock: false });
 
     // just a callback and no object : invalid call
     resp = jstag.parseEvent(cb);
-    expect(resp).toEqual({ data: undefined, callback: cb, stream: undefined, mock: false });
+    expect(resp).toEqual({ data: {}, callback: cb, stream: "default", mock: false });
 
     // just a boolean and no object : invalid call
     resp = jstag.parseEvent(true);
-    expect(resp).toEqual({ data: undefined, callback: undefined, stream: undefined, mock: true });
+    expect(resp).toEqual({ data: {}, callback: undefined, stream: "default", mock: true });
 
     // just an object
     resp = jstag.parseEvent(obj);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined, mock: false });
+    expect(resp).toEqual({ data: obj, callback: undefined, stream: "default", mock: false });
 
     // stream and object
     resp = jstag.parseEvent("mystream", obj);
@@ -48,11 +48,11 @@ describe("io:parseEvent", function() {
 
     // object and callback
     resp = jstag.parseEvent(obj, cb);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: undefined, mock: false });
+    expect(resp).toEqual({ data: obj, callback: cb, stream: "default", mock: false });
 
     // object and mock boolean
     resp = jstag.parseEvent(obj, true);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined, mock: true });
+    expect(resp).toEqual({ data: obj, callback: undefined, stream: "default", mock: true });
 
     // stream object and callback
     resp = jstag.parseEvent("mystream", obj, cb);
@@ -60,7 +60,7 @@ describe("io:parseEvent", function() {
 
     // object callback and mock boolean
     resp = jstag.parseEvent(obj, cb, true);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: undefined, mock: true });
+    expect(resp).toEqual({ data: obj, callback: cb, stream: "default", mock: true });
 
     // stream object callback and mock boolean
     resp = jstag.parseEvent("mystream", obj, cb, true);
@@ -72,10 +72,8 @@ describe("io:parseEvent", function() {
   });
 });
 
-// Specs
-describe("Testing async calls with beforeEach and passing the special done callback around", function () {
-
-var async1, async2, async3, async4, count=0;
+describe("testing the jstag.send and jstag.mock(wrapper) functions", function () {
+  var async1, async2, async3, async4, count=0;
 
   function testSend(done) {
     jstag.send("teststream", {"one":"one"}, function(opts, self){
@@ -124,5 +122,56 @@ var async1, async2, async3, async4, count=0;
       expect(async3.dataMsg).toEqual('three=one&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async3.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
       expect(async4.dataMsg).toEqual('four=one&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async4.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
   });
-
 });
+
+// pageView
+describe("testing the jstag.pageView", function () {
+  var async1, count=0;
+
+  function testPageView(done) {
+    jstag.pageView("teststream", function(opts, self){
+      async1 = opts;
+      count++;
+      if(count >= 1){
+        done();
+      }
+    });
+  }
+
+  beforeEach(function (done) {
+      testPageView(done);
+  });
+
+  it("should add / alter the _e param and start session", function () {
+    expect(async1.dataMsg).toEqual('_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+  });
+});
+
+// pageView
+describe("testing the jstag.identify", function () {
+  var async1, count=0;
+
+  function testIdentify(done) {
+    jstag.identify("myfakeuserid", function(opts, self){
+      async1 = opts;
+      count++;
+      if(count >= 1){
+        done();
+      }
+    });
+  }
+
+  beforeEach(function (done) {
+      testIdentify(done);
+  });
+
+  it("should add the user_id param to identify the user", function () {
+    expect(async1.dataMsg).toEqual('user_id=myfakeuserid&_nmob=t&_device=desktop&url=localhost%3A9976%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v=1.31&_ca=jstag1');
+  });
+});
+
+// gif
+// form
+// cookies
+// multiple cids
+// passing an array

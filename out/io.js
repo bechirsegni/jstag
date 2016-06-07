@@ -738,6 +738,15 @@
       }
     }
 
+    // use default if no stream has been set
+    if(stream === undefined || stream === null){
+      stream = "default";
+    }
+
+    if(data === undefined || data === null){
+      data = {};
+    }
+
     return {
       data: data,
       callback: cb,
@@ -746,6 +755,28 @@
     }
   }
   jstag['parseEvent'] = parseEvent;
+
+    /**
+   * @Function jstag.sendHandler
+   * private function for handling sends of all types
+   * @param payload:  (obj) prepped payload
+  */
+  function sendHandler(payload){
+    if(payload.mock){
+      tempqdata = mergeTempQ();
+      payload.data = extend(tempqdata, payload.data);
+    }
+
+    if ('io' in cache && isArray(cache['io'])){
+      // it is possible to create more than 1 sender, send events multiple locations
+      for (var i = cache['io'].length - 1; i >= 0; i--) {
+        return cache['io'][i].send(payload);
+      }
+    } else {
+      var io = new Io();// this will auto-cache
+      io.send(payload);
+    }
+  }
 
   /**
    * @Function jstag.send
@@ -762,25 +793,8 @@
     // handle the event parsing
     payload = parseEvent.apply(this, arguments);
 
-    // if we are doing a mock we have to merge the _q as well
-    // console.log(payload);
-
-    if(payload.mock){
-      tempqdata = mergeTempQ();
-      payload.data = extend(tempqdata, payload.data);
-    }
-
-    // console.log(payload);
-
-    if ('io' in cache && isArray(cache['io'])){
-      // it is possible to create more than 1 sender, send events multiple locations
-      for (var i = cache['io'].length - 1; i >= 0; i--) {
-        return cache['io'][i].send(payload);
-      }
-    } else {
-      var io = new Io();// this will auto-cache
-      io.send(payload);
-    }
+    // send the event
+    sendHandler(payload)
   }
   jstag['send'] = send
 
@@ -800,23 +814,20 @@
   jstag['mock'] = mock
 
   function pageView(){
-    var stream = "default",data,cb, args=arguments
-    if (isString(args[0])){
-      stream = args[0]
-      data = args[1]
-      if (args.length===3) cb = args[2]
-    } else {
-      data = args[0]
-      if (args.length===2) cb = args[1]
-    }
-    if (!(isObject(data))){
-      data = {}
-    }
-    if (!("_e" in data)) data["_e"] = "pv";
+    var payload;
+
+    // handle the event parsing
+    payload = parseEvent.apply(this, arguments);
+
+
+
+    if (!("_e" in payload.data)) payload.data["_e"] = "pv";
     for (var k in pageData) {
-      data[k] = pageData[k];
+      payload.data[k] = pageData[k];
     }
-    send(data,cb,stream)
+
+    // send the event
+    sendHandler(payload)
   }
   jstag['pageView'] = pageView
 
@@ -827,19 +838,20 @@
   //  @userId = strong identity, email, hashed email, user_id from db
   //  @data = object of key:value properties to collect
   function identify(){
-    var uid = "", stream="default",data={},cb, args=arguments;
-    uid = args[0]
-    if (isString(args[1])){
-      stream = args[1]
-      data = args[2]
-      if (args.length===4) cb = args[3]
-    } else {
-      data = args[1]
-      if (args.length===3) cb = args[2]
-    }
-    if (!data) data = {};
-    data["user_id"] = uid;
-    send(data,cb,stream)
+    var payload;
+
+    // handle the event parsing
+    payload = parseEvent.apply(this, arguments);
+
+    // force overriding the stream and user_id seem pretty terrible but will address in another pr
+    // force stream to be default
+    payload.steram = "default";
+
+    // force user id to be first param (usually stream in other calls)
+    payload.data["user_id"] = arguments[0];
+
+    // send the event
+    sendHandler(payload)
   }
   jstag['identify'] = identify
 
@@ -849,7 +861,6 @@
       , self = null
       , o = null
       , pitem = null;
-
 
     return {
       init: function(opts){
