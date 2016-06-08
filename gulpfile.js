@@ -63,9 +63,9 @@ gulp.task('asynctest', function (done) {
     files: [
       'out/async.min.js',
       'tests/fixtures/initobj.js',
-      'tests/*AsyncSpec.js'
+      'tests/coreAsyncSpec.js'
     ],
-    port: 9876,
+    port: 9776,
   }, done).start();
 });
 
@@ -77,7 +77,21 @@ gulp.task('iotest', function (done) {
       'out/async.min.js',
       'tests/fixtures/initobj.js',
       'out/io.js',
-      'tests/*IoSpec.js'
+      'tests/coreIoSpec.js'
+    ],
+    port: 9876,
+  }, done).start();
+});
+
+gulp.task('dualsendtest', function (done) {
+  new Server({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true,
+    files: [
+      'out/async.min.js',
+      'tests/fixtures/dualinitobj.js',
+      'out/io.js',
+      'tests/dualIoSpec.js'
     ],
     port: 9976,
   }, done).start();
@@ -87,6 +101,6 @@ gulp.task('watch', function () {
   gulp.watch('src/**/*', ['build']);
 });
 
-gulp.task('test', gulp.series('fixtures:test', 'build', 'asynctest', 'iotest'));
+gulp.task('test', gulp.series('fixtures:test', 'build', 'asynctest', 'iotest', 'dualsendtest'));
 gulp.task('compile', gulp.series('build'));
 gulp.task('default', gulp.series('build', 'preview', 'watch'));

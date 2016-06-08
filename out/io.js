@@ -349,9 +349,10 @@
    * Get a cookie
    */
   function ckieGet(name){
-    // refresh cookie
+    // refresh from the document so we can get cookies that have just been set
     ckie = doc.cookie;
 
+    // get the cookie
     if (ckie[l] > 0) {
       var begin = ckie.indexOf(name+"="), end;
       if (begin != -1) {
@@ -471,6 +472,7 @@
         };
       return {
         send: function(data,o){
+
           try {
             var iframe = doc.createElement("iframe")
               , form
@@ -739,7 +741,7 @@
         case 'function':
           cb = arguments[i];
           break;
-        case 'object':
+        case 'object' || 'array':
           data = arguments[i];
           break;
         default:
@@ -978,8 +980,16 @@
         dataout = extend(config.pagedata, opts.data);
 
         dataMsg = this.serializer(dataout);
-        opts.dataMsg = dataMsg;
 
+        // enrich the callback payload
+        if(!opts.sendurl){
+          opts.sendurl = [];
+        }
+        opts.sendurl.push(o.sendurl);
+        opts.dataMsg = dataMsg;
+        opts.channelName = o.channel;
+
+        // handle mock callback before sending
         if(opts.mock){
           if(isFn(opts.callback)){
             opts.callback(opts,self);
@@ -991,6 +1001,7 @@
         // uri max length = ~2000
         if (isString(dataMsg) && (dataMsg.length + o.sendurl.length) > 2000) {
           currentChannel = new jstag.channels['Form'](o);
+          opts.channelName = 'Form';
         }
 
         currentChannel.send(dataMsg,{callback:function(to){
@@ -1091,8 +1102,3 @@
   jstag.emit("ready")
 
 }(window,document,window.navigator));
-
-
-// proccess async queue, add to main queue
-
-
