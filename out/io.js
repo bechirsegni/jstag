@@ -1,6 +1,3 @@
-// jstag.send({"one":"one"});
-// jstag.send({"two":"two"});
-
 /* jshint laxcomma:true, sub:true, asi:true */
 // v1.31 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
@@ -723,9 +720,6 @@
     // * the only object allowed as an argument must be the data
     // * the only function allowed as an argument must be the callback
     // * the only boolean allowed as an argument must be the mock flag
-    if(arguments.length === 0){
-      console.warn("no arguments passed to jstag.send event");
-    }
 
     // by default
     mock = false;
@@ -1023,12 +1017,12 @@
       },
       sendcid : function(cid, opts) {
         var data = extend(data, opts.data) || {};
+        opts.data = data;
 
-        // add the config
+        // add the config and timestamp
         opts.config = this.config;
+        opts.data["_ts"] = new Date().getTime();
 
-        data["_ts"] = new Date().getTime();
-        // todo, support json or n/v serializer?
         var self = this
           , url = o.url + o.path + cid
           , pipeNew = [];
@@ -1053,10 +1047,10 @@
           return self.collect(opts);
         } else if (config.getid && isFn(config.getid)) {
           config.getid(function(id){
-            if (id && !(data['_uid'])) {
-              data['_uid']=id
+            if (id && !(opts.data['_uid'])) {
+              opts.data['_uid']=id
               didGetId = "t"
-              data["_getid"] = "t"
+              opts.data["_getid"] = "t"
               uidv = id
             }
             self.collect(opts);
