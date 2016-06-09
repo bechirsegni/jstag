@@ -14,9 +14,6 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      // 'out/async.min.js',
-      // 'out/io.min.js',
-      // 'tests/*Spec.js'
     ],
 
 

@@ -399,11 +399,9 @@
     return url + n + '=' + v
   }
 
-
   /**
    * @Object available channels
   */
-
   jstag.channels = {
     /**
      * @class jstag.channels.Gif
@@ -715,13 +713,13 @@
   function parseEvent(payload){
     var stream,data,cb,mock;
 
-    // since the following is true, just loop all arguments and assign
-    // * the only stand alone string as an argument must be the stream
-    // * the only object allowed as an argument must be the data
-    // * the only function allowed as an argument must be the callback
-    // * the only boolean allowed as an argument must be the mock flag
-
-    // by default
+    /** since the following is true, just loop all arguments and assign
+    * the only stand alone string as an argument must be the stream
+    * the only object allowed as an argument must be the data
+    * the only function allowed as an argument must be the callback
+    * the only boolean allowed as an argument must be the mock flag
+    * by default
+    */
     mock = false;
 
     for (var i in arguments) {
@@ -859,8 +857,6 @@
 
     // handle the event parsing
     payload = parseEvent.apply(this, arguments);
-
-
 
     if (!("_e" in payload.data)) payload.data["_e"] = "pv";
     for (var k in pageData) {
@@ -1080,18 +1076,15 @@
     return s
   }
 
-
   if (win && 'jstagAsyncInit' in win && isFn(win.jstagAsyncInit)){
     win.jstagAsyncInit();
   }
-
 
   if (!("ready" in jstag)){
     jstag.ready = function(){}
   }
 
   jstag['load'] = function() {return this};
-
   replaceTempQ();
   jstag.emit("ready")
 

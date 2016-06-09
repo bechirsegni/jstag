@@ -1,8 +1,5 @@
 window.jstag.init({
-  "cid": [
-    "bogusaccountid",
-    "bogusaccountid2"
-  ],
+  "cid": "{{account.id}}",
   "url": "//c.lytics.io",
   "loadid": false,
   "min": false

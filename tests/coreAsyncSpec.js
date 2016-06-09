@@ -25,7 +25,7 @@ describe("async:pre-initialization queue", function() {
     // validate
     expect(window.jstag._q.length).toBe(2);
     expect(window.jstag._q[0][2][0].sample1).toBe(true);
-    expect(window.jstag._c.cid).toBe('bogusaccountid');
+    expect(window.jstag._c.cid).toBe('{{account.id}}');
     expect(window.jstag._c.url).toBe('//c.lytics.io');
   });
 });
