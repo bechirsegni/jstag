@@ -7,13 +7,13 @@ window.jstag = function() {
       l = false,
       w = window,
       d = document,
-      src = "/static/{{version}}/io",
+      src = "/static/v2/io",
       ext = ".min.js",
       as = Array.prototype.slice,
       js = "//api.lytics.io" || "//c.lytics.io",
       url = "//api.lytics.io" || "//c.lytics.io",
       tag = "io",
-      ver = "{{asyncversion}}";
+      ver = "2.0.0";
   t.init = function(c) {
       url = c.url || url;
       ext = c.min === false ? ".js" : ext;
@@ -57,4 +57,9 @@ window.jstag = function() {
   };
   return t;
 }(),
-window.jstag.init({{initobj}});
+window.jstag.init({
+  "cid": "{{account.id}}",
+  "url": "//c.lytics.io",
+  "loadid": false,
+  "min": false
+});

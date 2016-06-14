@@ -7,7 +7,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "{{ioversion}}"
+    , ioVersion = "2.0.0"
     , cache = {}
     , uidv
     , changeId
