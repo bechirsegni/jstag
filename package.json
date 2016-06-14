@@ -5,28 +5,21 @@
     "type": "git",
     "url": "http://github.com/ariya/coverage-jasmine-istanbul-karma.git"
   },
-  "dependencies": {
+  "devDependencies": {
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-env": "^0.4.0",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.2.0",
     "gulp-connect": "^2.3.1",
     "gulp-replace": "^0.5.4",
-    "phantomjs-prebuilt": "^2.1.4",
-    "karma-chrome-launcher": "^1.0.1",
-    "karma-firefox-launcher": "^1.0.0",
-    "karma-ie-launcher": "^1.0.0",
-    "karma-jasmine": "^1.0.2",
-    "karma-opera-launcher": "^1.0.0",
-    "karma-phantomjs-launcher": "^1.0.0",
-    "karma-safari-launcher": "^1.0.0",
-    "jasmine-core": "^2.2.0",
-    "jasmine-jquery": "^2.1.1",
-    "bower": "^1.7.9"
-  },
-  "devDependencies": {
+    "gulp-open": "^1.0.0",
     "karma": "^0.13.22",
     "karma-coverage": "^0.2.7",
-    "gulp-open": "^1.0.0"
+    "phantomjs-prebuilt": "^2.1.4",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-jasmine": "^1.0.2",
+    "karma-phantomjs-launcher": "^1.0.0",
+    "jasmine-core": "^2.2.0",
+    "jasmine-jquery": "^2.1.1"
   }
 }

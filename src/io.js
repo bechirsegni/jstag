@@ -529,9 +529,9 @@
         }
       }
       if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
-        var qsa = null
+        var qsa = null;
         for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
-          qsa = jstag.config.qsarg
+          qsa = jstag.config.qsargs[i]
           if (qsa in uri.qs){
             pageData[qsa] = uri.qs[qsa];
           }

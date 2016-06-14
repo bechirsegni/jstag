@@ -4,7 +4,6 @@ var gulp = require('gulp'),
     connect = require('gulp-connect'),
     replace = require('gulp-replace'),
     env = require('gulp-env'),
-    Server = require('karma').Server,
     open = require('gulp-open'),
     karma = require('karma'),
     fs = require("fs");
@@ -36,8 +35,6 @@ try {
 */
 var setVersion = function(){
   var obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
-
-  console.log(obj);
 
   version = obj.version;
   ioversion = obj.ioversion;
@@ -75,12 +72,12 @@ var generateConfig = function(env){
 gulp.task('build:legacy', function (done) {
   gulp.src(['src/legacy/async.js', 'src/legacy/io.js'])
     .pipe(gulp.dest('out/'))
-      .pipe(uglify())
-      .pipe(rename({
-          suffix: '.min'
-      }))
-      .pipe(gulp.dest('out/'))
-      done();
+    .pipe(uglify())
+    .pipe(rename({
+      suffix: '.min'
+    }))
+    .pipe(gulp.dest('out/'))
+  done();
 });
 
 gulp.task('build:production', function (done) {
@@ -92,29 +89,29 @@ gulp.task('build:production', function (done) {
     .pipe(replace('{{ioversion}}', asyncversion))
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
     .pipe(gulp.dest('out/'+version))
-      .pipe(uglify())
-      .pipe(rename({
-          suffix: '.min'
-      }))
-      .pipe(gulp.dest('out/'+version))
-      done();
+    .pipe(uglify())
+    .pipe(rename({
+      suffix: '.min'
+    }))
+    .pipe(gulp.dest('out/'+version))
+  done();
 });
 
 gulp.task('build:development', function (done) {
   var initobj = generateConfig('development');
 
-	gulp.src(['src/async.js', 'src/io.js'])
+  gulp.src(['src/async.js', 'src/io.js'])
     .pipe(replace('{{version}}', version))
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', ioversion))
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-		.pipe(gulp.dest('out/'+version))
-    	.pipe(uglify())
-    	.pipe(rename({
-      		suffix: '.min'
-    	}))
-    	.pipe(gulp.dest('out/'+version))
-      done();
+    .pipe(gulp.dest('out/'+version))
+    .pipe(uglify())
+    .pipe(rename({
+      suffix: '.min'
+    }))
+    .pipe(gulp.dest('out/'+version))
+  done();
 });
 
 /*
@@ -126,11 +123,11 @@ gulp.task('fixtures:test', function (done) {
   gulp.src(['src/initobjwrapper.js'])
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
     .pipe(gulp.dest('tests/fixtures'))
-    done();
+  done();
 });
 
 gulp.task('asynctest', function (done) {
-  new Server({
+  new karma.Server({
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
@@ -147,7 +144,7 @@ gulp.task('asynctest', function (done) {
 });
 
 gulp.task('iotest', function (done) {
-  new Server({
+  new karma.Server({
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
@@ -165,7 +162,7 @@ gulp.task('iotest', function (done) {
 });
 
 gulp.task('dualsendtest', function (done) {
-  new Server({
+  new karma.Server({
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
