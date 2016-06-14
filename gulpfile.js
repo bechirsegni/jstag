@@ -9,36 +9,63 @@ var gulp = require('gulp'),
     karma = require('karma'),
     fs = require("fs");
 
-// get overrides from .env file
+var production_cid = "{{account.id}}",
+    production_url = "//c.lytics.io",
+    master_cid,
+    master_url;
+
+/*
+* handles the cid and url overrides from the .env file
+*/
 try {
   env({
       file: '.env.json',
   });
-  MASTERCID = process.env.cid || "{{account.id}}";
-  MASTERURL = process.env.url || "//c.lytics.io";
+  master_cid = process.env.cid || production_cid;
+  master_url = process.env.url || production_url;
 } catch (error) {
-  MASTERCID = "{{account.id}}";
-  MASTERURL = "//c.lytics.io";
+  master_cid = production_cid;
+  master_url = production_url;
 }
 
-var generateConfig = function(){
+/*
+* generates the master config used in async init
+*/
+var generateConfig = function(env){
   var obj = JSON.parse(fs.readFileSync('src/initobj.json', 'utf8'));
-  obj.cid = MASTERCID;
-  obj.url = MASTERURL;
+
+  if(env == "production"){
+    obj.cid = production_cid;
+    obj.url = production_url;
+  }else{
+    obj.cid = master_cid;
+    obj.url = master_url;
+  }
+
   return obj;
 }
 
-gulp.task('fixtures:test', function (done) {
-  var initobj = generateConfig();
+/*
+* primary build tasks
+* production: uses hard coded cid and url for templating purposes
+* development: uses .env.json if it exists for falls back to production settings
+*/
+gulp.task('build:production', function (done) {
+  var initobj = generateConfig('production');
 
-  gulp.src(['src/initobjwrapper.js'])
+  gulp.src(['src/async.js', 'src/io.js'])
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-    .pipe(gulp.dest('tests/fixtures'))
-    done();
+    .pipe(gulp.dest('out'))
+      .pipe(uglify())
+      .pipe(rename({
+          suffix: '.min'
+      }))
+      .pipe(gulp.dest('out'))
+      done();
 });
 
-gulp.task('build', function (done) {
-  var initobj = generateConfig();
+gulp.task('build:development', function (done) {
+  var initobj = generateConfig('development');
 
 	gulp.src(['src/async.js', 'src/io.js'])
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
@@ -51,12 +78,16 @@ gulp.task('build', function (done) {
       done();
 });
 
-gulp.task('preview', function () {
-  connect.server({
-    port: 8080 ,
-    root: './out',
-    livereload: true
-  });
+/*
+* testing tasks
+*/
+gulp.task('fixtures:test', function (done) {
+  var initobj = generateConfig('test');
+
+  gulp.src(['src/initobjwrapper.js'])
+    .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
+    .pipe(gulp.dest('tests/fixtures'))
+    done();
 });
 
 gulp.task('asynctest', function (done) {
@@ -100,10 +131,22 @@ gulp.task('dualsendtest', function (done) {
   }, done).start();
 });
 
+/*
+* supporting tasks
+*/
+gulp.task('preview', function () {
+  connect.server({
+    port: 8080 ,
+    root: './out',
+    livereload: true
+  });
+});
+
 gulp.task('watch', function () {
   gulp.watch('src/**/*', ['build']);
 });
 
+// leaving this out for now but will turn back on eventually
 // gulp.task('unit:coverage', function(done) {
 //   return new karma.Server({
 //     configFile:  __dirname + '/karma.conf.js',
@@ -134,6 +177,14 @@ gulp.task('watch', function () {
 //     .pipe(open());
 // });
 
-gulp.task('test', gulp.series('fixtures:test', 'build', 'asynctest', 'iotest', 'dualsendtest'));
-gulp.task('compile', gulp.series('build'));
-gulp.task('default', gulp.series('build', 'preview', 'watch'));
+// builds for the development environment and runs all tests
+gulp.task('test', gulp.series('fixtures:test', 'build:production', 'asynctest', 'iotest', 'dualsendtest'));
+
+// builds for production using hard coded cid and url
+gulp.task('buildprod', gulp.series('build:production'));
+
+// builds for development, uses .env.json file or fallsback to production
+gulp.task('builddev', gulp.series('build:development'));
+
+// default local server using development build settings
+gulp.task('default', gulp.series('build:development', 'preview', 'watch'));
