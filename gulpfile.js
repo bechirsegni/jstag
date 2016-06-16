@@ -182,16 +182,17 @@ gulp.task('dualsendtest', function (done) {
 /*
 * supporting tasks
 */
-gulp.task('preview', function () {
+gulp.task('preview', function (done) {
   connect.server({
     port: 8080 ,
-    root: './out/'+version+'/',
+    root: './out/',
     livereload: true
   });
+  done();
 });
 
 gulp.task('watch', function () {
-  gulp.watch('src/**/*', ['build']);
+  gulp.watch('src/*.js', gulp.series('builddev'));
 });
 
 // leaving this out for now but will turn back on eventually

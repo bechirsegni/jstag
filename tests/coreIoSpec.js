@@ -24,7 +24,6 @@ describe("ensure the parse event function can handle all the send/mock payload p
     expect(resp).toEqual({ data: {}, callback: undefined, stream: "default", mock: false });
 
     // just a stream and no object : invalid call
-    resp = jstag.parseEvent();
     expect(jstag.parseEvent("fakestream")).toEqual({ data: {}, callback: undefined, stream: "fakestream", mock: false });
 
     // just a callback and no object : invalid call
@@ -73,7 +72,7 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
   var async1, async2, async3, async4, count=0;
 
   function testSend(done) {
-    jstag.send("teststream", {"one":"one"}, function(opts, self){
+    jstag.send("teststream", {"one":"value1"}, function(opts){
       async1 = opts;
       count++;
       if(count >= 4){
@@ -81,7 +80,7 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
       }
     }, false);
 
-    jstag.send("teststream", {"two":"one"}, function(opts, self){
+    jstag.send("teststream", {"two":"value2"}, function(opts){
       async2 = opts;
       count++;
       if(count >= 4){
@@ -89,7 +88,7 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
       }
     }, true);
 
-    jstag.mock("teststream", {"three":"one"}, function(opts, self){
+    jstag.mock("teststream", {"three":"value3"}, function(opts){
       async3 = opts;
       count++;
       if(count >= 4){
@@ -97,7 +96,7 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
       }
     }, true);
 
-    jstag.mock("teststream", {"four":"one"}, function(opts, self){
+    jstag.mock("teststream", {"four":"value4"}, function(opts){
       async4 = opts;
       count++;
       if(count >= 4){
@@ -112,12 +111,12 @@ describe("testing the jstag.send and jstag.mock(wrapper) functions", function ()
 
   it("should send four calls with correct data as payload", function () {
       // first send should not include uid, but does include sesstart
-      expect(async1.dataMsg).toEqual('one=one&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_v='+window.__karma__.config.ioversion+'&_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_uid=' + async1.data._uid + '&_getid=t&_ca=jstag1');
+      expect(async1.dataMsg).toEqual('one=value1&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_v='+window.__karma__.config.ioversion+'&_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_uid=' + async1.data._uid + '&_getid=t&_ca=jstag1');
 
       // future sends should not include session but do include new _uid
-      expect(async2.dataMsg).toEqual('two=one&_ts=' + async2.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-      expect(async3.dataMsg).toEqual('three=one&_ts=' + async3.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async3.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-      expect(async4.dataMsg).toEqual('four=one&_ts=' + async4.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async4.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+      expect(async2.dataMsg).toEqual('two=value2&_ts=' + async2.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+      expect(async3.dataMsg).toEqual('three=value3&_ts=' + async3.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async3.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+      expect(async4.dataMsg).toEqual('four=value4&_ts=' + async4.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async4.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
 });
 
@@ -125,7 +124,7 @@ describe("testing that jstag.send can handle an array in addition to an object",
   var async1;
 
   function testSend(done) {
-    jstag.send("teststream", [{"one":"one"}, {"two":"two"}], function(opts, self){
+    jstag.send("teststream", [{"one":"value1"}, {"two":"value2"}], function(opts){
       async1 = opts;
       done();
     });
@@ -136,20 +135,17 @@ describe("testing that jstag.send can handle an array in addition to an object",
   });
 
   it("should translate the array into key/value pairs", function () {
-    expect(async1.dataMsg).toEqual('0.one=one&1.two=two&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+    expect(async1.dataMsg).toEqual('0.one=value1&1.two=value2&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
 });
 
 describe("verify that we can properly process a pageview event", function () {
-  var async1, count=0;
+  var async1;
 
   function testPageView(done) {
-    jstag.pageView("teststream", function(opts, self){
+    jstag.pageView("teststream", function(opts){
       async1 = opts;
-      count++;
-      if(count >= 1){
-        done();
-      }
+      done();
     });
   }
 
@@ -160,15 +156,13 @@ describe("verify that we can properly process a pageview event", function () {
   it("should add and/or alter the _e param and start session", function () {
     expect(async1.dataMsg).toEqual('_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
-
-  console.llog
 });
 
 describe("verify that we can properly process an identify event", function () {
   var async1, count=0;
 
   function testIdentify(done) {
-    jstag.identify("myfakeuserid", function(opts, self){
+    jstag.identify("myfakeuserid", function(opts){
       async1 = opts;
       count++;
       if(count >= 1){
@@ -183,7 +177,7 @@ describe("verify that we can properly process an identify event", function () {
 
   it("should add the user_id param to identify the user", function () {
     expect(async1.channelName).toEqual('Gif');
-    expect(async1.dataMsg).toEqual('user_id=myfakeuserid&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+    expect(async1.dataMsg).toEqual('_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
 });
 
@@ -191,7 +185,7 @@ describe("verify that we can process data using the alternative form method and 
   var async1;
 
   function testSend(done) {
-    jstag.send("teststream", [{"_id":"57586b1e1ab582f01179cf46","index":0,"guid":"fbc0c1fc-3124-42fc-9139-c8688a678c00","isActive":false,"balance":"$1,249.57","picture":"http://placehold.it/32x32","age":28,"eyeColor":"blue","name":"Daphne Levy","gender":"female","company":"OMNIGOG","email":"daphnelevy@omnigog.com","phone":"+1 (953) 459-2087","address":"544 Tilden Avenue, Nipinnawasee, Maine, 4806","about":"Irure mollit nulla nostrud irure excepteur aliqua. Anim esse eu ipsum nulla eu esse enim ipsum consequat incididunt. Aliqua sunt Lorem do est aute enim.\r\n","registered":"2014-06-27T10:17:24 +07:00","latitude":10.164059,"longitude":62.296736,"tags":["magna","amet","non","reprehenderit","exercitation","nostrud","qui"],"friends":[{"id":0,"name":"Golden Mckay"},{"id":1,"name":"Mullins Baldwin"},{"id":2,"name":"Knight Tran"}],"greeting":"Hello, Daphne Levy! You have 10 unread messages.","favoriteFruit":"apple"},{"_id":"57586b1e78b157455a47772e","index":1,"guid":"719fe570-2c83-4e2c-83e1-9aa0d7e60aa7","isActive":false,"balance":"$2,394.87","picture":"http://placehold.it/32x32","age":34,"eyeColor":"green","name":"Lopez Phelps","gender":"male","company":"ACRUEX","email":"lopezphelps@acruex.com","phone":"+1 (962) 540-3722","address":"971 Pitkin Avenue, Selma, Massachusetts, 188","about":"Laborum magna ex pariatur esse aliqua. Aliqua commodo est enim nostrud in dolor tempor elit voluptate voluptate incididunt laborum. Laboris cupidatat velit in aliqua do.\r\n","registered":"2014-09-28T10:44:50 +07:00","latitude":58.886759,"longitude":-121.080578,"tags":["dolor","in","mollit","labore","duis","ea","non"],"friends":[{"id":0,"name":"Amy Owens"},{"id":1,"name":"Mcguire Rose"},{"id":2,"name":"Roberts Gonzales"}],"greeting":"Hello, Lopez Phelps! You have 6 unread messages.","favoriteFruit":"apple"},{"_id":"57586b1ecd70f275dd4f6ced","index":2,"guid":"559f157d-6c7d-4321-bf6c-5e069309ffdc","isActive":false,"balance":"$3,285.51","picture":"http://placehold.it/32x32","age":30,"eyeColor":"green","name":"Natasha Hickman","gender":"female","company":"ZERBINA","email":"natashahickman@zerbina.com","phone":"+1 (996) 487-3507","address":"344 Surf Avenue, Gardners, New Hampshire, 7561","about":"Ex id incididunt est consequat irure. Fugiat magna duis ut occaecat. Sit incididunt et nisi occaecat incididunt ea. Magna aliqua anim aliqua anim excepteur in officia aliquip labore ex. Mollit minim incididunt cillum cillum duis in fugiat cillum duis officia Lorem. Culpa consectetur sint ullamco magna deserunt ut ipsum velit Lorem. Consectetur anim eiusmod ipsum eiusmod sit exercitation sit tempor incididunt proident sit.\r\n","registered":"2015-09-08T01:00:52 +07:00","latitude":-41.388774,"longitude":-125.41587,"tags":["dolor","minim","ullamco","incididunt","sint","nisi","aute"],"friends":[{"id":0,"name":"Weber Wade"},{"id":1,"name":"Hunt Delacruz"},{"id":2,"name":"Terra Little"}],"greeting":"Hello, Natasha Hickman! You have 3 unread messages.","favoriteFruit":"apple"}], function(opts, self){
+    jstag.send("teststream", [{"_id":"57586b1e1ab582f01179cf46","index":0,"guid":"fbc0c1fc-3124-42fc-9139-c8688a678c00","isActive":false,"balance":"$1,249.57","picture":"http://placehold.it/32x32","age":28,"eyeColor":"blue","name":"Daphne Levy","gender":"female","company":"OMNIGOG","email":"daphnelevy@omnigog.com","phone":"+1 (953) 459-2087","address":"544 Tilden Avenue, Nipinnawasee, Maine, 4806","about":"Irure mollit nulla nostrud irure excepteur aliqua. Anim esse eu ipsum nulla eu esse enim ipsum consequat incididunt. Aliqua sunt Lorem do est aute enim.\r\n","registered":"2014-06-27T10:17:24 +07:00","latitude":10.164059,"longitude":62.296736,"tags":["magna","amet","non","reprehenderit","exercitation","nostrud","qui"],"friends":[{"id":0,"name":"Golden Mckay"},{"id":1,"name":"Mullins Baldwin"},{"id":2,"name":"Knight Tran"}],"greeting":"Hello, Daphne Levy! You have 10 unread messages.","favoriteFruit":"apple"},{"_id":"57586b1e78b157455a47772e","index":1,"guid":"719fe570-2c83-4e2c-83e1-9aa0d7e60aa7","isActive":false,"balance":"$2,394.87","picture":"http://placehold.it/32x32","age":34,"eyeColor":"green","name":"Lopez Phelps","gender":"male","company":"ACRUEX","email":"lopezphelps@acruex.com","phone":"+1 (962) 540-3722","address":"971 Pitkin Avenue, Selma, Massachusetts, 188","about":"Laborum magna ex pariatur esse aliqua. Aliqua commodo est enim nostrud in dolor tempor elit voluptate voluptate incididunt laborum. Laboris cupidatat velit in aliqua do.\r\n","registered":"2014-09-28T10:44:50 +07:00","latitude":58.886759,"longitude":-121.080578,"tags":["dolor","in","mollit","labore","duis","ea","non"],"friends":[{"id":0,"name":"Amy Owens"},{"id":1,"name":"Mcguire Rose"},{"id":2,"name":"Roberts Gonzales"}],"greeting":"Hello, Lopez Phelps! You have 6 unread messages.","favoriteFruit":"apple"},{"_id":"57586b1ecd70f275dd4f6ced","index":2,"guid":"559f157d-6c7d-4321-bf6c-5e069309ffdc","isActive":false,"balance":"$3,285.51","picture":"http://placehold.it/32x32","age":30,"eyeColor":"green","name":"Natasha Hickman","gender":"female","company":"ZERBINA","email":"natashahickman@zerbina.com","phone":"+1 (996) 487-3507","address":"344 Surf Avenue, Gardners, New Hampshire, 7561","about":"Ex id incididunt est consequat irure. Fugiat magna duis ut occaecat. Sit incididunt et nisi occaecat incididunt ea. Magna aliqua anim aliqua anim excepteur in officia aliquip labore ex. Mollit minim incididunt cillum cillum duis in fugiat cillum duis officia Lorem. Culpa consectetur sint ullamco magna deserunt ut ipsum velit Lorem. Consectetur anim eiusmod ipsum eiusmod sit exercitation sit tempor incididunt proident sit.\r\n","registered":"2015-09-08T01:00:52 +07:00","latitude":-41.388774,"longitude":-125.41587,"tags":["dolor","minim","ullamco","incididunt","sint","nisi","aute"],"friends":[{"id":0,"name":"Weber Wade"},{"id":1,"name":"Hunt Delacruz"},{"id":2,"name":"Terra Little"}],"greeting":"Hello, Natasha Hickman! You have 3 unread messages.","favoriteFruit":"apple"}], function(opts){
       async1 = opts;
       done();
     });
@@ -211,7 +205,7 @@ describe("verify that we can block all sends and then flush the queue to handle 
   var async1, count=0;
 
   function testSend(done) {
-    jstag.send("streamname", {"test":"test"}, function(opts, self){
+    jstag.send("streamname", {"test":"value1"}, function(opts){
       async1 = opts;
       count++;
       if(count >= 1){
@@ -221,14 +215,14 @@ describe("verify that we can block all sends and then flush the queue to handle 
   }
 
   beforeEach(function (done) {
-      window.jstag.block(false);
+      window.jstag.unblock();
       testSend(done);
   });
 
   it("should not fill up the queue when the block flag is set to false", function() {
     expect(window.jstag.config.blockload).toBe(false);
     expect(window.jstag.config.payloadQueue.length).toEqual(0);
-    expect(async1.dataMsg).toEqual('test=test&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+    expect(async1.dataMsg).toEqual('test=value1&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
 });
 
@@ -236,9 +230,9 @@ describe("verify that events fire after they have been added to queue by block",
   var async1, async2, count=0;
 
   function testSend(done) {
-    jstag.block(true);
+    jstag.block();
 
-    jstag.send("streamname", {"test":"test"}, function(opts, self){
+    jstag.send("streamname", {"test":"value"}, function(opts){
       async1 = opts;
       count++;
       if(count >= 2){
@@ -246,7 +240,7 @@ describe("verify that events fire after they have been added to queue by block",
       }
     });
 
-    jstag.send("streamname", {"test2":"test2"}, function(opts, self){
+    jstag.send("streamname", {"test2":"value2"}, function(opts){
       async2 = opts;
       count++;
       if(count >= 2){
@@ -257,7 +251,7 @@ describe("verify that events fire after they have been added to queue by block",
     expect(jstag.config.blockload).toBe(true);
     expect(jstag.config.payloadQueue.length).toEqual(2);
 
-    jstag.block(false);
+    jstag.unblock();
   }
 
   beforeEach(function (done) {
@@ -265,8 +259,8 @@ describe("verify that events fire after they have been added to queue by block",
   });
 
   it("should receive outbound query params for previously blocked sends", function() {
-    expect(async1.dataMsg).toEqual('test=test&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-    expect(async2.dataMsg).toEqual('test2=test2&_ts=' + async2.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+    expect(async1.dataMsg).toEqual('test=value&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+    expect(async2.dataMsg).toEqual('test2=value2&_ts=' + async2.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
 });
 
@@ -274,15 +268,15 @@ describe("verify that all blocked events in the queue are added the the payload 
   var async1;
 
   function testSend(done) {
-    jstag.block(true);
+    jstag.block();
 
-    jstag.send("streamname", {"test":"test"});
-    jstag.send("streamname", {"test2":"test2"});
+    jstag.send("streamname", {"test":"value1"});
+    jstag.send("streamname", {"test2":"value2"});
 
     expect(jstag.config.blockload).toBe(true);
     expect(jstag.config.payloadQueue.length).toEqual(2);
 
-    jstag.mock("streamname", {"test3":"test3"}, function(opts, self){
+    jstag.mock("streamname", {"test3":"value3"}, function(opts){
       async1 = opts;
       done();
     });
@@ -293,12 +287,12 @@ describe("verify that all blocked events in the queue are added the the payload 
   });
 
   it("should merge the payload from the two blocked events and one mock event", function() {
-    expect(async1.dataMsg).toEqual('test=test&test2=test2&test3=test3&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+    expect(async1.dataMsg).toEqual('test=value1&test2=value2&test3=value3&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
   });
 });
 
-describe("verify that we can get and set cookies as well as that the core cookies are set (seerid and seerses)", function() {
-  it("should have core lytics cookies", function() {
+describe("verify that we can get and set necessary cookies", function() {
+  it("should have core lytics cookies: seerses and seerid", function() {
     expect(jstag.ckieGet('seerses')).toBeTruthy();
     expect(jstag.ckieGet('seerid')).toBeTruthy();
   });
@@ -333,17 +327,17 @@ describe("verify that our extend method works on multiple objects", function() {
 
   it("should accept multiple objects at once", function() {
     var testa = {"one":"imgettingremoved", "two":2},
-        testb = {"one":"imheretostay", "two":"one"},
-        testc = {"two":"two", "three":{"a":"a", "b":"b"}},
+        testb = {"one":"imheretostay", "two":"value1"},
+        testc = {"two":"value2", "three":{"a":"a", "b":"b"}},
         resp = jstag.extend(testa, testb, testc);
 
     expect(resp.one).toEqual("imheretostay");
-    expect(resp.two).toEqual("two");
+    expect(resp.two).toEqual("value2");
     expect(resp.three).toEqual({"a":"a", "b":"b"});
 
     // make sure we dont mutate
     expect(testa).toEqual({"one":"imgettingremoved", "two":2});
-    expect(testb).toEqual({"one":"imheretostay", "two":"one"});
-    expect(testc).toEqual({"two":"two", "three":{"a":"a", "b":"b"}});
+    expect(testb).toEqual({"one":"imheretostay", "two":"value1"});
+    expect(testc).toEqual({"two":"value2", "three":{"a":"a", "b":"b"}});
   });
 });

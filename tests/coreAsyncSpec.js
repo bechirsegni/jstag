@@ -7,11 +7,14 @@ describe("async:initialization", function() {
   });
 
   it("should have the proper functions defined", function(){
-    expect(window.jstag.init).toBeDefined();
-    expect(window.jstag.load).toBeDefined();
-    expect(window.jstag.bind).toBeDefined();
     expect(window.jstag.ready).toBeDefined();
+    expect(window.jstag.bind).toBeDefined();
     expect(window.jstag.send).toBeDefined();
+    expect(window.jstag.mock).toBeDefined();
+    expect(window.jstag.identify).toBeDefined();
+    expect(window.jstag.pageView).toBeDefined();
+    expect(window.jstag.block).toBeDefined();
+    expect(window.jstag.unblock).toBeDefined();
   });
 });
 

@@ -2,58 +2,62 @@ window.jstag = function() {
   var t = {
           _q: [],
           _c: {},
-          ts: (new Date()).getTime()
+          ts: (new Date()).getTime(),
+          ver: "2.0.0"
       },
-      l = false,
       w = window,
       d = document,
-      src = "/static/v2/io",
-      ext = ".min.js",
-      as = Array.prototype.slice,
-      js = "//c.lytics.io",
-      url = "//c.lytics.io",
-      tag = "io",
-      ver = "2.0.0";
+      l = false,
+      async = true,
+      as = Array.prototype.slice;
   t.init = function(c) {
-      url = c.url || url;
-      ext = c.min === false ? ".js" : ext;
-      tag = c.tag || tag;
       t._c = c;
 
       // begin load of core tag
-      t.loadtag(c.cid);
+      // in > 2.0.0 this tag will handle loading io based on account
+      // and no longer require changes to async tag
+      if(!c.synchronous){
+        t.loadtagmgr(c);
+      }
 
       return this;
   };
-  t.loadtag = function(cid){
+  t.loadtagmgr = function(c){
     var newtag = document.createElement("script");
-    newtag.type = "text/javascript", newtag.async = !0, newtag.src = "//c.lytics.io/api/tag/" + cid + "/lio.js";
+    newtag.type = "text/javascript", newtag.async = !0, newtag.src = c.url + "/api/tag/" + c.cid + "/lio.js";
     var i = document.getElementsByTagName("script")[0];
     i.parentNode.insertBefore(newtag, i)
   };
-  t.load = function() {
-      var jsel, scriptEl = d.getElementsByTagName("script")[0];
-      l = true;
-      if (d.getElementById(src)) return this;
-      jsel = d.createElement("script");
-      src = js + "/static/" + tag + ext;
-      jsel.id = src;
-      jsel.src = src;
-      scriptEl.parentNode.insertBefore(jsel, scriptEl);
-      return this;
+  t.ready = function() {
+    this._q.push(["ready", as.call(arguments)]);
+    return this;
   };
   t.bind = function(e) {
-      if (!l) this.load();
-      this._q.push([e, as.call(arguments, 1)]);
-  };
-  t.ready = function() {
-      if (!l) this.load();
-      this._q.push(["ready", as.call(arguments)]);
+    this._q.push([e, as.call(arguments, 1)]);
   };
   t.send = function() {
-      if (!l) this.load();
-      this._q.push(["ready", "send", as.call(arguments)]);
-      return this;
+    this._q.push(["ready", "send", as.call(arguments)]);
+    return this;
+  };
+  t.mock = function() {
+    this._q.push(["ready", "mock", as.call(arguments)]);
+    return this;
+  };
+  t.identify = function() {
+    this._q.push(["ready", "identify", as.call(arguments)]);
+    return this;
+  };
+  t.pageView = function() {
+    this._q.push(["ready", "pageView", as.call(arguments)]);
+    return this;
+  };
+  t.block = function() {
+    t._c.blockload = true;
+    return this;
+  };
+  t.unblock = function() {
+    t._c.blockload = false;
+    return this;
   };
   return t;
 }(),

@@ -1,5 +1,4 @@
-/* jshint laxcomma:true, sub:true, asi:true */
-// v1.31 JS Library for data collection. MIT License.
+// v{{ioversion}} JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -19,7 +18,6 @@
     , sesCkieVal = undefined
     , isSesStart = false
     , pageData = {}
-
   win['jstag'] = jstag;
   jstag.isLoaded = true;
   jstag.isSendable = false;
@@ -223,6 +221,9 @@
     if (config.loadid) {
       config.getid = jqgetid;
     }
+
+    jstag.config = config;
+
     pageAnalysis();
     return jstag
   }
@@ -528,6 +529,7 @@
           pageData[k] = uri.qs[k];
         }
       }
+
       if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
         var qsa = null;
         for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
@@ -763,26 +765,37 @@
   /**
    * @Function jstag.block
    * public function to prevent events from being processed through to collections
-   * @param status:  (boolean) setting to false will flush queue
+   * @param timeout:  (int) optional delay time before automatically unblocking
   */
-  function block(status){
-    if(status===true){
-      jstag.config.blockload = true;
-    }else if(status===false){
-      // status changed to false, process the payloadQueue
-      jstag.config.blockload = false;
+  function block(timeout){
+    jstag.config.blockload = true;
 
-      for (var i = 0; i < jstag.config.payloadQueue.length; i++) {
-        sendHandler(jstag.config.payloadQueue[i]);
-      }
-
-      jstag.config.payloadQueue = [];
-    }else{
-      // invalid status
-      throw "invalid jstag.block status requested";
+    // never allow events to be permanently blocked
+    if(typeof timeout !== 'number'){
+      timeout = 2000;
     }
+
+    setTimeout(function() {
+      jstag.unblock();
+    }, timeout)
   }
   jstag['block'] = block;
+
+  /**
+   * @Function jstag.unblock
+   * public function to restart event processed through to collections
+  */
+  function unblock(){
+    // status changed to false, process the payloadQueue
+    jstag.config.blockload = false;
+
+    for (var i = 0; i < jstag.config.payloadQueue.length; i++) {
+      sendHandler(jstag.config.payloadQueue[i]);
+    }
+
+    jstag.config.payloadQueue.length = 0;
+  }
+  jstag['unblock'] = unblock;
 
   /**
    * @Function jstag.sendHandler
@@ -847,8 +860,9 @@
   */
   function mock(){
     // when mocking we pass true as the final argument to prevent sending data
-    [].push.call(arguments, true);
-    jstag.send.apply(this, arguments);
+    var args = [].slice.call(arguments);
+    args.push(true);
+    jstag.send.apply(jstag, args);
   }
   jstag['mock'] = mock
 
@@ -866,12 +880,12 @@
     // send the event
     sendHandler(payload)
   }
-  jstag['pageView'] = pageView
+  jstag['pageView'] = pageView;
 
   // Used to identify a user when you have a strong
   //   identity, aka logging in, etc
   //
-  // identify(userId, data)
+  // identify(stream, data)
   //  @userId = strong identity, email, hashed email, user_id from db
   //  @data = object of key:value properties to collect
   function identify(){
@@ -880,12 +894,11 @@
     // handle the event parsing
     payload = parseEvent.apply(this, arguments);
 
-    // force overriding the stream and user_id seem pretty terrible but will address in another pr
-    // force stream to be default
-    payload.steram = "default";
-
-    // force user id to be first param (usually stream in other calls)
-    payload.data["user_id"] = arguments[0];
+    // in a near future version we will be setting a stream globally for all identifies
+    // so that we can better manage keys. for now just migrate to the same format as a
+    // traditional send or pageView call, once we spec this we can add validation and formatting
+    // of the payload
+    // payload.stream = "default";
 
     // send the event
     sendHandler(payload)
@@ -1082,6 +1095,11 @@
 
   if (!("ready" in jstag)){
     jstag.ready = function(){}
+  }
+
+  // determine if we should be blocking
+  if(win.jstag._c && win.jstag._c.blockload){
+    win.jstag.block();
   }
 
   jstag['load'] = function() {return this};
