@@ -633,6 +633,7 @@
       if (!("_v" in o.data)) o.data["_v"] =  ioVersion;
     }
   }
+
   // make sure we only run once
   pipeline.analyze.onetime = true;
 
@@ -735,7 +736,7 @@
         case 'function':
           cb = arguments[i];
           break;
-        case 'object' || 'array':
+        case 'object': // just a note, this can be either an array or an object as of 1.31
           data = arguments[i];
           break;
         default:
@@ -981,7 +982,6 @@
         opts.data['_ca'] = "jstag1";
 
         dataout = extend(config.pagedata, opts.data);
-
         dataMsg = this.serializer(dataout);
 
         // enrich the callback payload
@@ -1049,7 +1049,11 @@
           }
         }
 
-        _pipe = pipeNew
+        // if we are mocking we dont want to adjust the pipe if we
+        // beat the initial send in the race
+        if( !opts.mock && _pipe.length > 1 ){
+          _pipe = pipeNew
+        }
 
         // now for the actual collection
         if (uidv) {
