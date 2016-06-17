@@ -1,53 +1,58 @@
-window.jstag = (function () {
-  var t={
-        _q:[]
-        , _c:{}
-        , ts:(new Date()).getTime()
+window.jstag = function() {
+  var t = {
+          _q: [],
+          _c: {},
+          ts: (new Date()).getTime(),
+          ver: "2.0.0"
+      },
+      w = window,
+      d = document,
+      l = false,
+      async = true,
+      as = Array.prototype.slice;
+  t.init = function(c) {
+      t._c = c;
+
+      // begin load of core tag
+      // in > 2.0.0 this tag will handle loading io based on account
+      // and no longer require changes to async tag
+      if(!c.synchronous){
+        t.loadtagmgr(c);
       }
-    , l=false
-    , w=window
-    , d=document
-    , src="/static/io"
-    , ext=".min.js"
-    , as=Array.prototype.slice
-    , js="//c.lytics.io"
-    , url="//c.lytics.io"
-    , tag="io";
-  t.init=function(c){
-    // allow url for hosting tag, and collection (to be used  jstag.init({url:"//dev.someserver.mine"})
-    url = c.url||url;
-    // Minified version?   jstag.init({min:false})
-    ext = c.min===false ? ".js" : ext;
-    // which tag?   jstag.init({tag:false})
-    tag = c.tag||tag;
-    t._c = c;
-    return this;
+
+      return this;
+  };
+  t.loadtagmgr = function(c){
+    var newtag = document.createElement("script");
+    newtag.type = "text/javascript", newtag.async = !0, newtag.src = c.url + "/api/tag/" + c.cid + "/lio.js";
+    var i = document.getElementsByTagName("script")[0];
+    i.parentNode.insertBefore(newtag, i)
+  };
+
+  function chainable(fn) {
+    return function() {
+      fn.apply(this, arguments);
+      return this;
+    };
   }
-  t.load=function(){
-    var jsel
-      , scriptEl = d.getElementsByTagName("script")[0];
-    l = true;
-    if (d.getElementById(src)) return this;
-    jsel=d.createElement("script");
-    src=js+"/static/"+tag+ext;
-    jsel.id=src;
-    jsel.src=src;
-    scriptEl.parentNode.insertBefore(jsel, scriptEl);
-    return this;
+
+  function queueStub() {
+    var args = [ "ready" ].concat(as.call(arguments));
+    return chainable(function() {
+      args.push(as.call(arguments));
+      this._q.push(args);
+    });
   }
-  t.bind=function(e){
-    if (!l) this.load();
-    this._q.push([e,as.call(arguments,1)]);
-  }
-  t.ready=function(){
-    if (!l) this.load();
-    this._q.push(["ready",as.call(arguments)]);
-  }
-  t.send=function(){
-    // By default, we don't load javascript, only if necessary
-    if (!l) this.load();
-    this._q.push(["ready","send",as.call(arguments)]);
-    return this;
-  }
-  return t
-})();
+
+  t.ready = queueStub();
+  t.send = queueStub("send");
+  t.mock = queueStub("mock");
+  t.identify = queueStub("identify");
+  t.pageView = queueStub("pageView");
+  t.bind = chainable(function() { t._q.push([e, as.call(arguments, 1)]); });
+  t.block = chainable(function() { t._c.blockload = true; });
+  t.unblock = chainable(function() { t._c.blockload = false; });
+
+  return t;
+}(),
+window.jstag.init({{initobj}});
