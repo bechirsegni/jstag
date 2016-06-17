@@ -27,11 +27,11 @@ window.jstag = (function () {
     var jsel
       , scriptEl = d.getElementsByTagName("script")[0];
     l = true;
-    if (d.getElementById(src)) return this; 
-    jsel=d.createElement("script"); 
+    if (d.getElementById(src)) return this;
+    jsel=d.createElement("script");
     src=js+"/static/"+tag+ext;
     jsel.id=src;
-    jsel.src=src; 
+    jsel.src=src;
     scriptEl.parentNode.insertBefore(jsel, scriptEl);
     return this;
   }
