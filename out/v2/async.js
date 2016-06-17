@@ -28,37 +28,31 @@ window.jstag = function() {
     var i = document.getElementsByTagName("script")[0];
     i.parentNode.insertBefore(newtag, i)
   };
-  t.ready = function() {
-    this._q.push(["ready", as.call(arguments)]);
-    return this;
-  };
-  t.bind = function(e) {
-    this._q.push([e, as.call(arguments, 1)]);
-  };
-  t.send = function() {
-    this._q.push(["ready", "send", as.call(arguments)]);
-    return this;
-  };
-  t.mock = function() {
-    this._q.push(["ready", "mock", as.call(arguments)]);
-    return this;
-  };
-  t.identify = function() {
-    this._q.push(["ready", "identify", as.call(arguments)]);
-    return this;
-  };
-  t.pageView = function() {
-    this._q.push(["ready", "pageView", as.call(arguments)]);
-    return this;
-  };
-  t.block = function() {
-    t._c.blockload = true;
-    return this;
-  };
-  t.unblock = function() {
-    t._c.blockload = false;
-    return this;
-  };
+
+  function chainable(fn) {
+    return function() {
+      fn.apply(this, arguments);
+      return this;
+    };
+  }
+
+  function queueStub() {
+    var args = [ "ready" ].concat(as.call(arguments));
+    return chainable(function() {
+      args.push(as.call(arguments));
+      this._q.push(args);
+    });
+  }
+
+  t.ready = queueStub();
+  t.send = queueStub("send");
+  t.mock = queueStub("mock");
+  t.identify = queueStub("identify");
+  t.pageView = queueStub("pageView");
+  t.bind = chainable(function() { t._q.push([e, as.call(arguments, 1)]); });
+  t.block = chainable(function() { t._c.blockload = true; });
+  t.unblock = chainable(function() { t._c.blockload = false; });
+
   return t;
 }(),
 window.jstag.init({
