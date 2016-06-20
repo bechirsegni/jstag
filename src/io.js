@@ -724,11 +724,6 @@
       }
     }
 
-    // use default if no stream has been set
-    if(stream === undefined || stream === null){
-      stream = "default";
-    }
-
     if(data === undefined || data === null){
       data = {};
     }
