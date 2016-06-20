@@ -1,0 +1,1 @@
+window.jstag.init({{initobj}});

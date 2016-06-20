@@ -1,7 +1,7 @@
 JSTag - Javascript Analytics Collector Tag
 ===============================================
 
-A very simple javascript tag for collecting events from a browser to send to a server. 
+A very simple open-source javascript tag for collecting events from a browser to send to a server.  (like google analytics, but name/value pairs defined by you) 
 
 
 Simple inline implementation:
@@ -44,7 +44,7 @@ Configuration Options
 -------------------------
 * *cid* Collection ID, info is posted to */c/cid* allowing 
 * *cookie* Name of the Cookie for userid
-* *stream* Node dissappears, Its claim on work is released (work is not deleted), others try to claim work
+* *stream* send data to */c/cid/streamname* 
 
 
 Advanced usage for event bindings. 
@@ -57,7 +57,7 @@ Often when using a tag, you have a single *Include* of tag, and you have differe
 
     <script type="text/javascript" src="/js/ads.js">
       // lets maybe add information from our ad library
-      jstag.bind("before.send",function(o) {
+      jstag.bind("send.before",function(o) {
         o.data["my_id"] = "value"
         o.data["category"] = "value2"
       })
@@ -69,6 +69,7 @@ Data Format
 The data is formatted to name=value& format that can be used in querystrings, or form submission.   There are a couple specific formatting issues: 
 *  nested objects are flattened to period seperated name=value pairs
 *  arrays are sent as custom format
+
 ```html
     <script type="text/javascript">
       jstag.send({user:{id:22,name:"aaron"}})
@@ -80,3 +81,7 @@ The data is formatted to name=value& format that can be used in querystrings, or
     </script>
 ```
 
+Development & Hacking
+---------------------------
+
+See 
