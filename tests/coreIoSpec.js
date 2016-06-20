@@ -21,22 +21,22 @@ describe("ensure the parse event function can handle all the send/mock payload p
   it("should create the correct payload from a wide variety of send/mock events", function() {
     // no object : invalid call
     resp = jstag.parseEvent();
-    expect(resp).toEqual({ data: {}, callback: undefined, stream: "default", mock: false });
+    expect(resp).toEqual({ data: {}, callback: undefined, stream: undefined, mock: false });
 
     // just a stream and no object : invalid call
     expect(jstag.parseEvent("fakestream")).toEqual({ data: {}, callback: undefined, stream: "fakestream", mock: false });
 
     // just a callback and no object : invalid call
     resp = jstag.parseEvent(cb);
-    expect(resp).toEqual({ data: {}, callback: cb, stream: "default", mock: false });
+    expect(resp).toEqual({ data: {}, callback: cb, stream: undefined, mock: false });
 
     // just a boolean and no object : invalid call
     resp = jstag.parseEvent(true);
-    expect(resp).toEqual({ data: {}, callback: undefined, stream: "default", mock: true });
+    expect(resp).toEqual({ data: {}, callback: undefined, stream: undefined, mock: true });
 
     // just an object
     resp = jstag.parseEvent(obj);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: "default", mock: false });
+    expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined, mock: false });
 
     // stream and object
     resp = jstag.parseEvent("mystream", obj);
@@ -44,11 +44,11 @@ describe("ensure the parse event function can handle all the send/mock payload p
 
     // object and callback
     resp = jstag.parseEvent(obj, cb);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: "default", mock: false });
+    expect(resp).toEqual({ data: obj, callback: cb, stream: undefined, mock: false });
 
     // object and mock boolean
     resp = jstag.parseEvent(obj, true);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: "default", mock: true });
+    expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined, mock: true });
 
     // stream object and callback
     resp = jstag.parseEvent("mystream", obj, cb);
@@ -56,7 +56,7 @@ describe("ensure the parse event function can handle all the send/mock payload p
 
     // object callback and mock boolean
     resp = jstag.parseEvent(obj, cb, true);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: "default", mock: true });
+    expect(resp).toEqual({ data: obj, callback: cb, stream: undefined, mock: true });
 
     // stream object callback and mock boolean
     resp = jstag.parseEvent("mystream", obj, cb, true);
