@@ -55,4 +55,9 @@ window.jstag = function() {
 
   return t;
 }(),
-window.jstag.init({{initobj}});
+window.jstag.init({
+  "cid": "{{account.id}}",
+  "url": "//c.lytics.io",
+  "loadid": false,
+  "min": false
+});

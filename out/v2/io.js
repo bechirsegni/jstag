@@ -1,4 +1,4 @@
-// v{{ioversion}} JS Library for data collection. MIT License.
+// v2.0.0 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -6,7 +6,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "{{ioversion}}"
+    , ioVersion = "2.0.0"
     , cache = {}
     , uidv
     , changeId
@@ -320,6 +320,27 @@
       }
       // don't emit ready here, tooooo soon
     }
+  }
+
+  // used during mock call, takes all events in queue and attempts to merge them
+  function mergeTempQ(){
+    var event, data, merged = {};
+
+    if(window.jstag._q && window.jstag._q.length) {
+
+      for (var i = window.jstag._q.length - 1; i >= 0; i--) {
+        event = window.jstag._q[i];
+
+        // since we throw event level streams out for mock just get last in array
+        if(event.length === 3){
+          data = event[2][event[2].length-1];
+        }
+
+        merged = extend(merged, data);
+      }
+    }
+
+    return merged;
   }
 
   /**
