@@ -6,13 +6,14 @@ var gulp = require('gulp'),
     env = require('gulp-env'),
     open = require('gulp-open'),
     karma = require('karma'),
-    fs = require("fs");
+    fs = require('fs'),
+    strip = require('gulp-strip-comments');
 
 var version,
     ioversion,
     asyncversion,
-    production_cid = "{{account.id}}",
-    production_url = "//c.lytics.io",
+    production_cid = '{{account.id}}',
+    production_url = '//c.lytics.io',
     master_cid,
     master_url;
 
@@ -21,7 +22,7 @@ var version,
 */
 try {
   env({
-      file: '.env.json',
+    file: '.env.json',
   });
   master_cid = process.env.cid || production_cid;
   master_url = process.env.url || production_url;
@@ -33,15 +34,15 @@ try {
 /*
 * sets master version information
 */
-var setVersion = function(){
+var setVersion = function () {
   var obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
 
   version = obj.version;
   ioversion = obj.ioversion;
   asyncversion = obj.asyncversion;
 
-  if(version === "" || ioversion === "" || asyncversion === ""){
-    throw "invalid version files, can not be built";
+  if (version === "" || ioversion === "" || asyncversion === "") {
+    throw 'invalid version files, can not be built';
   }
 }
 setVersion();
@@ -49,13 +50,13 @@ setVersion();
 /*
 * generates the master config used in async init
 */
-var generateConfig = function(env){
+var generateConfig = function (env) {
   var obj = JSON.parse(fs.readFileSync('src/initobj.json', 'utf8'));
 
-  if(env == "development"){
+  if (env === 'development') {
     obj.cid = master_cid;
     obj.url = master_url;
-  }else{
+  } else {
     obj.cid = production_cid;
     obj.url = production_url;
   }
@@ -88,12 +89,13 @@ gulp.task('build:production', function (done) {
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', asyncversion))
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-    .pipe(gulp.dest('out/'+version))
+    // .pipe(strip())
+    .pipe(gulp.dest('out/' + version))
     .pipe(uglify())
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest('out/'+version))
+    .pipe(gulp.dest('out/' + version))
   done();
 });
 
@@ -105,12 +107,13 @@ gulp.task('build:development', function (done) {
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', ioversion))
     .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-    .pipe(gulp.dest('out/'+version))
+    // .pipe(strip())
+    .pipe(gulp.dest('out/' + version))
     .pipe(uglify())
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest('out/'+version))
+    .pipe(gulp.dest('out/' + version))
   done();
 });
 
@@ -135,7 +138,7 @@ gulp.task('asynctest', function (done) {
     },
     singleRun: true,
     files: [
-      'out/'+version+'/async.min.js',
+      'out/' + version + '/async.min.js',
       'tests/fixtures/initobjwrapper.js',
       'tests/coreAsyncSpec.js'
     ],
@@ -148,13 +151,13 @@ gulp.task('iotest', function (done) {
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
-      ioversion: ioversion,
+      ioversion: ioversion
     },
     singleRun: true,
     files: [
-      'out/'+version+'/async.min.js',
+      'out/' + version + '/async.min.js',
       'tests/fixtures/initobjwrapper.js',
-      'out/'+version+'/io.js',
+      'out/' + version + '/io.js',
       'tests/coreIoSpec.js'
     ],
     port: 9876,
@@ -170,9 +173,9 @@ gulp.task('dualsendtest', function (done) {
     },
     singleRun: true,
     files: [
-      'out/'+version+'/async.min.js',
+      'out/' + version + '/async.min.js',
       'tests/fixtures/dualinitobj.js',
-      'out/'+version+'/io.js',
+      'out/' + version + '/io.js',
       'tests/dualIoSpec.js'
     ],
     port: 9976,
@@ -184,7 +187,7 @@ gulp.task('dualsendtest', function (done) {
 */
 gulp.task('preview', function (done) {
   connect.server({
-    port: 8080 ,
+    port: 8080,
     root: './out/',
     livereload: true
   });
