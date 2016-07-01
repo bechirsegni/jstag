@@ -1,6 +1,6 @@
 window.jstag.init({
-  "cid": "{{account.id}}",
-  "url": "//c.lytics.io",
-  "loadid": false,
-  "min": false
+  cid: '{{account.id}}',
+  url: '//c.lytics.io',
+  min: true,
+  loadid: false
 });

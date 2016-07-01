@@ -5,7 +5,6 @@ window.jstag = function () {
         ts: (new Date()).getTime(),
         ver: '2.0.0'
       },
-      l = false,
       async = true,
       as = Array.prototype.slice;
 
@@ -57,7 +56,7 @@ window.jstag = function () {
 
   t.pageView = queueStub('pageView');
 
-  t.bind = chainable(function () {
+  t.bind = chainable(function (e) {
     t._q.push([e, as.call(arguments, 1)]);
   });
 
@@ -71,6 +70,4 @@ window.jstag = function () {
 
   return t;
 }(),
-/*eslint-disable */
-window.jstag.init({{initobj}});
-/*eslint-enable */
+{{initobj}};
