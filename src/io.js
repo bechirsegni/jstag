@@ -1,44 +1,25 @@
-// v{{ioversion}} JS Library for data collection. MIT License.
-// https://github.com/lytics/jstag
+'use strict';
 
-(function (win, doc, nav) {
-  var dloc = doc.location,
-      ckie = doc.cookie,
-      jstag = win.jstag || {},
-      config = jstag.config || {},
-      l = 'length',
-      ioVersion = '{{ioversion}}',
-      cache = {},
-      uidv,
-      changeId,
-      didGetId,
-      as = Array.prototype.slice,
-      otostr = Object.prototype.toString,
-      dref = referrer(),
-      uri = parseUri(),
-      sesCkieVal,
-      pageData = {};
+(function iife (window, undefined) {
 
-  win.jstag = jstag;
-  jstag.isLoaded = true;
-  jstag.isSendable = false;
+var location = window.location;
+var document = window.document;
+var navigator = window.navigator;
+var screen = window.screen;
+var userAgent = navigator.userAgent;
+var ioVersion = '2.0.0';
+var JSTAG1 = 'jstag1';
+var arraySlice = uncurryThis([].slice);
 
-  if (!win.console) {
-    win.console = {
-      log: function () {}
-    };
-  }
-
-  jstag.config = extend({
-    url: '',
-    Q: [],
+function getConfig (config) {
+  var mergedConfig = extend({
+    url: '//c.lytics.io',
+    location: location.href,
     payloadQueue: [],
     id: undefined,
-    cid : undefined,
-    getid : makeid,
+    cid: undefined,
     loadid: undefined,
-    serializer: toString,
-    pipeline: ['identity', 'analyze'],
+    serializer: defaultSerializer,
     delay: 2000,
     blockload: false,
     path: '/c/',
@@ -47,1123 +28,1368 @@
     sesname: 'seerses',
     stream: undefined,
     sessecs: 1800,
-    channel:'Gif', // Form,Gif
     qsargs: [],
     ref: true,
     tagid: 'jstag-csdk',
     pagedata: {},
-    version : ioVersion
+    version: ioVersion
   }, config);
 
-  function isFn (it) {
-    return otostr.call(it) === '[object Function]';
+  if (mergedConfig.cid) {
+    // normalize `cid` so that it's always an array:
+    mergedConfig.cid = [].concat(mergedConfig.cid);
   }
 
-  function isObject (it) {
-    return otostr.call(it) === '[object Object]';
-  }
+  return mergedConfig;
+}
 
-  function isString (it) {
-    return otostr.call(it) === '[object String]';
-  }
+var transports = {
+  /**
+   * @constructor transports.Gif
+   * @private
+   * @todo fix documentation
+   * @todo add a description
+   */
+  Gif: function GifTransport (config) {
+    return {
+      name: 'Gif',
 
-  function isArray (it) {
-    return otostr.call(it) === '[object Array]';
-  }
+      send: function GifTransport$send (url, message) {
+        var image = new Image();
+        var callback = once(message.callback);
+
+        image.onload = callback;
+        later(callback, config.delay);
+
+        image.src = appendQuery(url, message.dataMsg);
+      }
+    };
+  },
 
   /**
-   * the classic extend, nothing special about this
-   * @param target
-   * @param source
-   * @param overwrite (bool, optional) to overwrite
-   *   target with source properties default = false.
-   * @returns target
-  */
-  function extend () {
-    var extended = {},
-        deep = false,
-        i = 0,
-        length = arguments.length;
+   * @constructor transports.Form
+   * @private
+   * @todo fix documentation
+   * @todo add a description
+   */
+  Form: function FormTransport (config) {
+    return {
+      name: 'Form',
 
-    // Check if a deep merge
-    if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
-      deep = arguments[0];
-      i++;
-    }
+      send: function FormTransport$send (url, message) {
+        var iframe = html('iframe', { id: uid() });
+        iframe.style.display = 'none';
 
-    // Merge the object into the extended object
-    var merge = function (obj) {
-      for (var prop in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-          // If deep merge and property is an object, merge properties
-          if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
-            extended[prop] = extend(true, extended[prop], obj[prop]);
-          } else {
-            extended[prop] = obj[prop];
-          }
-        }
+        document.body.appendChild(iframe);
+        asap(function () {
+          var childDocument = iframe.contentWindow.document;
+
+          var form = html('form', {
+            action: url,
+            method: 'post'
+          }, childDocument);
+
+          var input = html('input', {
+            value: message.dataMsg,
+            type: 'hidden',
+            name: '_js'
+          }, childDocument);
+
+          form.appendChild(input);
+          childDocument.body.appendChild(form);
+
+          form.submit();
+
+          later(function () {
+            silently(function () { document.body.removeChild(iframe); });
+
+            if (isFunction(message.callback)) {
+              message.callback();
+            }
+          }, config.delay);
+        });
       }
     };
-
-    // Loop through each object and conduct a merge
-    for (; i < length; i++) {
-      var obj = arguments[i];
-      merge(obj);
-    }
-    return extended;
   }
-  jstag.extend = extend;
+};
 
-  /*
-    parseUri 1.2.1
-    (c) 2007 Steven Levithan <stevenlevithan.com>
-    http://stevenlevithan.com/demo/parseuri/js/
-    MIT License
-  */
-  function parseUri (str) {
-    if (typeof str === 'undefined') {
-      str = dloc.href;
-    }
-    var o = {
-      strictMode: false,
-      key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
-      q: {
-        name: 'qs',
-        parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-      },
-      parser: {
-        strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-        loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-      }
-    };
+/**
+ * @private
+ * @constructor JSTag
+ * @param {Object} config
+ * @todo document all config options
+ */
+function JSTag (config) {
+  this.config = getConfig(config);
+  this.referrer = getReferrer();
+  this.pageData = {};
+  this.blocked = false;
+  this.changeId = null;
+  /** @deprecated */ this.listeners = {};
+}
 
-    var m = o.parser[o.strictMode ? 'strict' : 'loose'].exec(str),
-        uri = {},
-        i = 14;
+JSTag.prototype = {
+  constructor: JSTag,
 
-    while (i--) {
-      uri[o.key[i]] = m[i] || '';
-    }
-
-    uri[o.q.name] = {};
-    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-      if ($1) {
-        uri[o.q.name][$1] = decodeURIComponent($2);
-      }
+  /**
+   * @public
+   * @method
+   * @todo add a description
+   */
+  getid: function getid (callback) {
+    var that = this;
+    var wrappedCallback = once(function (id) {
+      that.setid(id);
+      callback(id);
     });
-    return uri;
-  }
-  jstag.parseUri = parseUri;
+    var seerId = getCookie(this.config.cookie);
 
-  function s16 () {
-    return ((1 + Math.random()) * 0x10000).toString();
-  }
-  /**
-   * creates random id
-  */
-  function makeid (cb) {
-    jstag.setid(s16());
-    if (isFn(cb)) {
-      cb(uidv);
+    if (seerId && seerId.length) {
+      asap(wrappedCallback, seerId);
+    } else if (this.config.loadid) {
+      asap(jsonpGetId, this, wrappedCallback);
+    } else {
+      asap(makeId, wrappedCallback);
     }
-  }
+  },
+
   /**
-   * the built in getid assumes you have jquery
-   * @param cb = callback function (mandatory)
-  */
-  function jqgetid (cb) {
-    if (!jQuery) {
-      jstag.setid(s16());
+   * @public
+   * @method
+   * @todo add a description
+   */
+  setid: function setid (id) {
+    var cookieName = this.config.cookie;
+    var oldId = getCookie(cookieName);
+    if (oldId && oldId.length) {
+      this.changeId = oldId;
+    }
+    setCookie(cookieName, id);
+  },
+
+  /**
+   * Clears both cookies by name
+   *
+   * @public
+   * @method
+   */
+  clearCookies: function clearCookies () {
+    deleteCookie(this.config.cookie);
+    deleteCookie(this.config.sesname);
+  },
+
+  /**
+   * @public
+   * @method
+   * @param {string} [stream] - the Lytics stream name
+   * @param {Object} [data] - the payload to collect
+   * @param {Function} [callback] - a callback to call once the message is
+   *     processed
+   * @returns the normalized options hash
+   * @todo add a description
+   */
+  parseEvent: function parseEvent () {
+    var args = arraySlice(arguments);
+
+    return normalizeEventArgs(args);
+  },
+
+  /**
+   * @public
+   * @method
+   * @returns {JSTag} the instance
+   * @todo add a description
+   */
+  block: function block (timeout) {
+    if (this.blocked) {
+      return this;
+    }
+    var that = this;
+
+    // this.config.blockload exists for backwards compatibility
+    this.blocked = this.config.blockload = true;
+
+    if (!isNumber(timeout)) {
+      timeout = 2000;
+    }
+    later(function () { that.unblock(); }, timeout);
+    return this;
+  },
+
+  /**
+   * @public
+   * @method
+   * @returns {JSTag} the instance
+   * @todo add a description
+   */
+  unblock: function unblock () {
+    if (!this.blocked) {
+      return this;
+    }
+    var that = this;
+
+    // this.config.blockload exists for backwards compatibility
+    this.blocked = this.config.blockload = false;
+
+    forEach(this.config.payloadQueue, function (message) {
+      that.sendMessage(message);
+    });
+
+    this.config.payloadQueue.length = 0;
+    return this;
+  },
+
+  /**
+   * Send a message
+   *
+   * @private
+   * @param {Object} the message to send
+   * @param {boolean} mock if passed, don't actually do any I/O
+   * @throws {TypeError}
+   */
+  sendMessage: function sendMessage (message, isMock) {
+    isMock == null && (isMock = false);
+    var that = this;
+    var config = this.config;
+
+    if (!config.url || !config.cid) {
+      throw new TypeError('Must have collection url and ProjectIds (cid)');
+    }
+    if (this.blocked && !isMock) {
+      config.payloadQueue.push(message);
       return;
     }
-    if (jQuery && jQuery.ajax && isFn(jQuery.ajax)) {
-      var idurl = config.url + config.idpath + config.cid[0];
-      jQuery.ajax({url: idurl, dataType: 'jsonp', success: function (json) {
-        jstag.setid(json);
-        didGetId = 't';
-        cb(json);
-      }});
-    }
-  }
-
-  // setid
-  jstag.setid = function (id) {
-    uidv = id;
-    var eid = ckieGet(config.cookie);
-    if (eid && eid[l] && typeof eid !== 'undefined') {
-      changeId = eid;
-    }
-    var expires = new Date();
-    expires.setTime(expires.getTime() + 7776000 * 1000);
-    ckieSet(config.cookie, id, expires);
-  };
-
-  /**
-   * the getid forces the id to load in advance
-  */
-  jstag.getid = function (cb) {
-    if (config.getid && isFn(config.getid)) {
-      cb = cb ? cb : function () {};
-      var sid = ckieGet(config.cookie);
-      if (sid && sid[l] && typeof sid !== 'undefined') {
-        uidv = sid;
-        cb(uidv);
-      } else {
-        config.getid(cb);
+    if (isMock) {
+      if (message.callback == null) {
+        throw new TypeError('cannot call mock without a callback');
       }
-    }
-    return uidv;
-  };
 
-  /**
-   * the http referrer
-  */
-  function referrer () {
-    var r = '';
-    try {
-      r = top.document.referrer;
-    } catch (e1) {
-      try {
-        r = parent.document.referrer;
-      } catch (e2) {
-        r = '';
-      }
-    }
-    if (r === '') {
-      r = doc.referrer;
-    }
-    return r;
-  }
+      var memo = message.data;
 
-  /**
-   * The connect/init function accepts config object
-   */
-  function connect (opts) {
-    config = extend(jstag.config, opts);
-    if (config.loadid) {
-      config.getid = jqgetid;
-    }
-
-    jstag.config = config;
-
-    pageAnalysis();
-    return jstag;
-  }
-
-  if ('_c' in jstag) {
-    connect(jstag._c);
-  }
-
-  jstag.init = jstag.connect = connect;
-
-  /* ------------- event binding -------------------
-   *
-  **/
-
-  var events = {};
-
-  /**
-   * Bind events:  accepts params, but also the cb function
-   * can be marked up with a property as onetime:
-   *
-   *      function dowork(opts) {
-   *           // do work
-   *      }
-   *      dowork.onetime = true;
-   *      jstag.bind('send.finished',dowork)
-   *
-   * @param the event filter (string) to bind to
-   * @param callback :  the function to be called upon triggering elsewhere.
-   * @param options:  {onetime:true(default=false)}
-  **/
-  function bind (filter, cb, opts) {
-    cb.opts = extend({}, opts);
-    if (!(filter in events)) {
-      events[filter] = [cb];
-    } else {
-      events[filter].push(cb);
-    }
-  }
-  jstag.bind = bind;
-
-  /**
-   * Emit events
-   * @param the event name filter (string) to bind to
-  **/
-  function emit (evt) {
-    var onetime = [],
-        eventsn = [],
-        cb,
-        args = Array.prototype.slice.call(arguments, 1);
-
-    if (events[evt] && events[evt].length) {
-      for (var i = 0, len = events[evt].length; i < len; i++) {
-        if (isFn(events[evt][i])) {
-          cb = events[evt][i];
-          if (cb.opts.onetime) {
-            onetime.push(cb);
-          } else {
-            cb.apply({}, args);
-            eventsn.push(events[evt][i]);
-          }
-        }
-      }
-    }
-    events[evt] = eventsn;
-    for (var k = onetime[l] - 1; k >= 0; k--) {
-      onetime[k].apply({}, args);
-    }
-    //onetime.forEach(function (cb) {
-    //  cb.apply({}, args);
-    //})
-  }
-  jstag.emit = emit;
-
-  /**
-   * Replace the temporary Q object, iterating through and
-   * calling the actual functions with arguments
-   * the async tag provides a set of stub's which actually don't work
-   * but instead get queued into Q.
-  **/
-  function handleQitem (q) {
-    if (isString(q[1]) && q[1] in jstag) {
-      // these are alises for not yet created fn (when put in q)
-      //  q[0]    q[1]
-      // 'ready', 'send'
-      // 'ready', 'send', {data:stuff}
-      // 'ready', 'send', {data:stuff}, fn()
-      bind(q[0], function () {
-        jstag[q[1]].apply(jstag, as.call(q[2] ? q[2] : {}));
+      forEach(config.payloadQueue, function (item) {
+        extend(memo, item.data);
       });
-    } else {
-      // 'ready', fn(), {data:stuff},
-      bind.apply(jstag, [q[0]].concat(as.call(q[1])));
     }
-  }
+    message.stream || (message.stream = config.stream);
+    forEach(this.config.cid, function (cid) {
+      var url = getEndpoint(config, cid) + (message.stream ? '/' + message.stream : '');
 
-  function replaceTempQ () {
-    // check for any temp events
-    if ('_q' in jstag && isArray(jstag._q)) {
-      for (var i = jstag._q.length - 1; i >= 0; i--) {
-        handleQitem(jstag._q[i]);
+      if (!contains(url, '_uidn=') && config.cookie !== 'seerid') {
+        url = appendQuery(url, '_uidn=' + config.cookie);
       }
-      // don't emit ready here, tooooo soon
-    }
-  }
+
+      message.data._ts = now();
+
+      collectIdentity(message, config, that);
+
+      that.getid(function (id) {
+        if (message.data._uid != null) {
+          // In an ideal world, we'd prevent the user from overwriting `_uid`. Warn for now
+          deprecation('user passed `_uid`');
+        }
+        if (id && !message.data._uid) {
+          message.data._uid = id;
+          message.data._getid = 't';
+        }
+        that.ioCollect(message, url, isMock);
+      });
+    });
+  },
 
   /**
-   * Get a cookie
+   * @private
+   * @method
+   * @param {Object} message
+   * @param {string} url
+   * @param {boolean} isMock
+   * @todo add a description
    */
-  function ckieGet (name) {
-    // refresh from the document so we can get cookies that have just been set
-    ckie = doc.cookie;
+  ioCollect: function ioCollect (message, url, isMock) {
+    var that = this;
+    var config = this.config;
 
-    // get the cookie
-    if (ckie[l] > 0) {
-      var begin = ckie.indexOf(name + '='), end;
-      if (begin !== -1) {
-        begin += name.length + 1;
-        end = ckie.indexOf(';', begin);
-        if (end === -1) {
-          end = ckie[l];
-        }
+    this.onSendStarted(message);
 
-        return unescape(ckie.substring(begin, end));
+    message.data._ca = JSTAG1;
+    message.dataMsg = config.serializer(extend({}, message.data));
+    message.sendurl || (message.sendurl = []);
+    message.sendurl.unshift(url);
+
+    if (isMock) {
+      asap(message.callback, message, this);
+      return;
+    }
+
+    var transport = this.ioGetTransport(message, url);
+    message.channelName = transport.name;
+
+    transport.send(url, extend({}, message, {
+      callback: function collectCallback () {
+        message.callback(message, that);
+        that.onSendFinished(message);
       }
-    }
-    return null;
-  }
-  jstag.ckieGet = ckieGet;
-
-  function ckieDel (name) {
-    doc.cookie = name + '=; path=/; expires=Monday, 19-Aug-1996 05:00:00 GMT';
-  }
-  jstag.ckieDel = ckieDel;
-
-  function ckieSet (name, value, expires, path, domain, secure) {
-    var subdomain = domain;
-    if (!domain && uri && uri.host) {
-      var hp = uri.host.split('.');
-      subdomain = uri.host;
-      if (hp.length > 1) {
-        domain = '.' + hp[hp.length - 2] + '.' + hp[hp.length - 1];
-      }
-    }
-    path = path || '/';
-    var cv = name + '=' + escape(value) +
-        ((expires) ? '; expires=' + expires.toGMTString() : '') +
-        ((path) ? '; path=' + path : '') +
-        ((domain) ? '; domain=' + domain : '') +
-        ((secure) ? '; secure' : '');
-    var cvsub = name + '=' + escape(value) +
-        ((expires) ? '; expires=' + expires.toGMTString() : '') +
-        ((path) ? '; path=' + path : '') +
-        ((subdomain) ? '; domain=' + subdomain : '') +
-        ((secure) ? '; secure' : '');
-    doc.cookie = cv;
-    doc.cookie = cvsub;
-  }
-  jstag.ckieSet = ckieSet;
-
-  function addQs (url, n, v) {
-    if (url.indexOf('?') < 1) {
-      url += '?';
-    } else {
-      url += '&';
-    }
-
-    return url + n + '=' + v;
-  }
+    }));
+  },
 
   /**
-   * @Object available channels
-  */
-  jstag.channels = {
-    /**
-     * @class jstag.channels.Gif
-     * uses empty gif images to send the request
-     * @constructur
-    */
-    Gif: function (opts) {
-      return {
-        images:[],
+   * @private
+   * @method
+   * @param {Object} message
+   * @param {string} url
+   * @todo add a description
+   */
+  ioGetTransport: function ioGetTransport (message, url) {
+    var config = this.config;
 
-        /**
-        * Sends the data
-        */
-        send:function (data, o) {
-          if (doc.images) {
-            var img = new Image(),
-                onFinish = function (to) {
-                  if (!o.callback.hasRun) {
-                    o.callback.hasRun = true;
-                    try {
-                      o.callback(to);
-                    } catch (e) {
-                      // ie fix TODO look into better way to handle this
-                    }
-                  }
-                };
-
-            this.images.push(img);
-            if (arguments.length === 2 && o && isFn(o.callback)) {
-              o.callback.hasRun = false;
-              if (img.onload) {
-                img.onload = onFinish();
-              }
-              win.setTimeout(function () {
-                onFinish({
-                  timeout: true
-                });
-              }, jstag.config.delay);
-            }
-            img.src = this.getUrl(data);
-          }
-        },
-        /**
-         * Creates the url to be sent to the collection server
-         */
-        getUrl: function (data) {
-          var url = opts.sendurl;
-          if (url.indexOf('?') < 1) {
-            url += '?';
-          } else {
-            url += '&';
-          }
-
-          return url + data;
-        }
-      };
-    },
-    /**
-     * @class channels.Form
-     * Form:  uses an iframe to post values
-     * @constructor
-    */
-    Form: function (opts) {
-      // form based communication channel
-      this.config = opts;
-      var sendAlternate = function (data) {
-        // If iFrame transport fails, fallback on Gif
-        var g = new jstag.channels.Gif (opts);
-        try {
-          g.send(data);
-        } catch (err) {
-          // ie fix TODO look into better way to handle this
-        }
-      };
-
-      return {
-        send: function (data, o) {
-
-          try {
-            var iframe = doc.createElement('iframe'),
-                form,
-                inp,
-                fid = 'f' + Math.floor(Math.random() * 99999),
-                onFinish = function (to) {
-                  if (o && o.callback && !o.callback.hasRun) {
-                    o.callback.hasRun = true;
-                    o.callback(to);
-                  }
-                };
-
-            doc.body.appendChild(iframe);
-            iframe.style.display = 'none';
-            iframe.id = fid;
-            setTimeout(function () {
-              form = iframe.contentWindow.document.createElement('form');
-              if (!(iframe.contentWindow.document.body)) {
-                return sendAlternate(data);
-              }
-              iframe.contentWindow.document.body.appendChild(form);
-              form.setAttribute('action', opts.sendurl);
-              form.setAttribute('method', 'post');
-              inp = iframe.contentWindow.document.createElement('input');
-              inp.setAttribute('type', 'hidden');
-              inp.setAttribute('name', '_js');
-              inp.value = data;
-              form.appendChild(inp);
-              form.submit();
-              setTimeout(function () {
-                try {
-                  doc.body.removeChild(iframe);
-                } catch (err) {
-                  // ie fix TODO look into better way to handle this
-                }
-                onFinish({
-                  timeout: true
-                });
-              }, config.delay * 2);
-            }, 0);
-          } catch (e) {
-            sendAlternate(data);
-          }
-        }
-      };
+    if (message.dataMsg.length + url.length > 2000) {
+      return new transports.Form(config);
     }
-  };
+    return new transports.Gif(config);
+  },
+  /**
+   * @public
+   * @method
+   * @param {string} [stream] - the Lytics stream name
+   * @param {Object} [data] - the payload to collect
+   * @param {Function} [callback] - a callback to call once the message is
+   *     processed
+   * @todo add a description
+   */
+  send: send,
+  identify: send,
 
-  function isMobile () {
-    var a = navigator.userAgent || navigator.vendor || window.opera;
-    var ism = /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4));
-    if (ism) {
-      return true;
-    }
-    return false;
-  }
 
-  function pageAnalysis () {
-    sesCkieVal = ckieGet(jstag.config.sesname);
+  /**
+   * @public
+   * @method
+   * @param {string} [stream] - the Lytics stream name
+   * @param {Object} [data] - the payload to collect
+   * @param {Function} [callback] - a callback to call once the message is
+   * @todo add a description
+   */
+  mock: mock,
 
-    for (var k in uri.qs) {
-      if (k.indexOf('utm_') === 0) {
-        pageData[k] = uri.qs[k];
+  /**
+   * @public
+   * @method
+   * @param {string} [stream] - the Lytics stream name
+   * @param {Object} [data] - the payload to collect
+   * @param {Function} [callback] - a callback to call once the message is
+   *     processed
+   * @todo add a description
+   */
+  page: page,
+  pageView: page,
+
+  /**
+   * @public
+   * @method
+   * @todo add a description
+   */
+  pageAnalysis: function pageAnaylsis () {
+    var config = this.config;
+    var sessionCookie = getCookie(config.sesname);
+    var pageData = this.pageData;
+    var uri = parseUri(config.location);
+
+    if (uri.search.length > 0) {
+      var queryParams = parseQueryString(uri.search);
+
+      // `utm_` prefixes are generic tracking-related parameters
+      extend(pageData, filterObject(queryParams, function (tuple) {
+        return startsWith(tuple[0], 'utm_');
+      }));
+
+      if (config.qsargs && config.qsargs.length > 0) {
+        extend(pageData, filterObject(queryParams, function (tuple) {
+          return contains(config.qsargs, tuple[0]);
+        }));
       }
     }
 
-    if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
-      var qsa = null;
-      for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
-        qsa = jstag.config.qsargs[i];
-        if (qsa in uri.qs) {
-          pageData[qsa] = uri.qs[qsa];
-        }
-      }
-    }
-
-    if (!sesCkieVal) {
+    if (!sessionCookie) {
       pageData._sesstart = '1';
     }
 
-    if (dref && dref[l] > 1) {
-      var rh = dref.toString().match(/\/\/(.*)\//);
-      if (rh && rh[1].indexOf(dloc.host) === -1) {
-        pageData._ref = dref.replace('http://', '').replace('https://', '');
-        if (!sesCkieVal) {
-          pageData._sesref = dref.replace('http://', '').replace('https://', '');
+    var referrer = this.referrer;
+
+    if (referrer && referrer.length > 0) {
+      var referrerHost = /\/\/(.*)\//.test(referrer);
+
+      if (referrerHost && !contains(referrerHost[1], location.host)) {
+        var strippedReferrer = stripProtocol(referrer);
+
+        pageData._ref = strippedReferrer;
+
+        if (!sessionCookie) {
+          pageData._sesref = strippedReferrer;
         }
       }
     }
 
-    // update the session time
-    var expires = new Date();
-    expires.setTime(expires.getTime() + jstag.config.sessecs * 1000);
-    ckieSet(jstag.config.sesname, 'e', expires);
+    setCookie(config.sesname, 'e', config.sessecs);
 
-    // some browser items
-    pageData._tz = parseInt(expires.getTimezoneOffset() / 60 * -1, 10) || '0';
-    pageData._ul = nav.appName === 'Netscape' ? nav.language : nav.userLanguage;
-    if (typeof screen === 'object') {
+    pageData._tz = parseInt(-new Date().getTimezoneOffset() / 60, 10);
+    pageData._ul = navigator.language || navigator.userLanguage;
+
+    if (screen) {
       pageData._sz = screen.width + 'x' + screen.height;
     }
+    this.pageData = pageData;
+  },
+
+
+  /**
+   * Make a JSONP request
+   *
+   * @param {string} url
+   * @param {Function} callback
+   */
+  jsonp: function jsonp (url, callback) {
+    var callbackId = uid();
+    var script = html('script', { src: appendQuery(url, 'callback=' + callbackId) });
+
+    window[callbackId] = once(function () {
+      silently(function () { document.body.removeChild(script); });
+      window[callbackId] = null;
+      callback.apply(null, arguments);
+    });
+
+    document.body.appendChild(script);
+  },
+
+  /**
+   * Extend an object, optionally using a deep merge
+   *
+   * @public
+   * @method
+   * @param {boolean} [isDeep] - extend using deep-merge semantics
+   * @param {Object} target - the object to copy params to
+   * @param {...Object} sources - the objects to copy properties from
+   * @returns target
+   */
+  extend: extend,
+
+  /**
+   * Parse a URI using the browser's native capabilities
+   *
+   * @public
+   * @method
+   * @param {string} uri
+   * @returns {Object} the parsed uri
+   */
+  parseUri: parseUri,
+
+  /**
+   * Parse a query string
+   *
+   * @public
+   * @method
+   * @param {string} queryString
+   * @returns {Object} the parsed query string
+   */
+  parseQueryString: parseQueryString,
+
+  /**
+   * Get a cookie value, which can be of any serializable type
+   *
+   * @public
+   * @method
+   * @param {string} name
+   * @returns {any} - the stored value
+   */
+  getCookie: getCookie,
+
+  /**
+   * Set a cookie with a value of any serializable type
+   *
+   * @public
+   * @method
+   * @param {string} name - the cookie name
+   * @param {any} value - the cookie value
+   * @param {number} seconds - the seconds until expiration relative from now
+   */
+  setCookie: setCookie,
+
+  /**
+   * Delete a cookie
+   *
+   * @public
+   * @method
+   * @param {string} name
+   */
+  deleteCookie: deleteCookie,
+
+  /**
+   * @event
+   */
+  onIoReady: noop,
+
+  /**
+   * @event
+   */
+  onSendStarted: noop,
+
+  /**
+   * @event
+   */
+  onSendFinished: noop
+};
+
+function send () {
+  var args = arraySlice(arguments);
+
+  this.sendMessage(normalizeEventArgs(args));
+}
+
+function page () {
+  var args = arraySlice(arguments);
+  var message = normalizeEventArgs(args);
+
+  message.data = extend({ _e: 'pv' }, this.pageData, message.data);
+
+  this.sendMessage(message);
+}
+
+function mock () {
+  var args = arraySlice(arguments);
+  var message = normalizeEventArgs(args);
+
+  message.data = extend({ _e: 'mk' }, this.pageData, message.data);
+
+  this.sendMessage(message, true);
+}
+
+function collectIdentity (message, config, instance) {
+  var data = message.data;
+
+  if (isMobile()) {
+    data._mob = 't';
+    var mobType = 'unknown';
+    if (/Android/i.test(userAgent)) {
+      mobType = 'Android';
+    } else if (/BlackBerry/i.test(userAgent)) {
+      mobType = 'Blackberry';
+    } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+      mobType = 'IOS';
+    } else if (/IEMobile/i.test(userAgent)) {
+      mobType = 'WinMobile';
+    }
+    data._device = mobType;
+  } else {
+    data._nmob = 't';
+    data._device = 'desktop';
   }
 
-  // the core page analysis functions, an array of options
-  var pipeline = {
-    analyze: function (o) {
-      if (!('_e' in o.data)) {
-        o.data._e = 'pv';
-      }
+  // get location
+  data.url = stripProtocol(location.href);
 
-      for (var k in pageData) {
-        o.data[k] = pageData[k];
+  if (isIFrame()) {
+    data._if = 't';
+  }
+
+  // clean up uid
+  if ('_uid' in data && !data._uid) {
+    delete data._uid;
+  }
+
+  // collect google analytics entropy:
+  var googleAnalyticsCookie = getCookie('__utma');
+
+  // this is here to support an experiment with collecting potentially
+  //     user-identifying entropy
+  if (googleAnalyticsCookie && googleAnalyticsCookie.length > 10) {
+    data._ga = googleAnalyticsCookie.substring(0, googleAnalyticsCookie.indexOf('.', 10));
+  }
+
+  if (!('_uid' in data)) {
+    var seerId = getCookie(config.cookie);
+    if (seerId && seerId.length) {
+      data._uid = seerId;
+    }
+  }
+
+  var optimizelyCookie = getCookie('optimizelyEndUserId');
+
+  if (optimizelyCookie) {
+    data.optimizelyid = optimizelyCookie;
+  }
+
+  if (!('_v' in data)) {
+    data._v = ioVersion;
+  }
+
+  if (instance.changeId) {
+    data._uido = instance.changeId;
+  }
+}
+
+/**
+ * Prepare a message object for flight over the wire
+ *
+ * @private
+ * @param {Object} message
+ * @param {string} namespace
+ */
+function defaultSerializer (data, namespace) {
+  namespace || (namespace = '');
+  var result = [];
+
+  if (!isObject(data)) {
+    result.push(namespace + '=' + data);
+  }
+  if (isArray(data)) {
+    result.push(
+      namespace + '_len=' + data.length,
+      namespace + '_json=' + encodeURIComponent(JSON.stringify(data))
+    );
+    forEach(data, function (datum) {
+      result.push(defaultSerializer(datum, namespace));
+    });
+  } else {
+    forEach(keys(data), function (plainKey) {
+      var key = encodeURIComponent(plainKey);
+      var datum = data[plainKey];
+
+      // Don't attempt to serialize functions
+      if (isFunction(datum)) { return; }
+
+      if (namespace !== '') {
+        key = [namespace, key].join('.');
       }
-    },
-    identity: function (o) {
-      // set mobile flags
-      if (isMobile()) {
-        o.data._mob = 't';
-        var mobType = 'unknown';
-        if (nav.userAgent.match(/Android/i)) {
-          mobType = 'Android';
-        } else if (nav.userAgent.match(/BlackBerry/i)) {
-          mobType = 'Blackberry';
-        } else if (nav.userAgent.match(/iPhone|iPad|iPod/i)) {
-          mobType = 'IOS';
-        } else if (nav.userAgent.match(/IEMobile/i)) {
-          mobType = 'WinMobile';
-        }
-        o.data._device = mobType;
+      if (isObject(datum)) {
+        result.push(defaultSerializer(datum, key));
+      } else if ((isString(datum) && datum.length > 0) || datum != null) {
+        result.push(key + '=' + encodeURIComponent(datum));
+      }
+    });
+  }
+  return result.join('&');
+}
+
+function html (elementName, properties, doc) {
+  doc || (doc = window.document);
+  return extend(doc.createElement(elementName), properties);
+}
+
+/**
+ * Call a function, but supress any thrown errors so it may fail silently
+ *
+ * @param {Function} stunt a function that may throw an error
+ */
+function silently (stunt) {
+  try { stunt(); } catch (_) {}
+}
+
+/**
+ * Callback with a new ID
+ *
+ * @private
+ * @param callback
+ */
+function makeId (callback) {
+  callback(uid());
+}
+
+/**
+ * Whether the current user agent is a mobile browser. Code borrowed from
+ * detectmobilebrowsers.com
+ *
+ * @private
+ */
+function isMobile () {
+  var a = navigator.userAgent || navigator.vendor || window.opera;
+  return /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4));
+}
+
+/**
+ * Whether the current window is in an iframe
+ *
+ * @private
+ */
+function isIFrame () {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+}
+
+/**
+ * @private
+ * @member later.timers
+ */
+later.timers = [];
+
+/**
+ * Clear all currently-cached timeouts and empty the timeout cache
+ */
+later.clearTimers = function clearTimers () {
+  forEach(later.timers, clearTimeout);
+  later.timers.length = 0;
+};
+
+/**
+ * Invoke a function after n milliseconds, and cache the timeout id
+ *
+ * @private
+ * @param {Function} callback
+ * @param {number} delay in milliseconds
+ * @param {...any} additional params
+ * @returns {number} the timer id for the new timeout
+ */
+function later (callback, delay) {
+  var args = arraySlice(arguments, 2);
+  var timer = setTimeout.apply(null, [callback, delay].concat(args));
+
+  later.timers.push(timer);
+  return timer;
+}
+
+/**
+ * Invoke a callback on a future turn on the event loop
+ *
+ * @private
+ * @param {Function} callback - the function to invoke
+ * @todo feature-detect for more-performant implementation techniques
+ */
+function asap (callback) {
+  var args = arraySlice(arguments, 1);
+
+  // should we feature detect for other techniques?
+  later.apply(null, [callback, 0].concat(args));
+}
+
+/**
+ * Extend an object, optionally using a deep merge
+ *
+ * @private
+ * @param {boolean} [isDeep] - extend using deep-merge semantics
+ * @param {Object} target - the object to copy params to
+ * @param {...Object} sources - the objects to copy properties from
+ * @returns target
+ */
+function extend () {
+  var isDeep = false;
+  var sources = arraySlice(arguments);
+
+  if (isBoolean(arguments[0])) {
+    isDeep = true;
+    sources = sources.slice(1);
+  }
+  return reduce(sources, function (target, source) {
+    if (source === undefined) {
+      return target;
+    }
+    forEach(keys(source), function (key) {
+      if (isDeep && isObject(source[key])) {
+        target[key] = extend(true, target[key], source[key]);
       } else {
-        o.data._nmob = 't';
-        o.data._device = 'desktop';
+        target[key] = source[key];
       }
+    });
+    return target;
+  });
+}
 
-      // get location
-      o.data.url = dloc.href.replace('http://', '').replace('https://', '');
+/**
+ * Retrieve an ID via JSONP
+ *
+ * @private
+ * @param {JSTag} context
+ * @param {Function} callback
+ */
+function jsonpGetId (context, callback) {
+  var config = context.config;
+  var idUri = getEndpoint(config, config.cid[0], 'idpath');
 
-      // determine if we are in an iframe
-      if (win.location !== win.parent.location) {
-        o.data._if = 't';
-      }
+  context.jsonp(idUri, callback);
+}
 
-      // clean up uid
-      if (('_uid' in o.data) && (!o.data._uid || o.data._uid === null || typeof o.data._uid === 'undefined')) {
-        delete o.data._uid;
-      }
+/**
+ * @private
+ * @returns {string} the referrer URL for the current document
+ */
+function getReferrer () {
+  try {
+    return top.document.referrer;
+  } catch (_) {}
+  try {
+    return parent.document.referrer;
+  } catch (_) {}
+  return document.referrer;
+}
 
-      var ga = ckieGet('__utma'),
-          gai = -1;
+/**
+ * @private
+ * @param {string} url
+ * @returns {string} a string containing the URL with the protocol removed
+ */
+function stripProtocol (url) {
+  return url.replace(/^https?:\/\//, '');
+}
 
-      if (ga && ga[l] > 10) {
-        gai = ga.indexOf('.', 10);
-        o.data._ga = ga.substring(0, gai);
-      }
+/**
+ * @private
+ * @param {Function} callback
+ * @returns {Function} a wrapper callback that will allow the original
+ *     callback to be called, at most, one time.
+ */
+function once (callback) {
+  var called = false;
 
-      if (!('_uid' in o.data)) { // don't replace uid if supplied
-        if (uidv) {
-          o.data._uid = uidv;
-        } else {
-          var sid = ckieGet(config.cookie);
-          if (sid && sid[l] && typeof sid !== 'undefined') {
-            uidv = o.data._uid = sid;
-          }
-        }
-      }
-
-      if (didGetId) {
-        o.data._getid = 't';
-      }
-
-      if (changeId) {
-        o.data._uido = changeId;
-      }
-      // handle saving optimizely id
-      var optzly = ckieGet('optimizelyEndUserId');
-      if (optzly) {
-        o.data.optimizelyid = optzly;
-      }
-      if (!('_v' in o.data)) {
-        o.data._v = ioVersion;
-      }
+  return function () {
+    if (!called) {
+      callback.apply(null, arguments);
+      callback = null;
+      called = true;
     }
   };
+}
 
-  // make sure we only run once
-  pipeline.analyze.onetime = true;
+/**
+ * Call a fn for every item in a collection
+ *
+ * @public
+ * @param {Array} collection - the collection to be iterated
+ * @param {Function} callback - the fn to call for each item in the array
+ */
+function forEach (collection, callback) {
+  for (var i = 0, len = collection.length; i < len; i++) {
+    callback(collection[i], i, collection);
+  }
+}
 
-  function encode (v) {
-    return encodeURIComponent(v);
+/**
+ * @public
+ * @param {Array.<any>} collection
+ * @param {Function} reducer
+ * @param {any} memo
+ * @returns {Array.<any>} the reduced value of the collection
+ */
+function reduce (collection, reducer, memo) {
+  var i = -1;
+  var len = collection.length;
+
+  if (arguments.length === 2 && len) {
+    memo = collection[++i];
+  }
+  while (++i < len) {
+    memo = reducer(memo, collection[i], i, collection);
+  }
+  return memo;
+}
+
+/**
+ * @public
+ * @param {Array.<any>} collection
+ * @param {Function} mapper
+ * @returns {Array.<any>} the collection mapped by the mapper
+ */
+function map (collection, mapper) {
+  return reduce(collection, function (memo, item, i) {
+    memo.push(mapper(item, i, collection));
+    return memo;
+  }, []);
+}
+
+/**
+ * @public
+ * @param {Array.<any>} collection
+ * @param {Function} predicate
+ * @returns {Array.<any>} the collection filtered by the predicate
+ */
+function filter (collection, predicate) {
+  return reduce(collection, function (memo, element, i) {
+    if (predicate(element, i, collection)) {
+      memo.push(element);
+    }
+    return memo;
+  }, []);
+}
+
+/**
+ * Return an array of all the key-value pairs of a given object
+ *
+ * @public
+ * @param {Object}
+ * @returns {Array.Array.<string>} an array of arrays of key-value pairs
+ */
+function pairs (source) {
+  return reduce(keys(source), function (memo, key) {
+    memo.push([key, source[key]]);
+    return memo;
+  }, []);
+}
+
+/**
+ * Return an object from an array of arrays of key-value pairs
+ *
+ * @public
+ * @param {Array.Array.<string>} an array of arrays of key-value pairs
+ * @returns {Object} an object containing the specified keys and values
+ */
+function object (source) {
+  return reduce(source, function (memo, pair) {
+    memo[pair[0]] = pair[1];
+    return memo;
+  }, {});
+}
+
+/**
+ * Return a new object whose key-value pairs are not filtered by the predicate
+ *
+ * @public
+ * @param {Object} source - the object to filter
+ * @param {Function} predicate - the function used to test each key-value pair
+ * @param {Object} a new object with only the key-value pairs which pass the
+ *     predicate function
+ */
+function filterObject (source, predicate) {
+  return object(filter(pairs(source), predicate));
+}
+
+/**
+ * Does this array-like `haystack` contain the given element `needle`. This
+ *     is primarily designed to work with arrays and strings
+ *
+ * @public
+ * @param {(string|Array.<*>)} haystack - the array-like to search in
+ * @param {any} needle - the object to search for
+ */
+function contains (haystack, needle) {
+  return haystack.indexOf(needle) !== -1;
+}
+
+/**
+ * Trim leading and trailing whitespace from a string
+ *
+ * @public
+ * @param {string} str - a string that may have leading or trailing whitespace
+ * @returns {string} the string without leading or trailing whitespace
+ */
+function trim (str) {
+  return str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+}
+
+/**
+ * Return true if the haystack string starts with the needle string
+ *
+ * @private
+ * @param {string} haystack - a string to search in
+ * @param {string} needle - a string to search for
+ * @returns {string} the
+ */
+function startsWith (haystack, needle) {
+  return haystack.indexOf(needle) === 0;
+}
+
+/**
+ * Return all the keys of an object, including inherited properties
+ *
+ * @private
+ * @param {object} source - the object to extract keys from
+ * @returns {string[]} the enumerable keys of the source, or any object on its
+ *     prototype chain
+ */
+function allKeys (obj) {
+  var result = [];
+  for (var key in obj) {
+    result.push(key);
+  }
+  return result;
+}
+
+/**
+ * A lightweight shim for `Object.keys`
+ *
+ * @private
+ * @param {object} source — the object to extract the keys from
+ * @returns {string[]} the enumerable own keys of the source
+ */
+function keys (source) {
+  return filter(allKeys(source), function (key) {
+    return {}.hasOwnProperty.call(source, key);
+  });
+}
+
+/**
+ * @private
+ * @param {any} it
+ * @returns {boolean}
+ */
+function isFunction (it) {
+  return 'function' === typeof it;
+}
+
+/**
+ * @private
+ * @param {any} it
+ * @returns {boolean}
+ */
+function isBoolean (it) {
+  return 'boolean' === typeof it;
+}
+
+/**
+ * @private
+ * @param {any} it
+ * @returns {boolean}
+ */
+function isObject (it) {
+  return it && 'object' === typeof it;
+}
+
+/**
+ * @private
+ * @param {any} it
+ * @returns {boolean}
+ */
+function isArray (it) {
+  return '[object Array]' === {}.toString.call(it);
+}
+
+/**
+ * @private
+ * @param {any} it
+ * @returns {boolean}
+ */
+function isString (it) {
+  return '' + it === it;
+}
+
+/**
+ * @private
+ * @param {any} it
+ * @returns {boolean}
+ */
+function isNumber (it) {
+  return +it === it;
+}
+
+/**
+ * Get a cookie value, which can be of any serializable type
+ *
+ * @private
+ * @param {string} name
+ * @returns {any} - the stored value
+ */
+function getCookie (name) {
+  var re = new RegExp(name + '=([^;]+)');
+  var value = re.exec(decodeURIComponent(document.cookie));
+
+  try {
+    return JSON.parse(value[1]);
+  } catch (_) {
+    return;
+  }
+}
+
+/**
+ * Delete a cookie
+ *
+ * @private
+ * @param {string} name
+ */
+function deleteCookie (name) {
+  setCookie(name, '', -60);
+}
+
+/**
+ * Set a cookie with a value of any serializable type
+ *
+ * @private
+ * @param {string} name - the cookie name
+ * @param {any} value - the cookie value
+ * @param {number} seconds - the seconds until expiration relative from now
+ */
+function setCookie (name, value, seconds) {
+  seconds || (seconds = 90 * 24 * 60 * 60); // 90 days
+  var expires = getExpirationDate(seconds);
+  var domain = parseUri(location).hostname;
+  var cookieValue = (
+    name + '=' + encodeURIComponent(JSON.stringify(value)) +
+    (domain ? '; domain=' + domain : '') +
+    ('; expires=' + expires.toUTCString())
+  );
+
+  document.cookie = cookieValue;
+}
+
+/**
+ * @private
+ * @param {number} seconds
+ * @returns {Date} - a date object relative to now
+ */
+function getExpirationDate (seconds) {
+  var date = new Date();
+  date.setTime(date.getTime() + 1000 * seconds);
+  return date;
+}
+
+/**
+ * @private
+ * @param {Object} config - the JSTag configuration object
+ * @param {string} config.url - the base URL for the endpoint
+ * @param {string} cid - the cid for the collection endpoint
+ * @param {string} [config.path]
+ * @param {string} [config.idpath]
+ * @param {string} [pathKey=path] - the config key for the path
+ * @returns the endpoint URL
+ */
+function getEndpoint (config, cid, pathKey) {
+  return '' + config.url + config[pathKey || 'path'] + cid;
+}
+
+/**
+ * This method takes parameters in any order, and categorizes them based on
+ *     their data type. It exists for backwards compatibility, because the
+ *     parameters were added over time, and so this signature ended up being
+ *     pretty weird. Since we don't know how it's being used, and since any
+ *     of the parameters can be omitted, it ended up like this. Going forward,
+ *     it would be good if we could remove this.
+ *
+ * @private
+ * @param {string} [stream] - the Lytics stream name
+ * @param {Object} [data] - the payload to collect
+ * @param {boolean} [mock] - is it a mock send
+ * @param {Function} [callback] - a callback to call once the message is
+ *     processed
+ * @returns {Object} the normalized message hash
+ **/
+function normalizeEventArgs (args) {
+  var stream,
+      data,
+      callback;
+
+  forEach(args, function (arg) {
+    switch (typeof arg) {
+    case 'string':
+      stream = arg;
+      break;
+    case 'function':
+      callback = arg;
+      break;
+    case 'object':
+      data = arg;
+      break;
+    case 'boolean':
+      deprecation('boolean argument is passed to send. Ignoring.');
+      break;
+    default:
+      throw new TypeError('unable to process jstag.send event: unknown value type (' + typeof arg + ')');
+    }
+  });
+
+  if (data == null) {
+    data = {};
   }
 
-  /**
-   * toString name=value&   serializer, converts objects to flat names
-   * ie {user:{id:12,name:'aaron'}} becomes user.id=12&user.name=aaron
-   * and {groups:['admin', 'api']} becomes groups=admin&groups=api&groups_len=2
-  */
-  function toString (data, ns) {
-    var as = [], key = '';
-    if (arguments.length === 1) {
-      ns = '';
-    }
-    // If we have a top level array?   what to do?
-    if (isArray(data)) {
-      if (window.JSON) {
-        as.push('_json=' + encode(JSON.stringify(data)));
-      }
-      for (var i = data.length - 1; i >= 0; i--) {
-        as.push(toString(data[i], ns));
-      }
-      return as.join('&');
-    }
-    for (var p in data) {
-      if (data.hasOwnProperty(p)) {
-        key = encode(p);
-        if (ns !== '') {
-          key = ns + '.' + key;
-        }
-        if (isObject(data[p])) {
-          as.push(toString(data[p], p));
-        } else if (isFn(data[p])) {
-          as.push(key + '=' + encode(data[p]()));
-        } else if (isArray(data[p])) {
-          as.push(key + '_len=' + data[p].length);
-          if (window.JSON) {
-            as.push(key + '_json=' + encode(window.JSON.stringify(data[p])));
-          }
-          for (var ai = data[p].length - 1; ai >= 0; ai--) {
-            if (isObject(data[p][ai])) {
-              as.push(toString(data[p][ai], key));
-            } else if (data[p][ai] !== null && typeof data[p][ai] !== 'undefined') {
-              as.push(key + '=' + encode(data[p][ai]));
-            }
-          }
-        } else if (isString(data[p]) && data[p].length > 0) {
-          as.push(key + '=' + encode(data[p]));
-        } else if (data[p] !== null && typeof data[p] !== 'undefined') {
-          as.push(key + '=' + encode(data[p]));
-        }
-      }
-    }
-    return as.join('&');
+  return {
+    stream: stream,
+    data: data,
+    callback: callback
+  };
+}
+
+/**
+ * @private
+ * @param {string} url - the base URL to append to
+ * @param {string} query - the query string to append
+ * @returns {string} the url with the specified query param appended
+ */
+function appendQuery (url, query) {
+  return url + (contains(url, '?') ? '&' : '?') + query;
+}
+
+/**
+ * @private
+ * @param method {Function} - method that uses `this`
+ * @returns {Function} function that allows the method's `this` parameter to
+ *     be passed as a normal function parameter
+ */
+function uncurryThis (method) {
+  return function func () {
+    return method.apply(arguments[0], [].slice.call(arguments, 1));
+  };
+}
+
+/**
+ * @private
+ * @returns {Function} - The number of milliseconds since the UNIX epoch
+ */
+function now () {
+  return new Date().getTime();
+}
+
+/**
+ * @private
+ * @returns {string} a fairly unique identifier
+ */
+function uid () {
+  return 'u_' + Math.floor(Math.random() * 1e9);
+}
+
+/**
+ * @private
+ */
+function noop () {} noop(); // call it too, just to make sure it works!
+
+function deprecation (message) {
+  console.warn('Deprecation warning: ' + message);
+}
+
+/**
+ * Parse a URI using the browser's native capabilities
+ *
+ * @private
+ * @param {string} uri
+ * @returns {Object} the parsed uri
+ */
+function parseUri (uri) {
+  var parser = html('a', { href: uri });
+  var stringValueKeys = filter(allKeys(parser), function (key) {
+    return isString(parser[key]);
+  });
+
+  return object(map(stringValueKeys, function (key) {
+    return [key, parser[key]];
+  }));
+}
+
+/**
+ * @private
+ * @param {string} str - the query string to parse
+ * @returns {Object} the parsed query string
+ * @author Sindre Sorhus <sindresorhus@gmail.com>
+ * @licence
+ * The MIT License (MIT)
+ *
+ * Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+function parseQueryString (str) {
+  var ret = {};
+
+  if ('string' !== typeof str) {
+    return ret;
   }
 
-  /**
-   * @class jstag.Io
-   * Io constructor, base communication object for sending info
-  */
-  function Io (o) {
-    if (!(this instanceof Io)) {
-      return new Io(o);
-    }
+  str = trim(str).replace(/^(\?|#|&)/, '');
 
-    this.init(o);
-    return this;
+  if (!str) {
+    return ret;
   }
-  // expose it publicly
-  jstag.Io = Io;
 
-  /**
-   * @Function jstag.parseEvent
-   * public function for parsing out the raw event into data, stream, callback, etc
-   * @param stream:  (string) optional name of stream to send to
-   * @param data:  the javascript object to be sent
-   * @param callback (optional):  the function to be called upon triggering elsewhere.
-   * @param mock (optional):  the boolean to determine if event should be sent or just mocked for testing / entity get
-  */
-  function parseEvent () {
-    var stream,
-        data,
-        cb,
-        mock;
+  forEach(str.split('&'), function (param) {
+    var parts = param.replace(/\+/g, ' ').split('=');
+    // Firefox (pre 40) decodes `%3D` to `=`
+    // https://github.com/sindresorhus/query-string/pull/37
+    var key = parts.shift();
+    var val = parts.length > 0 ? parts.join('=') : undefined;
 
-    /** since the following is true, just loop all arguments and assign
-    * the only stand alone string as an argument must be the stream
-    * the only object allowed as an argument must be the data
-    * the only function allowed as an argument must be the callback
-    * the only boolean allowed as an argument must be the mock flag
-    * by default
-    */
-    mock = false;
+    key = decodeURIComponent(key);
 
-    for (var i in arguments) {
-      switch (typeof arguments[i]) {
-      case 'string':
-        stream = arguments[i];
-        break;
-      case 'boolean':
-        mock = arguments[i];
-        break;
-      case 'function':
-        cb = arguments[i];
-        break;
-      case 'object': // just a note, this can be either an array or an object as of 1.31
-        data = arguments[i];
-        break;
-      default:
-        console.warn('unable to process jstag.send event: unknown value type (' + typeof arguments[i] + ')');
-        break;
-      }
-    }
+    // missing `=` should be `null`:
+    // http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
+    val = val === undefined ? null : decodeURIComponent(val);
 
-    if (typeof data === 'undefined' || data === null) {
-      data = {};
-    }
-
-    return {
-      data: data,
-      callback: cb,
-      stream: stream,
-      mock: mock
-    };
-  }
-  jstag.parseEvent = parseEvent;
-
-  /**
-   * @Function jstag.block
-   * public function to prevent events from being processed through to collections
-   * @param timeout:  (int) optional delay time before automatically unblocking
-  */
-  function block (timeout) {
-    jstag.config.blockload = true;
-
-    // never allow events to be permanently blocked
-    if (typeof timeout !== 'number') {
-      timeout = 2000;
-    }
-
-    setTimeout(function () {
-      jstag.unblock();
-    }, timeout);
-  }
-  jstag.block = block;
-
-  /**
-   * @Function jstag.unblock
-   * public function to restart event processed through to collections
-  */
-  function unblock () {
-    // status changed to false, process the payloadQueue
-    jstag.config.blockload = false;
-
-    for (var i = 0; i < jstag.config.payloadQueue.length; i++) {
-      sendHandler(jstag.config.payloadQueue[i]);
-    }
-
-    jstag.config.payloadQueue.length = 0;
-  }
-  jstag.unblock = unblock;
-
-  /**
-   * @Function jstag.sendHandler
-   * private function for handling sends of all types
-   * @param payload:  (obj) prepped payload
-  */
-  function sendHandler (payload) {
-    // if we are blocking the sends add them to the queue
-    if (jstag.config.blockload && !payload.mock) {
-      jstag.config.payloadQueue.push(payload);
-      return;
-    }
-
-    if (payload.mock) {
-      var tempqdata = {};
-
-      for (var mq = 0, mqlen = jstag.config.payloadQueue.length; mq < mqlen; mq++) {
-        tempqdata = extend(tempqdata, jstag.config.payloadQueue[mq].data);
-      }
-
-      payload.data = extend(tempqdata, payload.data);
-    }
-
-    if ('io' in cache && isArray(cache.io)) {
-      // it is possible to create more than 1 sender, send events multiple locations
-      for (var i = cache.io.length - 1; i >= 0; i--) {
-        return cache.io[i].send(payload);
-      }
+    if (ret[key] === undefined) {
+      ret[key] = val;
+    } else if (isArray(ret[key])) {
+      ret[key].push(val);
     } else {
-      var io = new Io();// this will auto-cache
-      io.send(payload);
+      ret[key] = [ret[key], val];
     }
+  });
+
+  return ret;
+}
+
+/**
+ * @exports window.jstag
+ */
+window.jstag || (window.jstag = {});
+window.jstag.JSTag = JSTag;
+window.jstag.init = (function facade () {
+  // Cache for the backing singleton instance
+  var instance;
+
+  function expose (methodNames) {
+    forEach(methodNames, function (methodName) {
+      window.jstag[methodName] = function () {
+        return instance[methodName].apply(instance, arguments);
+      };
+    });
   }
 
-  /**
-   * @Function jstag.send
-   * public function for send, note this send will overwrite
-   * the temporary one in the async function
-   * @param stream:  (string) optional name of stream to send to
-   * @param data:  the javascript object to be sent
-   * @param callback (optional):  the function to be called upon triggering elsewhere
-   * @param mock (optional):  should the data being processed be mocked or sent through to lytics
-  */
-  function send () {
-    var payload;
+  // Expose the singleton facade interface
+  expose([
+    'extend',
+    'send',
+    'mock',
+    'block',
+    'unblock',
+    'identify',
+    'pageView',
+    'parseEvent',
+    'clearCookies'
+  ]);
 
-    // handle the event parsing
-    payload = parseEvent.apply(this, arguments);
+  // these properties are exposed for backwards compatibility:
+  window.jstag.ckieGet = getCookie;
+  window.jstag.ckieSet = setCookie;
+  window.jstag.ckieDel = deleteCookie;
+  window.jstag.isLoaded = false;
 
-    // send the event
-    sendHandler(payload);
-  }
-  jstag.send = send;
-
-  /**
-   * @Function jstag.mock
-   * public function wraps send function and adds mock param by default
-   * @param stream:  (string) optional name of stream to send to
-   * @param data:  the javascript object to be sent
-   * @param callback (optional):  the function to be called upon triggering elsewhere.
-   * @param mock (optional):  should the data being processed be mocked or sent through to lytics
-  */
-  function mock () {
-    // when mocking we pass true as the final argument to prevent sending data
-    var args = [].slice.call(arguments);
-    args.push(true);
-    jstag.send.apply(jstag, args);
-  }
-  jstag.mock = mock;
-
-  function pageView () {
-    var payload;
-
-    // handle the event parsing
-    payload = parseEvent.apply(this, arguments);
-
-    if (!('_e' in payload.data)) {
-      payload.data._e = 'pv';
-    }
-
-    for (var k in pageData) {
-      payload.data[k] = pageData[k];
-    }
-
-    // send the event
-    sendHandler(payload);
-  }
-  jstag.pageView = pageView;
-
-  // Used to identify a user when you have a strong
-  //   identity, aka logging in, etc
-  //
-  // identify(stream, data)
-  //  @userId = strong identity, email, hashed email, user_id from db
-  //  @data = object of key:value properties to collect
-  function identify () {
-    var payload;
-
-    // handle the event parsing
-    payload = parseEvent.apply(this, arguments);
-
-    // in a near future version we will be setting a stream globally for all identifies
-    // so that we can better manage keys. for now just migrate to the same format as a
-    // traditional send or pageView call, once we spec this we can add validation and formatting
-    // of the payload
-    // payload.stream = 'default';
-
-    // send the event
-    sendHandler(payload);
-  }
-  jstag.identify = identify;
-
-  Io.prototype = (function () {
-    var _pipe = [],
-        self = null,
-        o = null,
-        pitem = null;
-
-    return {
-      init: function (opts) {
-        self = this;
-        o = config;
-
-        if (!o.url || o.url === '') {
-          var tagel = doc.getElementById(o.tagid), elu = null;
-          if (tagel) {
-            elu = parseUri(tagel.getAttribute('src'));
-            o.url = '//' + elu.authority;
-          }
-        }
-
-        if (!o.url || !o.cid) {
-          throw new Error('Must have collection url and ProjectIds (cid)');
-        }
-
-        jstag.config.url = o.url;
-
-        if ('cid' in o) {
-          if (isArray(o.cid)) {
-            jstag.config.cid = o.cid;
-          } else {
-            jstag.config.cid = [o.cid];
-          }
-        }
-        this.serializer = o.serializer;
-
-        if (!('io' in cache)) {
-          cache.io = [this];
-        } else {
-          cache.io.push(this);
-        }
-
-        this.channel = new jstag.channels[o.channel](o);
-
-        // define pipeline
-        for (var i = o.pipeline.length - 1; i >= 0; i--) {
-          pitem = o.pipeline[i];
-          if (isFn(pitem)) {
-            _pipe.push();
-          } else if (pitem in pipeline) {
-            _pipe.push(pipeline[pitem]);
-          } else if (item in win) { // TODO item is not defined here, add tests and remove
-            _pipe.push(win[pitem]);
-          }
-        }
-
-        // if they supplied a Q, wire it up
-        if (o.Q && o.length > 0) {
-          for (var k = o.Q.length - 1; k >= 0; k--) {
-            self.send.apply(self, o.Q[k]);
-          }
-        }
-        if (o.Q) {
-          o.Q.push = function () {
-            self.send.apply(self, Array.prototype.slice.call(arguments));
-          };
-        }
-        jstag.emit('io.ready', this);
-      },
-      collect:function (opts) {
-        var self = this,
-            dataout = {},
-            o = config, dataMsg;
-
-        jstag.emit('send.before', opts);
-        this.data = opts.data;
-        opts.data._ca = 'jstag1';
-
-        dataout = extend(config.pagedata, opts.data);
-        dataMsg = this.serializer(dataout);
-
-        // enrich the callback payload
-        if (!opts.sendurl) {
-          opts.sendurl = [];
-        }
-        opts.sendurl.push(o.sendurl);
-        opts.dataMsg = dataMsg;
-        opts.channelName = o.channel;
-
-        // handle mock callback before sending
-        if (opts.mock) {
-          if (isFn(opts.callback)) {
-            opts.callback(opts, self);
-          }
-          return;
-        }
-
-        var currentChannel = this.channel;
-        // uri max length = ~2000
-        if (isString(dataMsg) && (dataMsg.length + o.sendurl.length) > 2000) {
-          currentChannel = new jstag.channels.Form(o);
-          opts.channelName = 'Form';
-        }
-
-        currentChannel.send(dataMsg, {callback:function (to) {
-          opts.returndata = to;
-          if (isFn(opts.callback)) {
-            opts.callback(opts, self);
-          }
-          jstag.emit('send.finished', opts, self);
-        }});
-      },
-      send : function (payload) {
-        if (isArray(config.cid)) {
-          for (var i = config.cid.length - 1; i >= 0; i--) {
-            this.sendcid(config.cid[i], payload);
-          }
-        } else {
-          this.sendcid(config.cid, payload);
-        }
-      },
-      sendcid : function (cid, opts) {
-        var data = extend(data, opts.data) || {};
-        opts.data = data;
-
-        // add the config and timestamp
-        opts.config = this.config;
-        opts.data._ts = new Date().getTime();
-
-        var self = this,
-            url = o.url + o.path + cid,
-            pipeNew = [];
-
-        o.stream = opts.stream || jstag.config.stream;
-        o.sendurl = o.stream ? url + '/' + o.stream : url;
-        if (o.sendurl.indexOf('_uidn=') === -1 && config.cookie !== 'seerid') {
-          o.sendurl = addQs(o.sendurl, '_uidn', config.cookie);
-        }
-
-        // run pre-work
-        for (var i = _pipe.length - 1; i >= 0; i--) {
-          _pipe[i](opts);
-          if (!(_pipe[i].onetime)) {
-            pipeNew.push(_pipe[i]);
-          }
-        }
-
-        // if we are mocking we dont want to adjust the pipe if we
-        // beat the initial send in the race
-        if (!opts.mock && _pipe.length > 1) {
-          _pipe = pipeNew;
-        }
-
-        // now for the actual collection
-        if (uidv) {
-          return self.collect(opts);
-        } else if (config.getid && isFn(config.getid)) {
-          config.getid(function (id) {
-            if (id && !(opts.data._uid)) {
-              opts.data._uid = id;
-              didGetId = 't';
-              opts.data._getid = 't';
-              uidv = id;
-            }
-            self.collect(opts);
-          });
-        } else {
-          self.collect(opts);
-        }
-      },
-      debug:function () {
-        return '<table><tr><th>field</th><th>value</th></tr>' + oToS(this.data) +
-          '<tr><th>config</th></tr><tr>' + oToS(config) + '</tr></table>';
-      }
-    };
-  }());
-
-  function oToS (o, lead) {
-    var s = '';
-    lead = lead || '';
-    for (var p in o) {
-      if (isObject(o[p])) {
-        s += oToS(o[p], p + '.');
-      } else if (isFn(o[p])) {
-        // TODO remove after additional testing
-      } else {
-        s += '<tr><td>' + lead + p + '</td><td>' + o[p] + '</td></tr>';
-      }
-    }
-    return s;
-  }
-
-  if (win && 'jstagAsyncInit' in win && isFn(win.jstagAsyncInit)) {
-    win.jstagAsyncInit();
-  }
-
-  if (!('ready' in jstag)) {
-    jstag.ready = function () {};
-  }
-
-  // determine if we should be blocking
-  if (win.jstag._c && win.jstag._c.blockload) {
-    win.jstag.block();
-  }
-
-  jstag.load = function () {
-    return this;
+  window.jstag.util = {
+    forEach: forEach,
+    reduce: reduce,
+    map: map,
+    filter: filter,
+    contains: contains,
+    pairs: pairs,
+    object: object,
+    filterObject: filterObject,
+    trim: trim,
+    extend: extend,
+    expose: expose,
+    once: once,
+    parseUri: parseUri,
+    parseQueryString: parseQueryString
   };
 
-  replaceTempQ();
-  jstag.emit('ready');
+  return function init (config) {
+    if (instance) {
+      instance.clearCookies();
+    }
+    instance = new JSTag(config);
+    instance.pageAnalysis();
 
-}(window, document, window.navigator));
+    // these properties are exposed for backwards compatibility:
+    window.jstag.isLoaded = true;
+    window.jstag.config = instance.config;
+
+    // Do not fire any timers from a previously initialized instance.
+    later.clearTimers();
+  };
+}());
+
+}(window));
