@@ -1,0 +1,53 @@
+language: node_js
+node_js:
+- '7'
+env:
+  global:
+  - export GIT_USER_NAME="Shipit Squirrel"
+  - export GIT_USER_EMAIL="squirrel@lytics.io"
+  - export JSTAG_CI_MASTER_BRANCH=master2
+  - secure: i9xUj+NKgLh11gXsYlDV9dDRObUvni98g6P02TKCYijCcqCO7iCDJF2hPs0ff42BpQacQUkR5dmsMpCee0jtlsA51giSyv4FGOdUpEBT/kPtvMT1H727c15OfK0TD31NKrml59nUz7rYdHagJ+VA3+GCuUQLINWhaJfh43cw5ks=
+  - secure: UIffOSxb3d5Amq/sxz1VSoWDAVaIIIZ9EBEoaZiFLVpfPLmsSR48Z4jL9LtfXKW4/urvdwcjylQMihAA9FrTxTycJmuHJJj0KscDLXD59IMVJUhJ7EJsW+xr+Syb0Jg7bjtVc3LRKT8yGdcUCEgOK3IJF17wuk3H6XQB9RenUO8=
+  - secure: TtOCyYBsZAlkvRVKq4gGPjHYGTTVJl9Qg7ecA7vrg5m+S5qpCc6Tge/QHIouuGHi3GGhouZdheDfTegH0bbaK2SX9e4iBXV6fPwNAh06P576ZTDJj71sz5HzE7Tr7pn81FCfd4m6TeoSmlFqsArNOcV6YnE/T9h2pqkWe3TJu0Y=
+  - secure: N1++5LxT+fr23Ku1z6l5btxhO1zYe8qr7W7dRMYruJUnNvEikp0apg0OGhEWbfn2eyeGPWal2UJcQqEVG1Jdv/zHw343uFNzTAFKPMvIQS4KUs0ptoegCY4V3Bb/la4az8KlxhIeSLYlJfr/SpHCMAx/3H08gEj5R5pYc3s+BXk=
+cache:
+  directories:
+  - travis_phantomjs
+before_install:
+- ./bin/cache-phantom
+- ./bin/cache-browserstacklocal
+before_script:
+- npm install -g gulp
+- git config --global user.name $GIT_USER_NAME
+- git config --global user.email $GIT_USER_EMAIL
+- openssl aes-256-cbc -k "$password" -d -a -in deploy_key.enc -out deploy_key
+- chmod 0600 deploy_key
+- echo -e "Host github.com\n  IdentityFile /home/travis/build/lytics/jstag/deploy_key"
+  > ~/.ssh/config
+- echo "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
+  > ~/.ssh/known_hosts
+script: gulp release
+before_deploy:
+- cd out/latest && zip -r ../jstag.zip . && cd -
+- git remote set-url origin git@github.com:lytics/jstag.git
+- git checkout -B travis
+- gulp tag
+deploy:
+- provider: gcs
+  skip_cleanup: true
+  local_dir: out
+  access_key_id: GOOGDGAEWNWX3SXOYPUI
+  secret_access_key:
+    secure: FQoimbN5Q3udVG/O1BY1+xfbVRZX8aKMnS+p/hEWp86gQzXZDTrht2F6JY81Kmr7JCUylB/5Ma+TeQxz6kgduuLECS0tSVnH/P+4TdwUw8AXrtLDnwZ7umOlT8F1DupNcbgleLKNXE+krI7+b1RJ9gUHkyvOOZ5zD8/gaDkw9Ls=
+  project: lyticsstaging
+  bucket: lytics-js
+  acl: public-read
+  on:
+    branch: $JSTAG_CI_MASTER_BRANCH
+- provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: RP2fvnovaeumbf1zwCm400WVqNXLXO6LSPAvdnms1eNVWfoU34e1d1aLW9YJapKg4VZpZQR73PTL51IraxSMqadSC6lMEKrh2ydNu9D8cXW0mtphLypPeIv6/0gbJ+5IJHMyCKYMs8xoBOk0PeSqvLXUI/NQnavPNBTjbWuMjBc=
+  file: out/jstag.zip
+  on:
+    branch: $JSTAG_CI_MASTER_BRANCH
