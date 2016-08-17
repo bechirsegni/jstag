@@ -1,28 +1,31 @@
-var gulp = require('gulp'),
-    series = require('gulp-sequence'),
-    uglify = require('gulp-uglify'),
-    rename = require('gulp-rename'),
-    connect = require('gulp-connect'),
-    replace = require('gulp-replace'),
-    env = require('gulp-env'),
-    open = require('gulp-open'),
-    karma = require('karma'),
-    fs = require('fs'),
-    eslint = require('gulp-eslint'),
-    strip = require('gulp-strip-comments'),
-    jsdoc2md = require('gulp-jsdoc-to-markdown'),
-    gutil = require('gulp-util')
-    sweet = require('gulp-sweetjs');
+const gulp = require('gulp');
+const series = require('gulp-sequence');
+const uglify = require('gulp-uglify');
+const rename = require('gulp-rename');
+const connect = require('gulp-connect');
+const replace = require('gulp-replace');
+const env = require('gulp-env');
+const open = require('gulp-open');
+const karma = require('karma');
+const eslint = require('gulp-eslint');
+const jsdoc2md = require('gulp-jsdoc-to-markdown');
+const gutil = require('gulp-util');
+const sweet = require('gulp-sweetjs');
+const concat = require('gulp-concat');
+const filter = require('gulp-filter');
+const fs = require('fs');
 
-var TestServer = require('./tests/server');
+const TestServer = require('./tests/server');
+const tagRelease = require('./build/tag-release');
+const testOptimizations = require('./build/test-optimizations');
 
-var version,
-    ioversion,
-    asyncversion,
-    production_cid = '{{account.id}}',
-    production_url = '//c.lytics.io',
-    master_cid,
-    master_url;
+let version;
+let ioversion;
+let asyncversion;
+let production_cid = '{{account.id}}';
+let production_url = '//c.lytics.io';
+let master_cid;
+let master_url;
 
 /*
 * handles the cid and url overrides from the .env file
@@ -42,8 +45,8 @@ try {
 * sets master version information
 */
 (function setVersion () {
-  var obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
-  var package = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
+  const package = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
   version = package.version;
   ioversion = obj.ioversion;
@@ -58,7 +61,7 @@ try {
 * generates the master config used in async init
 */
 function generateConfig (env) {
-  var config = fs.readFileSync('src/initobj.js', 'utf8');
+  const config = fs.readFileSync('src/initobj.js', 'utf8');
 
   if (env !== 'development') {
     master_cid = production_cid;
@@ -84,8 +87,8 @@ gulp.task('build:legacy', function () {
     .pipe(gulp.dest('out/legacy'));
 });
 
-gulp.task('build:production', function () {
-  var initobj = generateConfig('production');
+gulp.task('build:stage', function () {
+  const initobj = generateConfig('production');
 
   return gulp.src(['src/async.js', 'src/io.js', 'src/emitter.js'])
     .pipe(replace('{{version}}', version))
@@ -98,8 +101,29 @@ gulp.task('build:production', function () {
       modules: ['sweet-array-slice'],
       readableNames: true
     }))
-    // .pipe(strip())
-    .pipe(gulp.dest('out/latest'))
+    .pipe(gulp.dest('out/dev'));
+});
+
+gulp.task('build:vendor', function () {
+  return gulp.src('vendor/*.js')
+    .pipe(concat('vendor.js'))
+    .pipe(gulp.dest('out/dev'));
+});
+
+gulp.task('build:core', function () {
+  return gulp.src(['out/dev/async.js', 'out/dev/emitter.js', 'out/dev/io.js'])
+    .pipe(gulp.dest('out/latest'));
+});
+
+gulp.task('build:compat', function () {
+  return gulp.src(['out/dev/vendor.js', 'out/latest/io.js'])
+    .pipe(concat('io.compat.js'))
+    .pipe(gulp.dest('out/latest'));
+});
+
+gulp.task('build:minify', function () {
+  return gulp.src('out/latest/*.js')
+    .pipe(filter(['*', '!*.min.js']))
     .pipe(uglify({
       compress: {
         unsafe: true,
@@ -112,20 +136,33 @@ gulp.task('build:production', function () {
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest('out/latest'));
+    .pipe(gulp.dest('out/latest'))
 });
+
+gulp.task('build:library', series(
+  'lint',
+  'build:stage',
+  'build:vendor',
+  'build:core'
+));
+
+gulp.task('build:production', series(
+  'build:library',
+  'build:compat',
+  'build:minify'
+));
 
 /*
 * testing tasks
 */
 
-gulp.task('async.js', function (done) {
-  var library = 'out/latest/async.js';
-  var preprocessors = {};
+gulp.task('test:async.js', function (done) {
+  const library = 'out/latest/async.js';
+  const preprocessors = {};
 
   preprocessors[library] = 'coverage';
 
-  var server = new karma.Server({
+  const server = new karma.Server({
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
@@ -152,25 +189,20 @@ gulp.task('async.js', function (done) {
 });
 
 (function testServer() {
-  var testServer = new TestServer(3001);
+  const testServer = new TestServer(3001);
 
-  gulp.task('start-test-server', function (done) {
-    testServer.open(done);
-  });
+  gulp.task('test-server:start', done => { testServer.open(done); });
 
-  gulp.task('stop-test-server', function (done) {
-    testServer.close();
-    done();
-  });
+  gulp.task('test-server:stop', () => { testServer.close(); });
 }());
 
-gulp.task('io.js', function (done) {
-  var library = 'out/latest/io.js';
-  var preprocessors = {};
+gulp.task('test:io.js', function (done) {
+  const library = 'out/latest/io.js';
+  const preprocessors = {};
 
   preprocessors[library] = 'coverage';
 
-  var server = new karma.Server({
+  const server = new karma.Server({
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
@@ -192,7 +224,7 @@ gulp.task('io.js', function (done) {
       type: 'lcov'
     },
     coverallsReporter: {
-      repoToken: 'piyOM4c71ZPWZiPAbkCWUqrhColI2nSW7' // TODO: this should come from the environment
+      repoToken: process.env.COVERALLS_REPO_TOKEN
     },
     port: 9777,
   });
@@ -204,17 +236,19 @@ gulp.task('io.js', function (done) {
   server.start();
 });
 
+gulp.task('test:optimizations', testOptimizations);
+
 gulp.task('publish-version', function () {
   return gulp.src('out/latest/*')
     .pipe(gulp.dest('out/latest'))
-    .pipe(gulp.dest('out/' + version))
+    .pipe(gulp.dest('out/' + version));
 });
 
 /*
 * code linting
 */
 gulp.task('lint', function () {
-  return gulp.src([/*'src/async.js', */'src/io.js'])
+  return gulp.src([/*'src/async.js', */'src/io.js', 'src/emitter.js'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
@@ -226,12 +260,10 @@ gulp.task('lint', function () {
 gulp.task('docs', function () {
   return gulp.src(['out/latest/io.js'])
     .pipe(jsdoc2md({ template: fs.readFileSync('./docs/readme.hbs', 'utf8') }))
-    .on('error', function (err) {
+    .on('error', err => {
       gutil.log(gutil.colors.red('jsdoc2md failed'), err.message)
     })
-    .pipe(rename(function (path) {
-      path.extname = '.md'
-    }))
+    .pipe(rename(path => { path.extname = '.md' }))
     .pipe(gulp.dest('.'));
 });
 
@@ -246,17 +278,23 @@ gulp.task('preview', function () {
   });
 });
 
+gulp.task('tag', tagRelease);
+
 gulp.task('watch', function () {
   gulp.watch('src/*.js', series('builddev', 'lint'));
 });
 
 // builds for the development environment and runs all tests
-gulp.task('test-acceptance', series('start-test-server', 'io.js', 'stop-test-server'));
-gulp.task('test', series('build:production', 'build:legacy', 'lint', 'test-acceptance'));
+gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
+gulp.task('test', series('build:production', 'build:legacy', 'test:acceptance', 'test:optimizations'));
 
-gulp.task('release', series('test', 'publish-version'))
+gulp.task('release', series('test', 'publish-version'));
 
 // builds for production using hard coded cid and url
-gulp.task('buildprod', series('build:production', 'build:legacy'));
+// gulp.task('buildprod', series('build:production', 'build:legacy'));
 
 gulp.task('default', ['build:production']);
+
+function throwIt (it) {
+  if (it) { throw it; }
+}

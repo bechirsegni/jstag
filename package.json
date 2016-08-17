@@ -1,16 +1,22 @@
 {
-  "name": "jstag",
-  "version": "0.0.1",
+  "name": "lytics-jstag",
+  "version": "2.0.0",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/jsdoc2md/jsdoc-to-markdown.git"
   },
   "devDependencies": {
+    "bluebird": "^3.4.1",
     "express": "^4.14.0",
+    "git-tools": "^0.2.1",
     "gulp": "3.9.1",
+    "gulp-concat": "^2.6.0",
     "gulp-connect": "2.3.1",
     "gulp-env": "0.4.0",
     "gulp-eslint": "3.0.1",
+    "gulp-filter": "3.0.1",
+    "gulp-git": "^1.11.0",
     "gulp-iife": "0.3.0",
     "gulp-jsdoc-to-markdown": "^1.2.2",
     "gulp-open": "1.0.0",
@@ -18,7 +24,6 @@
     "gulp-replace": "0.5.4",
     "gulp-require-file": "1.1.2",
     "gulp-sequence": "^0.4.5",
-    "gulp-strip-comments": "2.4.3",
     "gulp-sweetjs": "^0.6.1",
     "gulp-uglify": "1.2.0",
     "istanbul": "0.4.4",
@@ -32,6 +37,7 @@
     "karma-phantomjs-launcher": "1.0.0",
     "phantomjs-prebuilt": "^2.1.11",
     "query-string": "4.2.2",
+    "semver": "^5.3.0",
     "sweet-array-slice": "0.0.6"
   },
   "license": "MIT",

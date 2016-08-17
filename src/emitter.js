@@ -1,6 +1,6 @@
-'use strict';
-
 (function iife (window) {
+
+'use strict';
 
 if (!window.jstag) {
   throw new Error('jstag not defined');

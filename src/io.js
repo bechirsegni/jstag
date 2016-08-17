@@ -1,6 +1,6 @@
-'use strict';
-
 (function iife (window, undefined) {
+
+'use strict';
 
 var location = window.location;
 var document = window.document;
@@ -10,6 +10,11 @@ var userAgent = navigator.userAgent;
 var ioVersion = '2.0.0';
 var JSTAG1 = 'jstag1';
 var arraySlice = uncurryThis([].slice);
+var keys = Object.keys || function keys (source) {
+  return filter(allKeys(source), function (key) {
+    return {}.hasOwnProperty.call(source, key);
+  });
+};
 
 function getConfig (config) {
   var mergedConfig = extend({
@@ -101,7 +106,7 @@ var transports = {
           form.submit();
 
           later(function () {
-            silently(function () { document.body.removeChild(iframe); });
+            attempt(function () { document.body.removeChild(iframe); });
 
             if (isFunction(message.callback)) {
               message.callback();
@@ -321,6 +326,7 @@ JSTag.prototype = {
     }
 
     var transport = this.ioGetTransport(message, url);
+    // NOTE: this seems unnecessary, and exists only for backwards comaptibility.
     message.channelName = transport.name;
 
     transport.send(url, extend({}, message, {
@@ -450,7 +456,7 @@ JSTag.prototype = {
     var script = html('script', { src: appendQuery(url, 'callback=' + callbackId) });
 
     window[callbackId] = once(function () {
-      silently(function () { document.body.removeChild(script); });
+      attempt(function () { document.body.removeChild(script); });
       window[callbackId] = null;
       callback.apply(null, arguments);
     });
@@ -637,8 +643,7 @@ function defaultSerializer (data, namespace) {
 
   if (!isObject(data)) {
     result.push(namespace + '=' + data);
-  }
-  if (isArray(data)) {
+  } else if (isArray(data)) {
     result.push(
       namespace + '_len=' + data.length,
       namespace + '_json=' + encodeURIComponent(JSON.stringify(data))
@@ -673,12 +678,20 @@ function html (elementName, properties, doc) {
 }
 
 /**
- * Call a function, but supress any thrown errors so it may fail silently
+ * Wrapper around try-catch to isolate deoptimization
  *
- * @param {Function} stunt a function that may throw an error
+ * @param {...Function} functions that may throw, to be executed lazily
  */
-function silently (stunt) {
-  try { stunt(); } catch (_) {}
+function attempt () {
+  var err = null;
+
+  for (var i = 0, len = arguments.length; i < len; i++) {
+    try {
+      return arguments[i](err);
+    } catch (e) {
+      err = e;
+    }
+  }
 }
 
 /**
@@ -708,26 +721,25 @@ function isMobile () {
  * @private
  */
 function isIFrame () {
-  try {
-    return window.self !== window.top;
-  } catch (e) {
-    return true;
-  }
+  return attempt(
+    function () { return window.self !== window.top; },
+    function () { return true; }
+  );
 }
 
 /**
  * @private
  * @member later.timers
  */
-later.timers = [];
+var laterTimers = [];
 
 /**
  * Clear all currently-cached timeouts and empty the timeout cache
  */
-later.clearTimers = function clearTimers () {
-  forEach(later.timers, clearTimeout);
-  later.timers.length = 0;
-};
+function clearTimers () {
+  forEach(laterTimers, clearTimeout);
+  laterTimers.length = 0;
+}
 
 /**
  * Invoke a function after n milliseconds, and cache the timeout id
@@ -742,7 +754,7 @@ function later (callback, delay) {
   var args = arraySlice(arguments, 2);
   var timer = setTimeout.apply(null, [callback, delay].concat(args));
 
-  later.timers.push(timer);
+  laterTimers.push(timer);
   return timer;
 }
 
@@ -811,13 +823,11 @@ function jsonpGetId (context, callback) {
  * @returns {string} the referrer URL for the current document
  */
 function getReferrer () {
-  try {
-    return top.document.referrer;
-  } catch (_) {}
-  try {
-    return parent.document.referrer;
-  } catch (_) {}
-  return document.referrer;
+  return attempt(
+    function () { return top.document.referrer; },
+    function () { return parent.document.referrer; },
+    function () { return document.referrer; }
+  );
 }
 
 /**
@@ -836,13 +846,10 @@ function stripProtocol (url) {
  *     callback to be called, at most, one time.
  */
 function once (callback) {
-  var called = false;
-
   return function () {
-    if (!called) {
+    if (callback != null) {
       callback.apply(null, arguments);
       callback = null;
-      called = true;
     }
   };
 }
@@ -863,11 +870,11 @@ function forEach (collection, callback) {
 /**
  * @public
  * @param {Array.<any>} collection
- * @param {Function} reducer
+ * @param {Function} combine
  * @param {any} memo
  * @returns {Array.<any>} the reduced value of the collection
  */
-function reduce (collection, reducer, memo) {
+function reduce (collection, combine, memo) {
   var i = -1;
   var len = collection.length;
 
@@ -875,7 +882,7 @@ function reduce (collection, reducer, memo) {
     memo = collection[++i];
   }
   while (++i < len) {
-    memo = reducer(memo, collection[i], i, collection);
+    memo = combine(memo, collection[i], i, collection);
   }
   return memo;
 }
@@ -985,7 +992,8 @@ function startsWith (haystack, needle) {
 }
 
 /**
- * Return all the keys of an object, including inherited properties
+ * Return all the keys of an object, including inherited properties. Chances are,
+ * this thing'll get deoptimized.
  *
  * @private
  * @param {object} source - the object to extract keys from
@@ -998,19 +1006,6 @@ function allKeys (obj) {
     result.push(key);
   }
   return result;
-}
-
-/**
- * A lightweight shim for `Object.keys`
- *
- * @private
- * @param {object} source — the object to extract the keys from
- * @returns {string[]} the enumerable own keys of the source
- */
-function keys (source) {
-  return filter(allKeys(source), function (key) {
-    return {}.hasOwnProperty.call(source, key);
-  });
 }
 
 /**
@@ -1078,11 +1073,7 @@ function getCookie (name) {
   var re = new RegExp(name + '=([^;]+)');
   var value = re.exec(decodeURIComponent(document.cookie));
 
-  try {
-    return JSON.parse(value[1]);
-  } catch (_) {
-    return;
-  }
+  return attempt(function () { return JSON.parse(value[1]); });
 }
 
 /**
@@ -1227,13 +1218,13 @@ function now () {
  * @returns {string} a fairly unique identifier
  */
 function uid () {
-  return 'u_' + Math.floor(Math.random() * 1e9);
+  return 'u_' + Math.floor(Math.random() * 1e18);
 }
 
 /**
  * @private
  */
-function noop () {} noop(); // call it too, just to make sure it works!
+function noop () {} noop();
 
 function deprecation (message) {
   console.warn('Deprecation warning: ' + message);
@@ -1376,10 +1367,16 @@ window.jstag.init = (function facade () {
     parseQueryString: parseQueryString
   };
 
-  return function init (config) {
+  function reset () {
     if (instance) {
       instance.clearCookies();
     }
+    // Do not fire any timers from a previously initialized instance.
+    clearTimers();
+  }
+
+  return function init (config) {
+    reset();
     instance = new JSTag(config);
     instance.pageAnalysis();
 
@@ -1387,9 +1384,23 @@ window.jstag.init = (function facade () {
     window.jstag.isLoaded = true;
     window.jstag.config = instance.config;
 
-    // Do not fire any timers from a previously initialized instance.
-    later.clearTimers();
+    return reset;
   };
 }());
+
+// See: http://stackoverflow.com/questions/24987896/how-does-bluebirds-util-tofastproperties-function-make-an-objects-properties
+function toFastProperties (obj) {
+  // This try-catch is here to hopefully prevent v8's optimizing compiler from removing this code:
+  function F () {}
+  try {
+    F.prototype = obj;
+    new F();
+  } catch (e) {}
+}
+toFastProperties(transports);
+toFastProperties(JSTag);
+toFastProperties(JSTag.prototype);
+toFastProperties(window.jstag);
+toFastProperties(window.jstag.util);
 
 }(window));
