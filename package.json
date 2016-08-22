@@ -35,6 +35,7 @@
     "karma-coveralls": "^1.1.2",
     "karma-jasmine": "1.0.2",
     "karma-phantomjs-launcher": "1.0.0",
+    "lytics-js-styleguide": "1.0.1",
     "phantomjs-prebuilt": "^2.1.11",
     "query-string": "4.2.2",
     "semver": "^5.3.0",
