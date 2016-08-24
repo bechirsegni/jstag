@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+mkdir -p node_modules/browserstacktunnel-wrapper/bin/linux/x64/
+wget https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
+unzip BrowserStackLocal-linux-x64.zip -d node_modules/browserstacktunnel-wrapper/bin/linux/x64/
+ls -la

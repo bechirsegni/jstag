@@ -1,3 +1,4 @@
+/* eslint no-unused-vars: off */
 function getTimezone() {
   return -new Date().getTimezoneOffset() / 60;
 }
@@ -28,7 +29,7 @@ function mapBy(iter, field) {
   });
 }
 
-const jasmineMatchers = {
+var jasmineMatchers = {
   toEqualString: function toEqualString(util) {
     return {
       compare: function compare(actual, expected) {
@@ -43,8 +44,8 @@ const jasmineMatchers = {
       compare: function compare(actual, expected) {
         return {
           pass: util.equals(actual.slice().sort(), expected.slice().sort())
-        }
+        };
       }
-    }
+    };
   }
 };

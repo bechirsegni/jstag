@@ -4,3 +4,5 @@ node_modules
 coverage
 out
 npm-debug.log
+static
+static-server.js

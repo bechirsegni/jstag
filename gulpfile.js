@@ -1,3 +1,4 @@
+/* eslint-env node */
 const gulp = require('gulp');
 const series = require('gulp-sequence');
 const uglify = require('gulp-uglify');
@@ -5,7 +6,6 @@ const rename = require('gulp-rename');
 const connect = require('gulp-connect');
 const replace = require('gulp-replace');
 const env = require('gulp-env');
-const open = require('gulp-open');
 const karma = require('karma');
 const eslint = require('gulp-eslint');
 const jsdoc2md = require('gulp-jsdoc-to-markdown');
@@ -22,29 +22,33 @@ const testOptimizations = require('./build/test-optimizations');
 let version;
 let ioversion;
 let asyncversion;
-let production_cid = '{{account.id}}';
-let production_url = '//c.lytics.io';
-let master_cid;
-let master_url;
+let productionCid = '{{account.id}}';
+let productionUrl = '//c.lytics.io';
+
+// Seems like an eslint bug is forcing me to make an exception for these:
+/* eslint-disable no-unused-vars */
+let masterCid;
+let masterUrl;
+/* eslint-enable no-unused-vars */
 
 /*
 * handles the cid and url overrides from the .env file
 */
 try {
   env({
-    file: '.env.json',
+    file: '.env.json'
   });
-  master_cid = process.env.cid || production_cid;
-  master_url = process.env.url || production_url;
+  masterCid = process.env.cid || productionCid;
+  masterUrl = process.env.url || productionUrl;
 } catch (error) {
-  master_cid = production_cid;
-  master_url = production_url;
+  masterCid = productionCid;
+  masterUrl = productionUrl;
 }
 
 /*
 * sets master version information
 */
-(function setVersion () {
+(function setVersion() {
   const obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
   const package = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
@@ -52,7 +56,7 @@ try {
   ioversion = obj.ioversion;
   asyncversion = obj.asyncversion;
 
-  if (version === "" || ioversion === "" || asyncversion === "") {
+  if (version === '' || ioversion === '' || asyncversion === '') {
     throw 'invalid version files, can not be built';
   }
 }());
@@ -60,12 +64,12 @@ try {
 /*
 * generates the master config used in async init
 */
-function generateConfig (env) {
+function generateConfig(env) {
   const config = fs.readFileSync('src/initobj.js', 'utf8');
 
   if (env !== 'development') {
-    master_cid = production_cid;
-    master_cid = production_url;
+    masterCid = productionCid;
+    masterCid = productionUrl;
   }
 
   return config;
@@ -77,8 +81,8 @@ function generateConfig (env) {
 * production: uses hard coded cid and url for templating purposes
 * development: uses .env.json if it exists for falls back to production settings
 */
-gulp.task('build:legacy', function () {
-  return gulp.src(['src/legacy/async.js', 'src/legacy/io.js'])
+gulp.task('build:legacy', function() {
+  return gulp.src([ 'src/legacy/async.js', 'src/legacy/io.js' ])
     .pipe(gulp.dest('out/legacy'))
     .pipe(uglify())
     .pipe(rename({
@@ -87,60 +91,60 @@ gulp.task('build:legacy', function () {
     .pipe(gulp.dest('out/legacy'));
 });
 
-gulp.task('build:stage', function () {
+gulp.task('build:stage', function() {
   const initobj = generateConfig('production');
 
-  return gulp.src(['src/async.js', 'src/io.js', 'src/emitter.js'])
+  return gulp.src([ 'src/async.js', 'src/io.js', 'src/emitter.js' ])
     .pipe(replace('{{version}}', version))
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', asyncversion))
     .pipe(replace('{{initobj}}', initobj))
-    .pipe(replace('{{initcid}}', production_cid))
-    .pipe(replace('{{initurl}}', production_url))
+    .pipe(replace('{{initcid}}', productionCid))
+    .pipe(replace('{{initurl}}', productionUrl))
     .pipe(sweet({
-      modules: ['sweet-array-slice'],
+      modules: [ 'sweet-array-slice' ],
       readableNames: true
     }))
     .pipe(gulp.dest('out/dev'));
 });
 
-gulp.task('build:vendor', function () {
+gulp.task('build:vendor', function() {
   return gulp.src('vendor/*.js')
     .pipe(concat('vendor.js'))
     .pipe(gulp.dest('out/dev'));
 });
 
-gulp.task('build:core', function () {
-  return gulp.src(['out/dev/async.js', 'out/dev/emitter.js', 'out/dev/io.js'])
+gulp.task('build:core', function() {
+  return gulp.src([ 'out/dev/async.js', 'out/dev/emitter.js', 'out/dev/io.js' ])
     .pipe(gulp.dest('out/latest'));
 });
 
-gulp.task('build:compat', function () {
-  return gulp.src(['out/dev/vendor.js', 'out/latest/io.js'])
+gulp.task('build:compat', function() {
+  return gulp.src([ 'out/dev/vendor.js', 'out/latest/io.js' ])
     .pipe(concat('io.compat.js'))
     .pipe(gulp.dest('out/latest'));
 });
 
-gulp.task('build:minify', function () {
+gulp.task('build:minify', function() {
   return gulp.src('out/latest/*.js')
-    .pipe(filter(['*', '!*.min.js']))
+    .pipe(filter([ '*', '!*.min.js' ]))
     .pipe(uglify({
       compress: {
         unsafe: true,
         // TODO: audit truly pure functions. Note that higher order functions
         //     cannot be considered pure functions because the functions they
         //     operate on may not be pure.
-        pure_funcs: ['uncurryThis', 'noop']
+        pure_funcs: [ 'uncurryThis', 'noop' ]
       }
     }))
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest('out/latest'))
+    .pipe(gulp.dest('out/latest'));
 });
 
 gulp.task('build:library', series(
-  'lint',
+  // 'lint',
   'build:stage',
   'build:vendor',
   'build:core'
@@ -156,7 +160,7 @@ gulp.task('build:production', series(
 * testing tasks
 */
 
-gulp.task('test:async.js', function (done) {
+gulp.task('test:async.js', function(done) {
   const library = 'out/latest/async.js';
   const preprocessors = {};
 
@@ -166,22 +170,22 @@ gulp.task('test:async.js', function (done) {
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
-      ioversion: ioversion,
+      ioversion: ioversion
     },
     singleRun: true,
     files: [
       library,
-      'tests/coreAsyncSpec.js',
+      'tests/coreAsyncSpec.js'
     ],
     preprocessors: preprocessors,
     coverageReporter: {
       type : 'html',
       dir : 'coverage/async'
     },
-    port: 9776,
+    port: 9776
   });
 
-  server.on('run_complete', function (browsers, results) {
+  server.on('run_complete', function(browsers, results) {
     done(results.error ? 'There are test failures' : null);
   });
 
@@ -189,56 +193,28 @@ gulp.task('test:async.js', function (done) {
 });
 
 (function testServer() {
-  const testServer = new TestServer(3001);
+  const testServer = new TestServer(3002);
 
   gulp.task('test-server:start', done => { testServer.open(done); });
 
   gulp.task('test-server:stop', () => { testServer.close(); });
 }());
 
-gulp.task('test:io.js', function (done) {
-  const library = 'out/latest/io.js';
-  const preprocessors = {};
-
-  preprocessors[library] = 'coverage';
-
-  const server = new karma.Server({
-    configFile: __dirname + '/karma.conf.js',
-    client: {
-      asyncversion: asyncversion,
-      ioversion: ioversion,
-    },
-    singleRun: true,
-    files: [
-      'out/latest/io.js',
-      'out/latest/emitter.js',
-      'util/test-helpers.js',
-      'tests/utilSpec.js',
-      'tests/coreIoSpec.js',
-      'tests/dualIoSpec.js',
-      'tests/eventEmitterSpec.js'
-    ],
-    preprocessors: preprocessors,
-    coverageReporter: {
-      dir: 'coverage',
-      type: 'lcov'
-    },
-    coverallsReporter: {
-      repoToken: process.env.COVERALLS_REPO_TOKEN
-    },
-    port: 9777,
-  });
-
-  server.on('run_complete', function (browsers, results) {
-    done(results.error ? 'There are test failures' : null);
-  });
-
-  server.start();
+gulp.task('test:io.js', function(done) {
+  karmaRun('out/latest/io.compat.js', [
+    'out/latest/io.compat.js',
+    'out/latest/emitter.js',
+    'util/test-helpers.js',
+    'tests/utilSpec.js',
+    'tests/coreIoSpec.js',
+    'tests/dualIoSpec.js',
+    'tests/eventEmitterSpec.js'
+  ], done);
 });
 
 gulp.task('test:optimizations', testOptimizations);
 
-gulp.task('publish-version', function () {
+gulp.task('publish-version', function() {
   return gulp.src('out/latest/*')
     .pipe(gulp.dest('out/latest'))
     .pipe(gulp.dest('out/' + version));
@@ -247,8 +223,8 @@ gulp.task('publish-version', function () {
 /*
 * code linting
 */
-gulp.task('lint', function () {
-  return gulp.src([/*'src/async.js', */'src/io.js', 'src/emitter.js'])
+gulp.task('lint', function() {
+  return gulp.src([ /*'src/async.js', */'src/io.js', 'src/emitter.js' ])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
@@ -257,20 +233,20 @@ gulp.task('lint', function () {
 /*
 * docs
 */
-gulp.task('docs', function () {
-  return gulp.src(['out/latest/io.js'])
+gulp.task('docs', function() {
+  return gulp.src([ 'out/latest/io.js' ])
     .pipe(jsdoc2md({ template: fs.readFileSync('./docs/readme.hbs', 'utf8') }))
     .on('error', err => {
-      gutil.log(gutil.colors.red('jsdoc2md failed'), err.message)
+      gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
     })
-    .pipe(rename(path => { path.extname = '.md' }))
+    .pipe(rename(path => { path.extname = '.md'; }))
     .pipe(gulp.dest('.'));
 });
 
 /*
 * supporting tasks
 */
-gulp.task('preview', function () {
+gulp.task('preview', function() {
   connect.server({
     port: 8080,
     root: './out/',
@@ -280,12 +256,13 @@ gulp.task('preview', function () {
 
 gulp.task('tag', tagRelease);
 
-gulp.task('watch', function () {
+gulp.task('watch', function() {
   gulp.watch('src/*.js', series('builddev', 'lint'));
 });
 
 // builds for the development environment and runs all tests
 gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
+gulp.task('test:acceptance:compat', series('test:acceptance'));
 gulp.task('test', series('build:production', 'build:legacy', 'test:acceptance', 'test:optimizations'));
 
 gulp.task('release', series('test', 'publish-version'));
@@ -293,8 +270,35 @@ gulp.task('release', series('test', 'publish-version'));
 // builds for production using hard coded cid and url
 // gulp.task('buildprod', series('build:production', 'build:legacy'));
 
-gulp.task('default', ['build:production']);
+gulp.task('default', [ 'build:production' ]);
 
-function throwIt (it) {
-  if (it) { throw it; }
+function karmaRun(library, files, done) {
+  const preprocessors = {};
+
+  preprocessors[library] = 'coverage';
+
+  const server = new karma.Server({
+    configFile: __dirname + '/karma.conf.js',
+    client: {
+      asyncversion: asyncversion,
+      ioversion: ioversion
+    },
+    singleRun: true,
+    files: files,
+    preprocessors: preprocessors,
+    coverageReporter: {
+      dir: 'coverage',
+      type: 'lcov'
+    },
+    coverallsReporter: {
+      repoToken: process.env.COVERALLS_REPO_TOKEN
+    },
+    port: 9876
+  });
+
+  server.on('run_complete', function(browsers, results) {
+    done(results.error ? 'There are test failures' : null);
+  });
+
+  server.start();
 }

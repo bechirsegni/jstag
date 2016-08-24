@@ -1,4 +1,5 @@
-
+/* global forEach, contains */
+/* eslint no-unused-vars: off */
 /**
  * Adapted from https://github.com/Raynos/geval
  *
@@ -26,28 +27,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-function EventSource (broadcaster) {
+function EventSource(broadcaster) {
   var tuple = new Event();
 
   broadcaster(tuple.broadcast);
 
   return tuple.listen;
 
-  function Event () {
+  function Event() {
     var listeners = [];
 
     return { broadcast: broadcast, listen: event };
 
-    function broadcast (value) {
-      forEach(listeners, function (listener) { listener(value); });
+    function broadcast(value) {
+      forEach(listeners, function(listener) { listener(value); });
     }
 
-    function event (listener) {
+    function event(listener) {
       listeners.push(listener);
 
       return removeListener;
 
-      function removeListener () {
+      function removeListener() {
         var index = contains(listeners, listener);
 
         if (index !== -1) {

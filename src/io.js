@@ -278,7 +278,9 @@
       forEach(this.config.cid, function(cid) {
         var url = getEndpoint(config, cid) + (message.stream ? '/' + message.stream : '');
 
-        if (!contains(url, '_uidn=') && config.cookie !== 'seerid') {
+        // [compat 6] Internet Explorer has no `Array.prototype.indexOf`, so
+        //     `contains` can't be generic. Just use `String.prototype.indexOf`
+        if (url.indexOf('_uidn=') === -1 && config.cookie !== 'seerid') {
           url = appendQuery(url, '_uidn=' + config.cookie);
         }
 
@@ -325,12 +327,14 @@
       }
 
       var transport = this.ioGetTransport(message, url);
-    // NOTE: this seems unnecessary, and exists only for backwards comaptibility.
+    // NOTE: this seems unnecessary, and exists only for backwards compatibility.
       message.channelName = transport.name;
 
       transport.send(url, extend({}, message, {
         callback: function collectCallback() {
-          message.callback(message, that);
+          if (isFunction(message.callback)) {
+            message.callback(message, that);
+          }
           that.onSendFinished(message);
         }
       }));
@@ -418,7 +422,7 @@
       var referrer = this.referrer;
 
       if (referrer && referrer.length > 0) {
-        var referrerHost = /\/\/(.*)\//.test(referrer);
+        var referrerHost = /\/\/(.*)\//.exec(referrer);
 
         if (referrerHost && !contains(referrerHost[1], location.host)) {
           var strippedReferrer = stripProtocol(referrer);
@@ -623,7 +627,7 @@
       data._v = ioVersion;
     }
 
-    if (instance.changeId) {
+    if (instance && instance.changeId) {
       data._uido = instance.changeId;
     }
   }
@@ -643,9 +647,9 @@
       result.push(namespace + '=' + data);
     } else if (isArray(data)) {
       result.push(
-      namespace + '_len=' + data.length,
-      namespace + '_json=' + encodeURIComponent(JSON.stringify(data))
-    );
+        namespace + '_len=' + data.length,
+        namespace + '_json=' + encodeURIComponent(JSON.stringify(data))
+      );
       forEach(data, function(datum) {
         result.push(defaultSerializer(datum, namespace));
       });
@@ -750,7 +754,9 @@
  */
   function later(callback, delay) {
     var args = arraySlice(arguments, 2);
-    var timer = setTimeout.apply(null, [ callback, delay ].concat(args));
+
+    // [compat 3] setTimeout.apply doesn't exist in IE :facepalm:
+    var timer = setTimeout(function() { callback.apply(null, args); }, delay);
 
     laterTimers.push(timer);
     return timer;
@@ -783,7 +789,7 @@
     var sources = arraySlice(arguments);
     var isDeep = false;
 
-    if (isBoolean(arguments[0])) {
+    if (isBoolean(sources[0])) {
       isDeep = true;
       sources = sources.slice(1);
     }
@@ -816,10 +822,10 @@
     context.jsonp(idUri, callback);
   }
 
-/**
- * @private
- * @returns {string} the referrer URL for the current document
- */
+  /**
+   * @private
+   * @returns {string} the referrer URL for the current document
+   */
   function getReferrer() {
     return attempt(
       function() { return top.document.referrer; },
@@ -828,11 +834,11 @@
     );
   }
 
-/**
- * @private
- * @param {string} url
- * @returns {string} a string containing the URL with the protocol removed
- */
+  /**
+   * @private
+   * @param {string} url
+   * @returns {string} a string containing the URL with the protocol removed
+   */
   function stripProtocol(url) {
     return url.replace(/^https?:\/\//, '');
   }
@@ -863,6 +869,19 @@
     for (var i = 0, len = collection.length; i < len; i++) {
       callback(collection[i], i, collection);
     }
+  }
+
+  /**
+   * [compat 5] Internet Explorer doesn't implement `[].indexOf` :facepalm: :facepalm: :facepalm:
+   * @todo document
+   */
+  function indexOf(collection, item) {
+    for (var i = 0, len = collection.length; i < len; i++) {
+      if (collection[i] === item) {
+        return i;
+      }
+    }
+    return -1;
   }
 
 /**
@@ -961,9 +980,10 @@
  * @public
  * @param {(string|Array.<*>)} haystack - the array-like to search in
  * @param {any} needle - the object to search for
+ * @todo as written this is not generic in old browsers like IE
  */
   function contains(haystack, needle) {
-    return haystack.indexOf(needle) !== -1;
+    return indexOf(haystack, needle) !== -1;
   }
 
 /**
@@ -1050,7 +1070,7 @@
  * @returns {boolean}
  */
   function isString(it) {
-    return '' + it === it;
+    return 'string' === typeof it;
   }
 
 /**
@@ -1059,7 +1079,7 @@
  * @returns {boolean}
  */
   function isNumber(it) {
-    return +it === it;
+    return 'number' === typeof it;
   }
 
 /**
@@ -1073,6 +1093,7 @@
     var re = new RegExp(name + '=([^;]+)');
     var value = re.exec(decodeURIComponent(document.cookie));
 
+  // @todo don't rely on try/catch to handle type errors (think: value == null)
     return attempt(function() { return JSON.parse(value[1]); });
   }
 
@@ -1100,7 +1121,9 @@
     var domain = parseUri(location).hostname;
     var cookieValue = (
       name + '=' + encodeURIComponent(JSON.stringify(value)) +
-      (domain ? '; domain=' + domain : '') +
+
+      // Note: valid cookies must have at least 2 dots in the domain! [compat]
+      (domain && domain.split('.').length > 1 ? '; domain=' + domain : '') +
       ('; expires=' + expires.toUTCString())
     );
 
@@ -1242,12 +1265,28 @@
   function parseUri(uri) {
     var parser = html('a', { href: uri });
     var stringValueKeys = filter(allKeys(parser), function(key) {
-      return isString(parser[key]);
+      var value = attempt(function() {
+        // [compat 2] This lookup can throw in Internet Explorer :sadtaco:
+        return parser[key];
+      });
+      if (value == null) {
+        return false;
+      }
+      return isString(value);
     });
-
-    return object(map(stringValueKeys, function(key) {
+    var parsed = object(map(stringValueKeys, function(key) {
       return [ key, parser[key] ];
     }));
+
+    // [compat 1] Note: older browsers that don't support CORS won't have `origin`:
+    if (parsed.origin == null) {
+      parsed.origin = getUriOrigin(parsed);
+    }
+    return parsed;
+  }
+
+  function getUriOrigin(uri) {
+    return uri.protocol + '//' + uri.hostname + (uri.port ? ':' + uri.port : '');
   }
 
 /**
@@ -1335,7 +1374,6 @@
 
   // Expose the singleton facade interface
     expose([
-      'extend',
       'send',
       'mock',
       'block',
@@ -1347,6 +1385,7 @@
     ]);
 
   // these properties are exposed for backwards compatibility:
+    window.jstag.extend = extend;
     window.jstag.ckieGet = getCookie;
     window.jstag.ckieSet = setCookie;
     window.jstag.ckieDel = deleteCookie;
@@ -1393,10 +1432,12 @@
 // See: http://stackoverflow.com/questions/24987896/how-does-bluebirds-util-tofastproperties-function-make-an-objects-properties
   function toFastProperties(obj) {
   // This is here to hopefully prevent v8's optimizing compiler from removing this code:
-    try { return new F(); } catch (e) {}
+    try {
+      F.prototype = obj;
+      return new F();
+    } catch (e) {}
 
     function F() {}
-    F.prototype = obj;
   }
   toFastProperties(transports);
   toFastProperties(JSTag);

@@ -1,7 +1,9 @@
+/* eslint-env node */
+
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 
-module.exports = function testOptimizations () {
+module.exports = function testOptimizations() {
   return Promise.all([
     // File size optimization: `uncurryThis` should be removed.
     //
@@ -33,7 +35,7 @@ module.exports = function testOptimizations () {
         if (artifact.indexOf('uncurryThis') !== -1) {
           throw new Error('Optimization failed: `uncurryThis` was not eliminated by dead code elimination');
         }
-      }),
+      })
     // TODO: add tests for other optimizations.
   ]);
 };

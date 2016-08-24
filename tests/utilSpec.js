@@ -1,3 +1,4 @@
+/* global jstag */
 describe("util", function() {
   var JSTag = jstag.JSTag;
   var instance;
@@ -7,7 +8,7 @@ describe("util", function() {
   });
 
   describe("the extend method", function() {
-    describe("shallow semantics", function () {
+    describe("shallow semantics", function() {
       it("should assign from right to left", function() {
         var source1 = { foo: 12 };
         var source2 = { foo: 14, bar: 13 };
@@ -67,6 +68,8 @@ describe("util", function() {
       expect(parsed.search).toBe('?search=test');
       expect(parsed.hash).toBe('#hash');
       expect(parsed.host).toBe('example.com:3000');
+
+      // [compat 1] Note: We could potentially remove this assertion:
       expect(parsed.origin).toBe('http://example.com:3000');
     });
   });
@@ -79,7 +82,7 @@ describe("util", function() {
       expect(parsed.search2).toBe('test2');
     });
 
-    it("should parse query params with keys and no values", function () {
+    it("should parse query params with keys and no values", function() {
       var parsed = instance.parseQueryString("?foo&bar=12&baz");
 
       expect('foo' in parsed).toBe(true);
@@ -89,13 +92,13 @@ describe("util", function() {
       expect(parsed.baz).toBe(null);
     });
 
-    it("should return an empty object when the input is the empty string", function () {
+    it("should return an empty object when the input is the empty string", function() {
       var parsed = instance.parseQueryString('');
 
       expect(parsed).toEqual({});
     });
 
-    it("should return an empty object when the input is not a string", function () {
+    it("should return an empty object when the input is not a string", function() {
       var foo = { prop: 12 };
       var parsed = instance.parseQueryString(foo);
 
@@ -104,15 +107,15 @@ describe("util", function() {
   });
 
   describe("the getid method", function() {
-    afterEach(function () {
+    afterEach(function() {
       instance.deleteCookie('seerid');
     });
 
-    describe("when unconfigured", function () {
-      it("should call back asynchronously with a unique id using the built-in ID factory", function (done) {
+    describe("when unconfigured", function() {
+      it("should call back asynchronously with a unique id using the built-in ID factory", function(done) {
         var called = false;
 
-        instance.getid(function (id) {
+        instance.getid(function(id) {
           expect(id).toBeDefined();
           expect(id).toBeDefined();
           called = true;
@@ -123,18 +126,18 @@ describe("util", function() {
       });
     });
 
-    describe("when configured with loadid = true", function () {
-      beforeEach(function () {
+    describe("when configured with loadid = true", function() {
+      beforeEach(function() {
         instance = new JSTag({
           loadid: true,
-          url: 'http://localhost:3001',
+          url: 'http://localhost:3002',
           idpath: '/cid/',
-          cid: 'lala',
+          cid: 'lala'
         });
       });
 
-      it("should make a jsonp request to the specified endpoint", function (done) {
-        instance.getid(function (id) {
+      it("should make a jsonp request to the specified endpoint", function(done) {
+        instance.getid(function(id) {
           expect(id).toBe('dummy'); // "dummy" is hardcoded in the test server
           done();
         });
@@ -142,114 +145,114 @@ describe("util", function() {
     });
   });
 
-  describe("the cookies API", function () {
-    describe("the setCookie method", function () {
+  describe("the cookies API", function() {
+    describe("the setCookie method", function() {
       afterEach(function() {
         instance.deleteCookie('test');
       });
 
-      it("should set a numeric cookie value", function () {
+      it("should set a numeric cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 42);
         expect(document.cookie).toBe('test=42');
       });
 
-      it("should set a string cookie value", function () {
+      it("should set a string cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 'test');
         expect(document.cookie).toBe('test=%22test%22');
       });
 
-      it("should set a boolean cookie value", function () {
+      it("should set a boolean cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', false);
         expect(document.cookie).toBe('test=false');
       });
 
-      it("should set a null cookie value", function () {
+      it("should set a null cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', null);
         expect(document.cookie).toBe('test=null');
       });
 
-      it("should set an object cookie value", function () {
+      it("should set an object cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', { foo: 42 });
         expect(document.cookie).toBe('test=%7B%22foo%22%3A42%7D');
       });
 
-      it("should set an array cookie value", function () {
+      it("should set an array cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', [ 5, 4, 3, 2, 1 ]);
         expect(document.cookie).toBe('test=%5B5%2C4%2C3%2C2%2C1%5D');
       });
     });
 
-    describe("the getCookie method", function () {
+    describe("the getCookie method", function() {
       afterEach(function() {
         instance.deleteCookie('test');
       });
 
-      it("should return undefined if the cookie doesn't exist", function () {
+      it("should return undefined if the cookie doesn't exist", function() {
         expect(instance.getCookie('malarkey')).toBeUndefined();
       });
 
-      it("should get a numeric cookie value", function () {
+      it("should get a numeric cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 42);
         expect(instance.getCookie('test')).toBe(42);
       });
 
-      it("should get a boolean cookie value", function () {
+      it("should get a boolean cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', false);
         expect(instance.getCookie('test')).toBe(false);
       });
 
-      it("should get a string cookie value", function () {
+      it("should get a string cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 'string');
         expect(instance.getCookie('test')).toBe('string');
       });
 
-      it("should get a null cookie value", function () {
+      it("should get a null cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', null);
         expect(instance.getCookie('test')).toBe(null);
       });
 
-      it("should get an object cookie value", function () {
+      it("should get an object cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', { foo: 42 });
         expect(instance.getCookie('test')).toEqual({ foo: 42 });
       });
 
-      it("should get an array cookie value", function () {
+      it("should get an array cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', [ 5, 4, 3, 2, 1 ]);
         expect(instance.getCookie('test')).toEqual([ 5, 4, 3, 2, 1 ]);
       });
     });
 
-    describe("the deleteCookie method", function () {
-      it("should delete a cookie", function () {
+    describe("the deleteCookie method", function() {
+      it("should delete a cookie", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 'test');
         expect(instance.getCookie('test')).toBe('test');
         instance.deleteCookie('test');
         expect(document.cookie).toBe('');
         expect(instance.getCookie('test')).toBeUndefined();
-      })
+      });
     });
   });
 
-  describe("the blocking API", function () {
-    it("should not be blocked initially", function () {
+  describe("the blocking API", function() {
+    it("should not be blocked initially", function() {
       expect(instance.blocked).toBe(false);
     });
 
-    describe("the unblock/block methods", function () {
-      it("should block and unblock the instance from sending messages", function () {
+    describe("the unblock/block methods", function() {
+      it("should block and unblock the instance from sending messages", function() {
         instance.block();
         expect(instance.blocked).toBe(true);
         instance.block();
@@ -263,41 +266,41 @@ describe("util", function() {
       });
     });
 
-    describe("the block method", function () {
-      describe("when the timeout is numeric", function () {
-        it("should block for the time specified", function (done) {
+    describe("the block method", function() {
+      describe("when the timeout is numeric", function() {
+        it("should block for the time specified", function(done) {
           spyOn(instance, 'unblock');
           expect(instance.unblock).not.toHaveBeenCalled();
           instance.block(500);
           expect(instance.unblock).not.toHaveBeenCalled();
-          setTimeout(function () {
+          setTimeout(function() {
             expect(instance.unblock).not.toHaveBeenCalled();
-            setTimeout(function () {
+            setTimeout(function() {
               expect(instance.unblock).toHaveBeenCalled();
               done();
-            }, 250);
+            }, 350);
           }, 250);
         });
       });
 
-      describe("when the timeout is not numeric", function () {
-        it("should default to 2000 ms when passed a string", function (done) {
+      describe("when the timeout is not numeric", function() {
+        it("should default to 2000 ms when passed a string", function(done) {
           spyOn(instance, 'unblock');
           expect(instance.unblock).not.toHaveBeenCalled();
           instance.block('holy shit');
           expect(instance.unblock).not.toHaveBeenCalled();
-          setTimeout(function () {
+          setTimeout(function() {
             expect(instance.unblock).toHaveBeenCalled();
             done();
           }, 2000);
         });
 
-        it("should default to 2000 ms when passed NaN", function (done) {
+        it("should default to 2000 ms when passed NaN", function(done) {
           spyOn(instance, 'unblock');
           expect(instance.unblock).not.toHaveBeenCalled();
           instance.block(NaN);
           expect(instance.unblock).not.toHaveBeenCalled();
-          setTimeout(function () {
+          setTimeout(function() {
             expect(instance.unblock).toHaveBeenCalled();
             done();
           }, 2000);
@@ -305,31 +308,31 @@ describe("util", function() {
       });
     });
 
-    describe("when blocked", function () {
+    describe("when blocked", function() {
       it("should unblock the instance from sending messages");
     });
   });
 
-  describe("event expandos", function () {
-    it("has an abstract onIoReady method", function () {
+  describe("event expandos", function() {
+    it("has an abstract onIoReady method", function() {
       expect(typeof instance.onIoReady).toBe('function');
-      expect(function () {
+      expect(function() {
         instance.onIoReady();
       }).not.toThrow();
     });
 
-    it("has an abstract onSendStarted method", function () {
+    it("has an abstract onSendStarted method", function() {
       expect(typeof instance.onSendStarted).toBe('function');
-      expect(function () {
+      expect(function() {
         instance.onSendStarted();
       }).not.toThrow();
     });
 
-    it("has an abstract onSendFinished method", function () {
+    it("has an abstract onSendFinished method", function() {
       expect(typeof instance.onSendFinished).toBe('function');
-      expect(function () {
+      expect(function() {
         instance.onSendFinished();
       }).not.toThrow();
     });
   });
-})
+});

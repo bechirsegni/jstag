@@ -1,8 +1,15 @@
 extends:
 - ./node_modules/lytics-js-styleguide/.eslintrc
+parserOptions:
+  ecmaVersion: 6
 env:
   browser: true
   jasmine: true
 globals:
   pathfora: true
   "$": true
+rules:
+  comma-dangle:
+  - error
+  - never
+  strict: off

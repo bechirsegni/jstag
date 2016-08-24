@@ -8,11 +8,18 @@ env:
   - export JSTAG_CI_MASTER_BRANCH=master2
   - secure: i9xUj+NKgLh11gXsYlDV9dDRObUvni98g6P02TKCYijCcqCO7iCDJF2hPs0ff42BpQacQUkR5dmsMpCee0jtlsA51giSyv4FGOdUpEBT/kPtvMT1H727c15OfK0TD31NKrml59nUz7rYdHagJ+VA3+GCuUQLINWhaJfh43cw5ks=
   - secure: UIffOSxb3d5Amq/sxz1VSoWDAVaIIIZ9EBEoaZiFLVpfPLmsSR48Z4jL9LtfXKW4/urvdwcjylQMihAA9FrTxTycJmuHJJj0KscDLXD59IMVJUhJ7EJsW+xr+Syb0Jg7bjtVc3LRKT8yGdcUCEgOK3IJF17wuk3H6XQB9RenUO8=
+  - secure: TtOCyYBsZAlkvRVKq4gGPjHYGTTVJl9Qg7ecA7vrg5m+S5qpCc6Tge/QHIouuGHi3GGhouZdheDfTegH0bbaK2SX9e4iBXV6fPwNAh06P576ZTDJj71sz5HzE7Tr7pn81FCfd4m6TeoSmlFqsArNOcV6YnE/T9h2pqkWe3TJu0Y=
+  - secure: N1++5LxT+fr23Ku1z6l5btxhO1zYe8qr7W7dRMYruJUnNvEikp0apg0OGhEWbfn2eyeGPWal2UJcQqEVG1Jdv/zHw343uFNzTAFKPMvIQS4KUs0ptoegCY4V3Bb/la4az8KlxhIeSLYlJfr/SpHCMAx/3H08gEj5R5pYc3s+BXk=
+# addons:
+#   browserstack:
+#     username: $BROWSERSTACK_USERNAME
+#     access_key: $BROWSERSTACK_ACCESS_KEY
 cache:
   directories:
   - travis_phantomjs
 before_install:
 - ./bin/cache-phantom
+- ./bin/cache-browserstacklocal
 before_script:
 - npm install -g gulp
 - git config --global user.name $GIT_USER_NAME
