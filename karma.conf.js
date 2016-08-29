@@ -84,6 +84,15 @@ module.exports = function(config) {
         os_version: 'Mountain Lion'
       },
 
+      // Safari
+      bs_safari_5: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: '5.1',
+        os: 'OS X',
+        os_version: 'Lion'
+      },
+
       // iOS:
       bs_iphone5: {
         base: 'BrowserStack',
@@ -149,7 +158,8 @@ module.exports = function(config) {
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: [
       'PhantomJS',
-      'bs_ie8'
+      'bs_ie8',
+      'bs_safari_5'
       // 'bs_firefox_mac',
       // 'bs_iphone5',
       // 'bs_iphone6',
