@@ -85,12 +85,19 @@ module.exports = function(config) {
       },
 
       // Safari
-      bs_safari_5: {
+      bs_safari_5_lion: {
         base: 'BrowserStack',
         browser: 'safari',
         browser_version: '5.1',
         os: 'OS X',
         os_version: 'Lion'
+      },
+      bs_safari_5_win: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: '5.1',
+        os: 'Windows',
+        os_version: '10'
       },
 
       // iOS:
@@ -159,7 +166,8 @@ module.exports = function(config) {
     browsers: [
       'PhantomJS',
       'bs_ie8',
-      'bs_safari_5'
+      'bs_safari_5_lion',
+
       // 'bs_firefox_mac',
       // 'bs_iphone5',
       // 'bs_iphone6',
