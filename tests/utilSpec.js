@@ -1,6 +1,6 @@
-/* global jstag */
+/* global __lytics__jstag__ */
 describe("util", function() {
-  var JSTag = jstag.JSTag;
+  var JSTag = __lytics__jstag__.JSTag;
   var instance;
 
   beforeEach(function() {

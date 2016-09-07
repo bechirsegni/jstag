@@ -202,13 +202,15 @@ gulp.task('test:async.js', function(done) {
 
 gulp.task('test:io.js', function(done) {
   karmaRun('out/latest/io.compat.js', [
+    'tests/add-meta-tag.js',
     'out/latest/io.compat.js',
     'out/latest/emitter.js',
     'util/test-helpers.js',
-    'tests/utilSpec.js',
-    'tests/coreIoSpec.js',
-    'tests/dualIoSpec.js',
-    'tests/eventEmitterSpec.js'
+    // 'tests/utilSpec.js',
+    // 'tests/coreIoSpec.js',
+    // 'tests/dualIoSpec.js',
+    // 'tests/eventEmitterSpec.js',
+    // 'tests/noConflictSpec.js'
   ], done);
 });
 

@@ -1,5 +1,6 @@
-/* global jstag, jasmineMatchers, getURL, getIoVersion, getTimezone, getNavigatorLanguage */
+/* global __lytics__jstag__, jasmineMatchers, getURL, getIoVersion, getTimezone, getNavigatorLanguage */
 describe("verify that we can handle an array of cid", function() {
+  var jstag = __lytics__jstag__;
   var parseQueryString = jstag.util.parseQueryString;
 
   beforeEach(function() {
