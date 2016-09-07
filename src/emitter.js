@@ -1,12 +1,12 @@
 (function iife(window) {
   'use strict';
 
-  if (!window.jstag) {
+  if (!window.__lytics__jstag__) {
     throw new Error('jstag not defined');
   }
 
-  var JSTag = window.jstag.JSTag;
-  var util = window.jstag.util;
+  var JSTag = window.__lytics__jstag__.JSTag;
+  var util = window.__lytics__jstag__.util;
 
   util.expose([ 'bind', 'unbind' ]);
 

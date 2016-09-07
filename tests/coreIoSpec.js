@@ -1,5 +1,6 @@
-/* global jstag, jasmineMatchers, getURL, getIoVersion, getTimezone, getNavigatorLanguage, map, mapBy */
+/* global jstag2, __lytics__jstag__, jasmineMatchers, getURL, getIoVersion, getTimezone, getNavigatorLanguage, map, mapBy */
 describe("io:core", function() {
+  var jstag = __lytics__jstag__;
   var parseQueryString = jstag.util.parseQueryString;
 
   beforeEach(function() {
@@ -31,11 +32,7 @@ describe("io:core", function() {
 
   describe("ensure the parse event function can handle all the send/mock payload possibilities", function() {
     var resp, cb, obj;
-    cb = function() {
-      /* eslint-disable no-console */
-      console.log('here');
-      /* eslint-enable no-console */
-    };
+    cb = function() {};
     obj = { "test":"one" };
 
     describe("payload generation", function() {
@@ -799,9 +796,6 @@ describe("io:core", function() {
 
     it("should include the cookie name `_uidn` in the payload", function() {
       var urlQuery = parseQueryString(async1.sendurl[0].split('?')[1]);
-
-      console.log('sendurl', async1.sendurl[0].split('?')[1]);
-      console.log('urlQuery', urlQuery);
 
       expect(urlQuery._uidn).toBe('shakira');
     });

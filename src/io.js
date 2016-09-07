@@ -1191,7 +1191,10 @@
           deprecation('boolean argument is passed to send. Ignoring.');
           break;
         default:
-          throw new TypeError('unable to process jstag.send event: unknown value type (' + typeof arg + ')');
+          throw new TypeError(
+            'unable to process jstag.send event: ' +
+            'unknown value type (' + typeof arg + ')'
+          );
       }
     });
 
@@ -1356,18 +1359,14 @@
   }
 
   var globalName = (function getGlobalName() {
-    var scripts = arraySlice(document.getElementsByTagName('script'));
-    var metas = arraySlice(document.getElementsByTagName('meta'));
-    var tags = [].concat(scripts, metas);
-    var attributes = [];
-    var attribute;
+    var scriptsHostObject = document.getElementsByTagName('script');
+    var scripts = arraySlice(scriptsHostObject);
+    var metasHostObject = document.getElementsByTagName('meta');
+    var metas = arraySlice(metasHostObject);
+    var attributes = filter(map([].concat(scripts, metas), function(tag) {
+      return tag.getAttribute('data-lytics-global');
+    }), Boolean);
 
-    for (var i = 0, length = tags.length; i < length; i++) {
-      attribute = tags[i].getAttribute('data-lytics-global');
-      if (attribute != null) {
-        attributes.push(attribute);
-      }
-    }
     if (attributes.length > 1) {
       throw new Error(
         'This page specified more than one data-lytics-global attribute. ' +
@@ -1383,15 +1382,15 @@
 /**
  * @exports window.jstag
  */
-  window[globalName] || (window[globalName] = {});
-  window[globalName].JSTag = JSTag;
-  window[globalName].init = (function facade() {
+  window.__lytics__jstag__ || (window.__lytics__jstag__ = window[globalName] || {});
+  window.__lytics__jstag__.JSTag = JSTag;
+  window.__lytics__jstag__.init = (function facade() {
   // Cache for the backing singleton instance
     var instance;
 
     function expose(methodNames) {
       forEach(methodNames, function(methodName) {
-        window[globalName][methodName] = function() {
+        window.__lytics__jstag__[methodName] = function() {
           return instance[methodName].apply(instance, arguments);
         };
       });
@@ -1410,13 +1409,13 @@
     ]);
 
   // these properties are exposed for backwards compatibility:
-    window[globalName].extend = extend;
-    window[globalName].ckieGet = getCookie;
-    window[globalName].ckieSet = setCookie;
-    window[globalName].ckieDel = deleteCookie;
-    window[globalName].isLoaded = false;
+    window.__lytics__jstag__.extend = extend;
+    window.__lytics__jstag__.ckieGet = getCookie;
+    window.__lytics__jstag__.ckieSet = setCookie;
+    window.__lytics__jstag__.ckieDel = deleteCookie;
+    window.__lytics__jstag__.isLoaded = false;
 
-    window[globalName].util = {
+    window.__lytics__jstag__.util = {
       forEach: forEach,
       reduce: reduce,
       map: map,
@@ -1447,12 +1446,15 @@
       instance.pageAnalysis();
 
     // these properties are exposed for backwards compatibility:
-      window[globalName].isLoaded = true;
-      window[globalName].config = instance.config;
+      window.__lytics__jstag__.isLoaded = true;
+      window.__lytics__jstag__.config = instance.config;
 
       return reset;
     };
   }());
+
+  // Also export with a short-but-sweet name (usually "jstag")
+  window[globalName] = window.__lytics__jstag__;
 
 // See: http://stackoverflow.com/questions/24987896/how-does-bluebirds-util-tofastproperties-function-make-an-objects-properties
   function toFastProperties(obj) {
@@ -1467,6 +1469,6 @@
   toFastProperties(transports);
   toFastProperties(JSTag);
   toFastProperties(JSTag.prototype);
-  toFastProperties(window[globalName]);
-  toFastProperties(window[globalName].util);
+  toFastProperties(window.__lytics__jstag__);
+  toFastProperties(window.__lytics__jstag__.util);
 }(window));

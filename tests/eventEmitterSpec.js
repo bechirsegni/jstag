@@ -1,5 +1,6 @@
-/* global jstag */
+/* global __lytics__jstag__ */
 describe("the event-emitter API", function() {
+  var jstag = __lytics__jstag__;
   var JSTag = jstag.JSTag;
   var instance;
   var event = 'io.ready'; // must be a valid event name.
