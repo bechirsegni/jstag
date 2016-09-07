@@ -1409,8 +1409,6 @@
       'clearCookies'
     ]);
 
-
-    var globalName = getGlobalName();
   // these properties are exposed for backwards compatibility:
     window[globalName].extend = extend;
     window[globalName].ckieGet = getCookie;
