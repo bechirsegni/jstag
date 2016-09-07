@@ -165,9 +165,9 @@ module.exports = function(config) {
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: [
       'PhantomJS',
-      'bs_ie8',
-      'bs_safari_5_lion',
-      'bs_safari_5_win',
+      // 'bs_ie8',
+      // 'bs_safari_5_lion',
+      // 'bs_safari_5_win',
 
       // 'bs_firefox_mac',
       // 'bs_iphone5',

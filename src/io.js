@@ -1355,18 +1355,43 @@
     return ret;
   }
 
+  var globalName = (function getGlobalName() {
+    var scripts = arraySlice(document.getElementsByTagName('script'));
+    var metas = arraySlice(document.getElementsByTagName('meta'));
+    var tags = [].concat(scripts, metas);
+    var attributes = [];
+    var attribute;
+
+    for (var i = 0, length = tags.length; i < length; i++) {
+      attribute = tags[i].getAttribute('data-lytics-global');
+      if (attribute != null) {
+        attributes.push(attribute);
+      }
+    }
+    if (attributes.length > 1) {
+      throw new Error(
+        'This page specified more than one data-lytics-global attribute. ' +
+        'You should put the attribute on either a meta tag, or the script ' +
+        'element itself, but not both'
+      );
+    }
+    if (attributes.length === 1) {
+      return attributes[0];
+    }
+    return 'jstag';
+  }());
 /**
  * @exports window.jstag
  */
-  window.jstag || (window.jstag = {});
-  window.jstag.JSTag = JSTag;
-  window.jstag.init = (function facade() {
+  window[globalName] || (window[globalName] = {});
+  window[globalName].JSTag = JSTag;
+  window[globalName].init = (function facade() {
   // Cache for the backing singleton instance
     var instance;
 
     function expose(methodNames) {
       forEach(methodNames, function(methodName) {
-        window.jstag[methodName] = function() {
+        window[globalName][methodName] = function() {
           return instance[methodName].apply(instance, arguments);
         };
       });
@@ -1384,14 +1409,16 @@
       'clearCookies'
     ]);
 
-  // these properties are exposed for backwards compatibility:
-    window.jstag.extend = extend;
-    window.jstag.ckieGet = getCookie;
-    window.jstag.ckieSet = setCookie;
-    window.jstag.ckieDel = deleteCookie;
-    window.jstag.isLoaded = false;
 
-    window.jstag.util = {
+    var globalName = getGlobalName();
+  // these properties are exposed for backwards compatibility:
+    window[globalName].extend = extend;
+    window[globalName].ckieGet = getCookie;
+    window[globalName].ckieSet = setCookie;
+    window[globalName].ckieDel = deleteCookie;
+    window[globalName].isLoaded = false;
+
+    window[globalName].util = {
       forEach: forEach,
       reduce: reduce,
       map: map,
@@ -1422,8 +1449,8 @@
       instance.pageAnalysis();
 
     // these properties are exposed for backwards compatibility:
-      window.jstag.isLoaded = true;
-      window.jstag.config = instance.config;
+      window[globalName].isLoaded = true;
+      window[globalName].config = instance.config;
 
       return reset;
     };
@@ -1442,6 +1469,6 @@
   toFastProperties(transports);
   toFastProperties(JSTag);
   toFastProperties(JSTag.prototype);
-  toFastProperties(window.jstag);
-  toFastProperties(window.jstag.util);
+  toFastProperties(window[globalName]);
+  toFastProperties(window[globalName].util);
 }(window));
