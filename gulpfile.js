@@ -206,11 +206,11 @@ gulp.task('test:io.js', function(done) {
     'out/latest/io.compat.js',
     'out/latest/emitter.js',
     'util/test-helpers.js',
-    // 'tests/utilSpec.js',
-    // 'tests/coreIoSpec.js',
-    // 'tests/dualIoSpec.js',
-    // 'tests/eventEmitterSpec.js',
-    // 'tests/noConflictSpec.js'
+    'tests/utilSpec.js',
+    'tests/coreIoSpec.js',
+    'tests/dualIoSpec.js',
+    'tests/eventEmitterSpec.js',
+    'tests/noConflictSpec.js'
   ], done);
 });
 
