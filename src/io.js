@@ -1358,7 +1358,8 @@
     return ret;
   }
 
-  var globalName = (function getGlobalName() {
+  var canonicalName = '__lytics__jstag__';
+  var succinctName = (function getGlobalName() {
     var scriptsHostObject = document.getElementsByTagName('script');
     var scripts = arraySlice(scriptsHostObject);
     var metasHostObject = document.getElementsByTagName('meta');
@@ -1382,15 +1383,15 @@
 /**
  * @exports window.jstag
  */
-  window.__lytics__jstag__ || (window.__lytics__jstag__ = window[globalName] || {});
-  window.__lytics__jstag__.JSTag = JSTag;
-  window.__lytics__jstag__.init = (function facade() {
+  window[canonicalName] || (window[canonicalName] = window[succinctName] || {});
+  window[canonicalName].JSTag = JSTag;
+  window[canonicalName].init = (function facade() {
   // Cache for the backing singleton instance
     var instance;
 
     function expose(methodNames) {
       forEach(methodNames, function(methodName) {
-        window.__lytics__jstag__[methodName] = function() {
+        window[canonicalName][methodName] = function() {
           return instance[methodName].apply(instance, arguments);
         };
       });
@@ -1409,13 +1410,13 @@
     ]);
 
   // these properties are exposed for backwards compatibility:
-    window.__lytics__jstag__.extend = extend;
-    window.__lytics__jstag__.ckieGet = getCookie;
-    window.__lytics__jstag__.ckieSet = setCookie;
-    window.__lytics__jstag__.ckieDel = deleteCookie;
-    window.__lytics__jstag__.isLoaded = false;
+    window[canonicalName].extend = extend;
+    window[canonicalName].ckieGet = getCookie;
+    window[canonicalName].ckieSet = setCookie;
+    window[canonicalName].ckieDel = deleteCookie;
+    window[canonicalName].isLoaded = false;
 
-    window.__lytics__jstag__.util = {
+    window[canonicalName].util = {
       forEach: forEach,
       reduce: reduce,
       map: map,
@@ -1446,15 +1447,15 @@
       instance.pageAnalysis();
 
     // these properties are exposed for backwards compatibility:
-      window.__lytics__jstag__.isLoaded = true;
-      window.__lytics__jstag__.config = instance.config;
+      window[canonicalName].isLoaded = true;
+      window[canonicalName].config = instance.config;
 
       return reset;
     };
   }());
 
   // Also export with a short-but-sweet name (usually "jstag")
-  window[globalName] = window.__lytics__jstag__;
+  window[succinctName] = window[canonicalName];
 
 // See: http://stackoverflow.com/questions/24987896/how-does-bluebirds-util-tofastproperties-function-make-an-objects-properties
   function toFastProperties(obj) {
@@ -1469,6 +1470,6 @@
   toFastProperties(transports);
   toFastProperties(JSTag);
   toFastProperties(JSTag.prototype);
-  toFastProperties(window.__lytics__jstag__);
-  toFastProperties(window.__lytics__jstag__.util);
+  toFastProperties(window[canonicalName]);
+  toFastProperties(window[canonicalName].util);
 }(window));
