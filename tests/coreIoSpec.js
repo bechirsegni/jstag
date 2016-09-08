@@ -25,7 +25,10 @@ describe("io:core", function() {
       expect(jstag.init).toBeDefined();
       expect(jstag.bind).toBeDefined();
       expect(jstag.send).toBeDefined();
+      expect(jstag.identify).toBeDefined();
       expect(jstag.mock).toBeDefined();
+      expect(jstag.page).toBeDefined();
+      expect(jstag.pageView).toBeDefined();
       expect(jstag.parseEvent).toBeDefined();
     });
   });

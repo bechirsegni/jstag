@@ -1359,12 +1359,12 @@
   }
 
   var canonicalName = '__lytics__jstag__';
-  var succinctName = (function getGlobalName() {
+  var succinctName = (function getSuccintGlobalName() {
     var scriptsHostObject = document.getElementsByTagName('script');
     var scripts = arraySlice(scriptsHostObject);
     var metasHostObject = document.getElementsByTagName('meta');
     var metas = arraySlice(metasHostObject);
-    var attributes = filter(map([].concat(scripts, metas), function(tag) {
+    var attributes = filter(map(scripts.concat(metas), function(tag) {
       return tag.getAttribute('data-lytics-global');
     }), Boolean);
 
@@ -1401,10 +1401,11 @@
     expose([
       'send',
       'mock',
+      'identify',
+      'page',
+      'pageView',
       'block',
       'unblock',
-      'identify',
-      'pageView',
       'parseEvent',
       'clearCookies'
     ]);
