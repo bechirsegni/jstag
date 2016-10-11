@@ -7,6 +7,8 @@
   var screen = window.screen;
   var userAgent = navigator.userAgent;
   var ioVersion = '2.1.0';
+  var DEFAULT_COOKIE_NAME = 'seerid2';
+  var DEFAULT_SESSION_COOKIE_NAME = 'seerses2';
   var arraySlice = uncurryThis([].slice);
   var keys = Object.keys || function keys(source) {
     return filter(allKeys(source), function(key) {
@@ -27,8 +29,8 @@
       blockload: false,
       path: '/c/',
       idpath: '/cid/',
-      cookie: 'seerid2',
-      sesname: 'seerses2',
+      cookie: DEFAULT_COOKIE_NAME,
+      sesname: DEFAULT_SESSION_COOKIE_NAME,
       stream: undefined,
       sessecs: 1800,
       qsargs: [],
@@ -279,7 +281,7 @@
 
         // [compat 6] Internet Explorer has no `Array.prototype.indexOf`, so
         //     `contains` can't be generic. Just use `String.prototype.indexOf`
-        if (url.indexOf('_uidn=') === -1 && config.cookie !== 'seerid') {
+        if (url.indexOf('_uidn=') === -1 && config.cookie !== DEFAULT_COOKIE_NAME) {
           url = appendQuery(url, '_uidn=' + config.cookie);
         }
 

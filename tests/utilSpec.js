@@ -108,7 +108,7 @@ describe("util", function() {
 
   describe("the getid method", function() {
     afterEach(function() {
-      instance.deleteCookie('seerid');
+      instance.deleteCookie('seerid2');
     });
 
     describe("when unconfigured", function() {
