@@ -45,6 +45,7 @@ deploy:
     secure: FQoimbN5Q3udVG/O1BY1+xfbVRZX8aKMnS+p/hEWp86gQzXZDTrht2F6JY81Kmr7JCUylB/5Ma+TeQxz6kgduuLECS0tSVnH/P+4TdwUw8AXrtLDnwZ7umOlT8F1DupNcbgleLKNXE+krI7+b1RJ9gUHkyvOOZ5zD8/gaDkw9Ls=
   project: lyticsstaging
   bucket: lytics-js
+  acl: public-read
   on:
     branch: $JSTAG_CI_MASTER_BRANCH
 - provider: releases
