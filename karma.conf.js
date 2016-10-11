@@ -166,7 +166,7 @@ module.exports = function(config) {
     browsers: [
       'PhantomJS',
       'bs_ie8',
-      'bs_safari_5_lion',
+      // 'bs_safari_5_lion',
       'bs_safari_5_win'
 
       // 'bs_firefox_mac',
