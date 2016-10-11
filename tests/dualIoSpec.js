@@ -55,6 +55,5 @@ describe("verify that we can handle an array of cid", function() {
     expect(dataMsg1._sz).toMatch(/\d+x\d+/);
     expect(dataMsg1._uid).toEqual(async1.data._uid);
     expect(dataMsg1._getid).toEqual('t');
-    expect(dataMsg1._ca).toEqual('jstag1');
   });
 });
