@@ -1200,10 +1200,6 @@
       data = {};
     }
 
-    // TODO: sending this along for debugging reasons, so the stream name will
-    //     appear in the event payload.
-    data._stream = stream;
-
     return {
       stream: stream,
       data: data,

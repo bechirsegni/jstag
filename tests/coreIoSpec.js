@@ -153,7 +153,6 @@ describe("io:core", function() {
       expect(dataMsg1._sz).toMatch(/\d+x\d+/);
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._getid).toEqual('t');
-      expect(dataMsg1._ca).toEqual('jstag1');
 
       // future sends should not include session but do include new _uid
       var dataMsg2 = parseQueryString(async2.dataMsg);
@@ -171,7 +170,6 @@ describe("io:core", function() {
       expect(dataMsg2._sz).toBeUndefined();
       expect(dataMsg2._uid).toEqual(async2.data._uid);
       expect(dataMsg2._getid).toEqual('t');
-      expect(dataMsg2._ca).toEqual('jstag1');
 
       var dataMsg3 = parseQueryString(async3.dataMsg);
 
@@ -190,7 +188,6 @@ describe("io:core", function() {
       expect(dataMsg3._getid).toEqual('t');
       expect(dataMsg3._uid).toEqual(async3.data._uid);
       expect(dataMsg3._getid).toEqual('t');
-      expect(dataMsg3._ca).toEqual('jstag1');
 
       var dataMsg4 = parseQueryString(async4.dataMsg);
 
@@ -209,7 +206,6 @@ describe("io:core", function() {
       expect(dataMsg4._getid).toEqual('t');
       expect(dataMsg4._uid).toEqual(async4.data._uid);
       expect(dataMsg4._getid).toEqual('t');
-      expect(dataMsg4._ca).toEqual('jstag1');
     });
   });
 
@@ -248,7 +244,6 @@ describe("io:core", function() {
       expect(dataMsg1._uid).toEqualString(async1.data._uid);
       expect(dataMsg1._getid).toEqual('t');
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual('jstag1');
     });
   });
 
@@ -360,7 +355,6 @@ describe("io:core", function() {
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._getid).toEqual('t');
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual('jstag1');
     });
   });
 
@@ -431,7 +425,6 @@ describe("io:core", function() {
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._getid).toEqual('t');
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual('jstag1');
     });
   });
 
@@ -547,7 +540,6 @@ describe("io:core", function() {
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._getid).toEqual(async1.data._getid);
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual(async1.data._ca);
     });
   });
 
@@ -596,7 +588,6 @@ describe("io:core", function() {
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._getid).toEqual('t');
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual('jstag1');
 
       var dataMsg2 = parseQueryString(async2.dataMsg);
 
@@ -609,7 +600,6 @@ describe("io:core", function() {
       expect(dataMsg2._uid).toEqual(async2.data._uid);
       expect(dataMsg2._getid).toEqual('t');
       expect(dataMsg2._v).toEqual(getIoVersion());
-      expect(dataMsg2._ca).toEqual('jstag1');
     });
   });
 
@@ -649,7 +639,6 @@ describe("io:core", function() {
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._getid).toEqual('t');
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual('jstag1');
     });
   });
 
@@ -732,7 +721,6 @@ describe("io:core", function() {
       expect(dataMsg1._if).toEqual('t');
       expect(dataMsg1._uid).toEqual(async1.data._uid);
       expect(dataMsg1._v).toEqual(getIoVersion());
-      expect(dataMsg1._ca).toEqual('jstag1');
     });
   });
 
