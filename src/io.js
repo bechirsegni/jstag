@@ -6,8 +6,7 @@
   var navigator = window.navigator;
   var screen = window.screen;
   var userAgent = navigator.userAgent;
-  var ioVersion = '2.0.0';
-  var JSTAG1 = 'jstag1';
+  var ioVersion = '2.1.0';
   var arraySlice = uncurryThis([].slice);
   var keys = Object.keys || function keys(source) {
     return filter(allKeys(source), function(key) {
@@ -316,7 +315,6 @@
 
       this.onSendStarted(message);
 
-      message.data._ca = JSTAG1;
       message.dataMsg = config.serializer(extend({}, message.data));
       message.sendurl || (message.sendurl = []);
       message.sendurl.unshift(url);
@@ -1201,6 +1199,10 @@
     if (data == null) {
       data = {};
     }
+
+    // TODO: sending this along for debugging reasons, so the stream name will
+    //     appear in the event payload.
+    data._stream = stream;
 
     return {
       stream: stream,
