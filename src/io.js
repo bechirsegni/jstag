@@ -7,8 +7,8 @@
   var screen = window.screen;
   var userAgent = navigator.userAgent;
   var ioVersion = '2.1.0';
-  var DEFAULT_COOKIE_NAME = 'seerid2';
-  var DEFAULT_SESSION_COOKIE_NAME = 'seerses2';
+  var DEFAULT_COOKIE_NAME = 'seerid';
+  var DEFAULT_SESSION_COOKIE_NAME = 'seerses';
   var arraySlice = uncurryThis([].slice);
   var keys = Object.keys || function keys(source) {
     return filter(allKeys(source), function(key) {

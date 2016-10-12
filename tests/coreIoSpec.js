@@ -701,7 +701,7 @@ describe("io:core", function() {
     var async1;
 
     beforeEach(function(done) {
-      jstag.ckieSet('seerid2', 'lmnop');
+      jstag.ckieSet('seerid', 'lmnop');
       jstag.send("streamname", { "test":"value1" }, function(opts) {
         async1 = opts;
         done();
