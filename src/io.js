@@ -290,10 +290,6 @@
         collectIdentity(message, config, that);
 
         that.getid(function(id) {
-          if (message.data._uid != null) {
-          // In an ideal world, we'd prevent the user from overwriting `_uid`. Warn for now
-            deprecation('user passed `_uid`');
-          }
           if (id && !message.data._uid) {
             message.data._uid = id;
             message.data._getid = 't';
