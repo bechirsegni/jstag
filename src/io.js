@@ -1089,8 +1089,7 @@
     var re = new RegExp(name + '=([^;]+)');
     var value = re.exec(decodeURIComponent(document.cookie));
 
-  // @todo don't rely on try/catch to handle type errors (think: value == null)
-    return attempt(function() { return JSON.parse(value[1]); });
+    return value && value[1];
   }
 
 /**
@@ -1116,7 +1115,7 @@
     var expires = getExpirationDate(seconds);
     var domain = parseUri(location).hostname;
     var cookieValue = (
-      name + '=' + encodeURIComponent(JSON.stringify(value)) +
+      name + '=' + encodeURIComponent(value) +
 
       // Note: valid cookies must have at least 2 dots in the domain! [compat]
       (domain && domain.split('.').length > 1 ? '; domain=' + domain : '') +

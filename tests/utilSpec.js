@@ -160,7 +160,7 @@ describe("util", function() {
       it("should set a string cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 'test');
-        expect(document.cookie).toBe('test=%22test%22');
+        expect(document.cookie).toBe('test=test');
       });
 
       it("should set a boolean cookie value", function() {
@@ -178,13 +178,13 @@ describe("util", function() {
       it("should set an object cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', { foo: 42 });
-        expect(document.cookie).toBe('test=%7B%22foo%22%3A42%7D');
+        expect(document.cookie).toBe('test=%5Bobject%20Object%5D');
       });
 
       it("should set an array cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', [ 5, 4, 3, 2, 1 ]);
-        expect(document.cookie).toBe('test=%5B5%2C4%2C3%2C2%2C1%5D');
+        expect(document.cookie).toBe('test=5%2C4%2C3%2C2%2C1');
       });
     });
 
@@ -194,19 +194,19 @@ describe("util", function() {
       });
 
       it("should return undefined if the cookie doesn't exist", function() {
-        expect(instance.getCookie('malarkey')).toBeUndefined();
+        expect(instance.getCookie('malarkey')).toBeNull();
       });
 
       it("should get a numeric cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', 42);
-        expect(instance.getCookie('test')).toBe(42);
+        expect(instance.getCookie('test')).toBe('42');
       });
 
       it("should get a boolean cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', false);
-        expect(instance.getCookie('test')).toBe(false);
+        expect(instance.getCookie('test')).toBe('false');
       });
 
       it("should get a string cookie value", function() {
@@ -218,19 +218,19 @@ describe("util", function() {
       it("should get a null cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', null);
-        expect(instance.getCookie('test')).toBe(null);
+        expect(instance.getCookie('test')).toBe('null');
       });
 
       it("should get an object cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', { foo: 42 });
-        expect(instance.getCookie('test')).toEqual({ foo: 42 });
+        expect(instance.getCookie('test')).toEqual('[object Object]');
       });
 
       it("should get an array cookie value", function() {
         expect(document.cookie).toBe('');
         instance.setCookie('test', [ 5, 4, 3, 2, 1 ]);
-        expect(instance.getCookie('test')).toEqual([ 5, 4, 3, 2, 1 ]);
+        expect(instance.getCookie('test')).toEqual('5,4,3,2,1');
       });
     });
 
@@ -241,7 +241,7 @@ describe("util", function() {
         expect(instance.getCookie('test')).toBe('test');
         instance.deleteCookie('test');
         expect(document.cookie).toBe('');
-        expect(instance.getCookie('test')).toBeUndefined();
+        expect(instance.getCookie('test')).toBeNull();
       });
     });
   });
