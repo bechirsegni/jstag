@@ -1,343 +1,859 @@
-describe("verify that the core async tag gets loaded and has the necessary functions defined", function() {
-  it("jstag should exist but should not be loaded", function() {
-    expect(window.jstag).toBeDefined();
-    expect(window.jstag.isLoaded).toBe(true);
+/* global jstag2, __lytics__jstag__, jasmineMatchers, getURL, getIoVersion, getTimezone, getNavigatorLanguage, map, mapBy */
+describe("io:core", function() {
+  var jstag = __lytics__jstag__;
+  var parseQueryString = jstag.util.parseQueryString;
+
+  beforeEach(function() {
+    jasmine.addMatchers(jasmineMatchers);
   });
 
-  it("should have the proper functions defined", function(){
-    expect(window.jstag.init).toBeDefined();
-    expect(window.jstag.load).toBeDefined();
-    expect(window.jstag.bind).toBeDefined();
-    expect(window.jstag.ready).toBeDefined();
-    expect(window.jstag.send).toBeDefined();
+  beforeEach(function() {
+    jstag.init({
+      cid: 'dummycid',
+      url: '//localhost:3001',
+      min: true,
+      loadid: false
+    });
   });
-});
 
-describe("ensure the parse event function can handle all the send/mock payload possibilities", function() {
-  var resp, cb, obj;
-  cb = function(){console.log('here');};
-  obj = {"test":"one"};
+  describe("verify that the core async tag gets loaded and has the necessary functions defined", function() {
+    it("jstag should exist but should not be loaded", function() {
+      expect(jstag).toBeDefined();
+    });
 
-  it("should create the correct payload from a wide variety of send/mock events", function() {
-    // no object : invalid call
-    resp = jstag.parseEvent();
-    expect(resp).toEqual({ data: {}, callback: undefined, stream: undefined, mock: false });
-
-    // just a stream and no object : invalid call
-    expect(jstag.parseEvent("fakestream")).toEqual({ data: {}, callback: undefined, stream: "fakestream", mock: false });
-
-    // just a callback and no object : invalid call
-    resp = jstag.parseEvent(cb);
-    expect(resp).toEqual({ data: {}, callback: cb, stream: undefined, mock: false });
-
-    // just a boolean and no object : invalid call
-    resp = jstag.parseEvent(true);
-    expect(resp).toEqual({ data: {}, callback: undefined, stream: undefined, mock: true });
-
-    // just an object
-    resp = jstag.parseEvent(obj);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined, mock: false });
-
-    // stream and object
-    resp = jstag.parseEvent("mystream", obj);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: "mystream", mock: false });
-
-    // object and callback
-    resp = jstag.parseEvent(obj, cb);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: undefined, mock: false });
-
-    // object and mock boolean
-    resp = jstag.parseEvent(obj, true);
-    expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined, mock: true });
-
-    // stream object and callback
-    resp = jstag.parseEvent("mystream", obj, cb);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: "mystream", mock: false });
-
-    // object callback and mock boolean
-    resp = jstag.parseEvent(obj, cb, true);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: undefined, mock: true });
-
-    // stream object callback and mock boolean
-    resp = jstag.parseEvent("mystream", obj, cb, true);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: "mystream", mock: true });
-
-    // random order stream object callback and mock boolean
-    resp = jstag.parseEvent(obj, "mystream", true, cb);
-    expect(resp).toEqual({ data: obj, callback: cb, stream: "mystream", mock: true });
+    it("should have the proper functions defined", function() {
+      expect(jstag.init).toBeDefined();
+      expect(jstag.bind).toBeDefined();
+      expect(jstag.send).toBeDefined();
+      expect(jstag.identify).toBeDefined();
+      expect(jstag.mock).toBeDefined();
+      expect(jstag.page).toBeDefined();
+      expect(jstag.pageView).toBeDefined();
+      expect(jstag.parseEvent).toBeDefined();
+    });
   });
-});
 
-describe("testing the jstag.send and jstag.mock(wrapper) functions", function () {
-  var async1, async2, async3, async4, count=0;
+  describe("ensure the parse event function can handle all the send/mock payload possibilities", function() {
+    var resp, cb, obj;
+    cb = function() {};
+    obj = { "test":"one" };
 
-  function testSend(done) {
-    jstag.send("teststream", {"one":"value1"}, function(opts){
-      async1 = opts;
-      count++;
-      if(count >= 4){
-        done();
-      }
-    }, false);
+    describe("payload generation", function() {
+      describe("invalid calls", function() {
+        it("handles no strea and no data", function() {
+          resp = jstag.parseEvent();
+          expect(resp).toEqual({ data: {}, callback: undefined, stream: undefined });
+        });
 
-    jstag.send("teststream", {"two":"value2"}, function(opts){
-      async2 = opts;
-      count++;
-      if(count >= 4){
-        done();
-      }
-    }, true);
+        it("handles just a stream and no data", function() {
+          expect(jstag.parseEvent("fakestream")).toEqual({ data: {}, callback: undefined, stream: "fakestream" });
+        });
 
-    jstag.mock("teststream", {"three":"value3"}, function(opts){
-      async3 = opts;
-      count++;
-      if(count >= 4){
-        done();
-      }
-    }, true);
+        it("handles just a callback and no data", function() {
+          resp = jstag.parseEvent(cb);
+          expect(resp).toEqual({ data: {}, callback: cb, stream: undefined });
+        });
+      });
 
-    jstag.mock("teststream", {"four":"value4"}, function(opts){
-      async4 = opts;
-      count++;
-      if(count >= 4){
-        done();
-      }
-    }, true);
-  }
+      describe("valid calls", function() {
+        it("handles just data", function() {
+          resp = jstag.parseEvent(obj);
+          expect(resp).toEqual({ data: obj, callback: undefined, stream: undefined });
+        });
 
-  beforeEach(function (done) {
+        it("handles a stream and data", function() {
+          resp = jstag.parseEvent("mystream", obj);
+          expect(resp).toEqual({ data: obj, callback: undefined, stream: "mystream" });
+        });
+
+        it("handles data and a callback", function() {
+          resp = jstag.parseEvent(obj, cb);
+          expect(resp).toEqual({ data: obj, callback: cb, stream: undefined });
+        });
+
+        it("handles a stream and a callback", function() {
+          resp = jstag.parseEvent("mystream", obj, cb);
+          expect(resp).toEqual({ data: obj, callback: cb, stream: "mystream" });
+        });
+
+        it("handles mock and a callback", function() {
+          resp = jstag.parseEvent(obj, cb);
+          expect(resp).toEqual({ data: obj, callback: cb, stream: undefined });
+        });
+
+        it("handles data, mock and a callback", function() {
+          resp = jstag.parseEvent("mystream", obj, cb);
+          expect(resp).toEqual({ data: obj, callback: cb, stream: "mystream" });
+        });
+
+        it("handles data, stream, mock and a callback", function() {
+          resp = jstag.parseEvent(obj, "mystream", cb);
+          expect(resp).toEqual({ data: obj, callback: cb, stream: "mystream" });
+        });
+      });
+    });
+  });
+
+  describe("the jstag.send and jstag.mock(wrapper) methods", function() {
+    var async1, async2, async3, async4;
+    var count = 0;
+
+    function testSend(done) {
+      jstag.pageView("teststream", { "one":"value1" }, function(opts) {
+        async1 = opts;
+        count++;
+        if (count >= 4) {
+          done();
+        }
+      });
+
+      jstag.send("teststream", { "two":"value2" }, function(opts) {
+        async2 = opts;
+        count++;
+        if (count >= 4) {
+          done();
+        }
+      });
+
+      jstag.mock("teststream", { "three":"value3" }, function(opts) {
+        async3 = opts;
+        count++;
+        if (count >= 4) {
+          done();
+        }
+      });
+
+      jstag.mock("teststream", { "four":"value4" }, function(opts) {
+        async4 = opts;
+        count++;
+        if (count >= 4) {
+          done();
+        }
+      });
+    }
+
+    beforeEach(function(done) {
       testSend(done);
-  });
+    });
 
-  it("should send four calls with correct data as payload", function () {
+    it("should send four calls with correct data as payload", function() {
       // first send should not include uid, but does include sesstart
-      expect(async1.dataMsg).toEqual('one=value1&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_v='+window.__karma__.config.ioversion+'&_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_uid=' + async1.data._uid + '&_getid=t&_ca=jstag1');
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1.one).toEqual('value1');
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._v).toEqual(getIoVersion());
+      expect(dataMsg1._e).toEqual('pv');
+      expect(dataMsg1._sesstart).toEqual('1');
+      expect(dataMsg1._tz).toEqualString(getTimezone());
+      expect(dataMsg1._ul).toEqual(getNavigatorLanguage());
+      expect(dataMsg1._sz).toMatch(/\d+x\d+/);
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._getid).toEqual('t');
 
       // future sends should not include session but do include new _uid
-      expect(async2.dataMsg).toEqual('two=value2&_ts=' + async2.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-      expect(async3.dataMsg).toEqual('three=value3&_ts=' + async3.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async3.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-      expect(async4.dataMsg).toEqual('four=value4&_ts=' + async4.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async4.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
+      var dataMsg2 = parseQueryString(async2.dataMsg);
 
-describe("testing that jstag.send can handle an array in addition to an object", function () {
-  var async1;
+      expect(dataMsg2.two).toEqual('value2');
+      expect(dataMsg2._ts).toEqualString(async2.data._ts);
+      expect(dataMsg2._nmob).toEqual('t');
+      expect(dataMsg2._device).toEqual('desktop');
+      expect(dataMsg2.url).toEqual(getURL());
+      expect(dataMsg2._v).toEqual(getIoVersion());
+      expect(dataMsg2._e).toBeUndefined();
+      expect(dataMsg2._sesstart).toBeUndefined();
+      expect(dataMsg2._tz).toBeUndefined();
+      expect(dataMsg2._ul).toBeUndefined();
+      expect(dataMsg2._sz).toBeUndefined();
+      expect(dataMsg2._uid).toEqual(async2.data._uid);
+      expect(dataMsg2._getid).toEqual('t');
 
-  function testSend(done) {
-    jstag.send("teststream", [{"one":"value1"}, {"two":"value2"}], function(opts){
-      async1 = opts;
-      done();
+      var dataMsg3 = parseQueryString(async3.dataMsg);
+
+      expect(dataMsg3.three).toEqual('value3');
+      expect(dataMsg3._ts).toEqualString(async3.data._ts);
+      expect(dataMsg3._nmob).toEqual('t');
+      expect(dataMsg3._device).toEqual('desktop');
+      expect(dataMsg3.url).toEqual(getURL());
+      expect(dataMsg3._v).toEqual(getIoVersion());
+      expect(dataMsg3._e).toEqual('mk');
+      expect(dataMsg3._sesstart).toEqual('1');
+      expect(dataMsg3._tz).toEqualString(getTimezone());
+      expect(dataMsg3._ul).toEqual(getNavigatorLanguage());
+      expect(dataMsg3._sz).toMatch(/\d+x\d+/);
+      expect(dataMsg3._uid).toEqual(async3.data._uid);
+      expect(dataMsg3._getid).toEqual('t');
+      expect(dataMsg3._uid).toEqual(async3.data._uid);
+      expect(dataMsg3._getid).toEqual('t');
+
+      var dataMsg4 = parseQueryString(async4.dataMsg);
+
+      expect(dataMsg4.four).toEqual('value4');
+      expect(dataMsg4._ts).toEqualString(async4.data._ts);
+      expect(dataMsg4._nmob).toEqual('t');
+      expect(dataMsg4._device).toEqual('desktop');
+      expect(dataMsg4.url).toEqual(getURL());
+      expect(dataMsg4._v).toEqual(getIoVersion());
+      expect(dataMsg4._e).toEqual('mk');
+      expect(dataMsg4._sesstart).toEqual('1');
+      expect(dataMsg4._tz).toEqualString(getTimezone());
+      expect(dataMsg4._ul).toEqual(getNavigatorLanguage());
+      expect(dataMsg4._sz).toMatch(/\d+x\d+/);
+      expect(dataMsg4._uid).toEqual(async4.data._uid);
+      expect(dataMsg4._getid).toEqual('t');
+      expect(dataMsg4._uid).toEqual(async4.data._uid);
+      expect(dataMsg4._getid).toEqual('t');
     });
-  }
+  });
 
-  beforeEach(function (done) {
+  describe("when send is called without arguments", function() {
+    it("should not throw an error", function() {
+      expect(function() {
+        jstag.send();
+      }).not.toThrow();
+    });
+  });
+
+  describe("when sending an array, instead of an object", function() {
+    var async1;
+
+    function testSend(done) {
+      jstag.send("teststream", [ { "one":"value1" }, { "two":"value2" } ], function(opts) {
+        async1 = opts;
+        done();
+      });
+    }
+
+    beforeEach(function(done) {
       testSend(done);
-  });
-
-  it("should translate the array into key/value pairs", function () {
-    expect(async1.dataMsg).toEqual('0.one=value1&1.two=value2&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
-
-describe("verify that we can properly process a pageview event", function () {
-  var async1;
-
-  function testPageView(done) {
-    jstag.pageView("teststream", function(opts){
-      async1 = opts;
-      done();
     });
-  }
 
-  beforeEach(function (done) {
+    it("should translate the array into key/value pairs", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1['0.one']).toEqual("value1");
+      expect(dataMsg1['1.two']).toEqual("value2");
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual('t');
+      expect(dataMsg1._uid).toEqualString(async1.data._uid);
+      expect(dataMsg1._getid).toEqual('t');
+      expect(dataMsg1._v).toEqual(getIoVersion());
+    });
+  });
+
+  describe("when sending an object with methods", function() {
+    var async1;
+
+    beforeEach(function(done) {
+      jstag.send({
+        imaMethod: function() { return 3; },
+        iReturnAFunction: function() { return function() {}; }
+      }, function(opts) {
+        async1 = opts;
+        done();
+      });
+    });
+
+    it("should not serialize function values returned by the methods", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1.imaMethod).toBeUndefined();
+      expect(dataMsg1.iReturnAFunction).toBeUndefined();
+    });
+  });
+
+  describe("when attempting to send a number", function() {
+    it("should throw an error", function() {
+      expect(function() {
+        jstag.send(1);
+      }).toThrow(new TypeError('unable to process jstag.send event: unknown value type (number)'));
+    });
+  });
+
+  describe("when the location URI has query params", function() {
+    describe("when `qsargs` are not specified", function() {
+      it("should include only `utm_`-prefixed query params", function() {
+        var async1;
+
+        beforeEach(function(done) {
+          jstag.init(jstag.extend({}, jstag.config, {
+            location: location.href + '?foo=42&bar=yolo&utm_blah=t'
+          }));
+          jstag.pageView(function(opts) {
+            async1 = opts;
+            done();
+          });
+        });
+
+        it("should include `utm_`-prefixed and whitelisted query params", function() {
+          var dataMsg1 = parseQueryString(async1.dataMsg);
+
+          expect(dataMsg1.utm_blah).toBe('t');
+          expect(dataMsg1.foo).toBeUndefined();
+          expect(dataMsg1.bar).toBeUndefined();
+        });
+      });
+    });
+
+    describe("when `qsargs` are specified", function() {
+      var async1;
+
+      beforeEach(function(done) {
+        jstag.init(jstag.extend({}, jstag.config, {
+          location: location.href + '?foo=42&bar=yolo&utm_blah=t',
+          qsargs: [ 'foo' ]
+        }));
+        jstag.pageView(function(opts) {
+          async1 = opts;
+          done();
+        });
+      });
+
+      it("should include `utm_`-prefixed and whitelisted query params", function() {
+        var dataMsg1 = parseQueryString(async1.dataMsg);
+
+        expect(dataMsg1.utm_blah).toBe('t');
+        expect(dataMsg1.foo).toBe('42');
+        expect(dataMsg1.bar).toBeUndefined();
+      });
+    });
+  });
+
+  describe("when processing a `pageView` event", function() {
+    var async1;
+
+    function testPageView(done) {
+      jstag.pageView("teststream", function(opts) {
+        async1 = opts;
+        done();
+      });
+    }
+
+    beforeEach(function(done) {
       testPageView(done);
-  });
-
-  it("should add and/or alter the _e param and start session", function () {
-    expect(async1.dataMsg).toEqual('_e=pv&_sesstart=1&_tz=-7&_ul=en-US&_sz=1024x768&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
-
-describe("verify that we can properly process an identify event", function () {
-  var async1, count=0;
-
-  function testIdentify(done) {
-    jstag.identify("myfakeuserid", function(opts){
-      async1 = opts;
-      count++;
-      if(count >= 1){
-        done();
-      }
     });
-  }
 
-  beforeEach(function (done) {
+    it("should add and/or alter the _e param and start session", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1._e).toEqual('pv');
+      expect(dataMsg1._sesstart).toEqual('1');
+      expect(dataMsg1._tz).toEqualString(getTimezone());
+      expect(dataMsg1._ul).toEqual(getNavigatorLanguage());
+      expect(dataMsg1._sz).toMatch(/\d+x\d+/);
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual('t');
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._getid).toEqual('t');
+      expect(dataMsg1._v).toEqual(getIoVersion());
+    });
+  });
+
+  // TODO: is this something we actually want to support?
+  describe("when sending `_uid`", function() {
+    var async1;
+
+    describe("when `_uid` is truthy", function() {
+      beforeEach(function(done) {
+        jstag.send({ _uid: 711 }, function(opts) {
+          async1 = opts;
+          done();
+        });
+      });
+
+      it("should use the user-provided `_uid`", function() {
+        var dataMsg1 = parseQueryString(async1.dataMsg);
+
+        expect(dataMsg1._uid).toBe('711');
+      });
+    });
+
+    describe("when `_uid` is falsey", function() {
+      beforeEach(function(done) {
+        jstag.send({ _uid: null }, function(opts) {
+          async1 = opts;
+          done();
+        });
+      });
+
+      it("should not use the user-provided `_uid`", function() {
+        var dataMsg1 = parseQueryString(async1.dataMsg);
+
+        expect(dataMsg1._uid).toBeDefined();
+        expect(dataMsg1._uid).not.toBe('null');
+      });
+    });
+  });
+
+  describe("verify that we can properly process an identify event", function() {
+    var async1;
+    var count = 0;
+
+    function testIdentify(done) {
+      jstag.identify("myfakeuserid", function(opts) {
+        async1 = opts;
+        count++;
+        if (count >= 1) {
+          done();
+        }
+      });
+    }
+
+    beforeEach(function(done) {
       testIdentify(done);
-  });
-
-  it("should add the user_id param to identify the user", function () {
-    expect(async1.channelName).toEqual('Gif');
-    expect(async1.dataMsg).toEqual('_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
-
-describe("verify that we can process data using the alternative form method and that if default to form after 2k characters", function () {
-  var async1;
-
-  function testSend(done) {
-    jstag.send("teststream", [{"_id":"57586b1e1ab582f01179cf46","index":0,"guid":"fbc0c1fc-3124-42fc-9139-c8688a678c00","isActive":false,"balance":"$1,249.57","picture":"http://placehold.it/32x32","age":28,"eyeColor":"blue","name":"Daphne Levy","gender":"female","company":"OMNIGOG","email":"daphnelevy@omnigog.com","phone":"+1 (953) 459-2087","address":"544 Tilden Avenue, Nipinnawasee, Maine, 4806","about":"Irure mollit nulla nostrud irure excepteur aliqua. Anim esse eu ipsum nulla eu esse enim ipsum consequat incididunt. Aliqua sunt Lorem do est aute enim.\r\n","registered":"2014-06-27T10:17:24 +07:00","latitude":10.164059,"longitude":62.296736,"tags":["magna","amet","non","reprehenderit","exercitation","nostrud","qui"],"friends":[{"id":0,"name":"Golden Mckay"},{"id":1,"name":"Mullins Baldwin"},{"id":2,"name":"Knight Tran"}],"greeting":"Hello, Daphne Levy! You have 10 unread messages.","favoriteFruit":"apple"},{"_id":"57586b1e78b157455a47772e","index":1,"guid":"719fe570-2c83-4e2c-83e1-9aa0d7e60aa7","isActive":false,"balance":"$2,394.87","picture":"http://placehold.it/32x32","age":34,"eyeColor":"green","name":"Lopez Phelps","gender":"male","company":"ACRUEX","email":"lopezphelps@acruex.com","phone":"+1 (962) 540-3722","address":"971 Pitkin Avenue, Selma, Massachusetts, 188","about":"Laborum magna ex pariatur esse aliqua. Aliqua commodo est enim nostrud in dolor tempor elit voluptate voluptate incididunt laborum. Laboris cupidatat velit in aliqua do.\r\n","registered":"2014-09-28T10:44:50 +07:00","latitude":58.886759,"longitude":-121.080578,"tags":["dolor","in","mollit","labore","duis","ea","non"],"friends":[{"id":0,"name":"Amy Owens"},{"id":1,"name":"Mcguire Rose"},{"id":2,"name":"Roberts Gonzales"}],"greeting":"Hello, Lopez Phelps! You have 6 unread messages.","favoriteFruit":"apple"},{"_id":"57586b1ecd70f275dd4f6ced","index":2,"guid":"559f157d-6c7d-4321-bf6c-5e069309ffdc","isActive":false,"balance":"$3,285.51","picture":"http://placehold.it/32x32","age":30,"eyeColor":"green","name":"Natasha Hickman","gender":"female","company":"ZERBINA","email":"natashahickman@zerbina.com","phone":"+1 (996) 487-3507","address":"344 Surf Avenue, Gardners, New Hampshire, 7561","about":"Ex id incididunt est consequat irure. Fugiat magna duis ut occaecat. Sit incididunt et nisi occaecat incididunt ea. Magna aliqua anim aliqua anim excepteur in officia aliquip labore ex. Mollit minim incididunt cillum cillum duis in fugiat cillum duis officia Lorem. Culpa consectetur sint ullamco magna deserunt ut ipsum velit Lorem. Consectetur anim eiusmod ipsum eiusmod sit exercitation sit tempor incididunt proident sit.\r\n","registered":"2015-09-08T01:00:52 +07:00","latitude":-41.388774,"longitude":-125.41587,"tags":["dolor","minim","ullamco","incididunt","sint","nisi","aute"],"friends":[{"id":0,"name":"Weber Wade"},{"id":1,"name":"Hunt Delacruz"},{"id":2,"name":"Terra Little"}],"greeting":"Hello, Natasha Hickman! You have 3 unread messages.","favoriteFruit":"apple"}], function(opts){
-      async1 = opts;
-      done();
     });
-  }
 
-  beforeEach(function (done) {
+    it("should add the user_id param to identify the user", function() {
+      expect(async1.channelName).toEqual('Gif');
+
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual('t');
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._getid).toEqual('t');
+      expect(dataMsg1._v).toEqual(getIoVersion());
+    });
+  });
+
+  describe("verify that we can process data using the alternative form method and that if default to form after 2k characters", function() {
+    var async1;
+
+    function testSend(done) {
+      jstag.send("teststream", [ { "_id":"57586b1e1ab582f01179cf46", "index":0, "guid":"fbc0c1fc-3124-42fc-9139-c8688a678c00", "isActive":false, "balance":"$1,249.57", "picture":"http://placehold.it/32x32", "age":28, "eyeColor":"blue", "name":"Daphne Levy", "gender":"female", "company":"OMNIGOG", "email":"daphnelevy@omnigog.com", "phone":"+1 (953) 459-2087", "address":"544 Tilden Avenue, Nipinnawasee, Maine, 4806", "about":"Irure mollit nulla nostrud irure excepteur aliqua. Anim esse eu ipsum nulla eu esse enim ipsum consequat incididunt. Aliqua sunt Lorem do est aute enim.\r\n", "registered":"2014-06-27T10:17:24 +07:00", "latitude":10.164059, "longitude":62.296736, "tags":[ "magna", "amet", "non", "reprehenderit", "exercitation", "nostrud", "qui" ], "friends":[ { "id":0, "name":"Golden Mckay" }, { "id":1, "name":"Mullins Baldwin" }, { "id":2, "name":"Knight Tran" } ], "greeting":"Hello, Daphne Levy! You have 10 unread messages.", "favoriteFruit":"apple" }, { "_id":"57586b1e78b157455a47772e", "index":1, "guid":"719fe570-2c83-4e2c-83e1-9aa0d7e60aa7", "isActive":false, "balance":"$2,394.87", "picture":"http://placehold.it/32x32", "age":34, "eyeColor":"green", "name":"Lopez Phelps", "gender":"male", "company":"ACRUEX", "email":"lopezphelps@acruex.com", "phone":"+1 (962) 540-3722", "address":"971 Pitkin Avenue, Selma, Massachusetts, 188", "about":"Laborum magna ex pariatur esse aliqua. Aliqua commodo est enim nostrud in dolor tempor elit voluptate voluptate incididunt laborum. Laboris cupidatat velit in aliqua do.\r\n", "registered":"2014-09-28T10:44:50 +07:00", "latitude":58.886759, "longitude":-121.080578, "tags":[ "dolor", "in", "mollit", "labore", "duis", "ea", "non" ], "friends":[ { "id":0, "name":"Amy Owens" }, { "id":1, "name":"Mcguire Rose" }, { "id":2, "name":"Roberts Gonzales" } ], "greeting":"Hello, Lopez Phelps! You have 6 unread messages.", "favoriteFruit":"apple" }, { "_id":"57586b1ecd70f275dd4f6ced", "index":2, "guid":"559f157d-6c7d-4321-bf6c-5e069309ffdc", "isActive":false, "balance":"$3,285.51", "picture":"http://placehold.it/32x32", "age":30, "eyeColor":"green", "name":"Natasha Hickman", "gender":"female", "company":"ZERBINA", "email":"natashahickman@zerbina.com", "phone":"+1 (996) 487-3507", "address":"344 Surf Avenue, Gardners, New Hampshire, 7561", "about":"Ex id incididunt est consequat irure. Fugiat magna duis ut occaecat. Sit incididunt et nisi occaecat incididunt ea. Magna aliqua anim aliqua anim excepteur in officia aliquip labore ex. Mollit minim incididunt cillum cillum duis in fugiat cillum duis officia Lorem. Culpa consectetur sint ullamco magna deserunt ut ipsum velit Lorem. Consectetur anim eiusmod ipsum eiusmod sit exercitation sit tempor incididunt proident sit.\r\n", "registered":"2015-09-08T01:00:52 +07:00", "latitude":-41.388774, "longitude":-125.41587, "tags":[ "dolor", "minim", "ullamco", "incididunt", "sint", "nisi", "aute" ], "friends":[ { "id":0, "name":"Weber Wade" }, { "id":1, "name":"Hunt Delacruz" }, { "id":2, "name":"Terra Little" } ], "greeting":"Hello, Natasha Hickman! You have 3 unread messages.", "favoriteFruit":"apple" } ], function(opts) {
+        async1 = opts;
+        done();
+      });
+    }
+
+    beforeEach(function(done) {
       testSend(done);
-  });
-
-  it("should translate the array into key/value pairs", function () {
-    expect(async1.channelName).toEqual('Form');
-    expect(async1.dataMsg).toEqual('0._id=57586b1e1ab582f01179cf46&0.index=0&0.guid=fbc0c1fc-3124-42fc-9139-c8688a678c00&0.isActive=false&0.balance=%241%2C249.57&0.picture=http%3A%2F%2Fplacehold.it%2F32x32&0.age=28&0.eyeColor=blue&0.name=Daphne%20Levy&0.gender=female&0.company=OMNIGOG&0.email=daphnelevy%40omnigog.com&0.phone=%2B1%20(953)%20459-2087&0.address=544%20Tilden%20Avenue%2C%20Nipinnawasee%2C%20Maine%2C%204806&0.about=Irure%20mollit%20nulla%20nostrud%20irure%20excepteur%20aliqua.%20Anim%20esse%20eu%20ipsum%20nulla%20eu%20esse%20enim%20ipsum%20consequat%20incididunt.%20Aliqua%20sunt%20Lorem%20do%20est%20aute%20enim.%0D%0A&0.registered=2014-06-27T10%3A17%3A24%20%2B07%3A00&0.latitude=10.164059&0.longitude=62.296736&0.tags_len=7&0.tags_json=%5B%22magna%22%2C%22amet%22%2C%22non%22%2C%22reprehenderit%22%2C%22exercitation%22%2C%22nostrud%22%2C%22qui%22%5D&0.tags=qui&0.tags=nostrud&0.tags=exercitation&0.tags=reprehenderit&0.tags=non&0.tags=amet&0.tags=magna&0.friends_len=3&0.friends_json=%5B%7B%22id%22%3A0%2C%22name%22%3A%22Golden%20Mckay%22%7D%2C%7B%22id%22%3A1%2C%22name%22%3A%22Mullins%20Baldwin%22%7D%2C%7B%22id%22%3A2%2C%22name%22%3A%22Knight%20Tran%22%7D%5D&0.friends.id=2&0.friends.name=Knight%20Tran&0.friends.id=1&0.friends.name=Mullins%20Baldwin&0.friends.id=0&0.friends.name=Golden%20Mckay&0.greeting=Hello%2C%20Daphne%20Levy!%20You%20have%2010%20unread%20messages.&0.favoriteFruit=apple&1._id=57586b1e78b157455a47772e&1.index=1&1.guid=719fe570-2c83-4e2c-83e1-9aa0d7e60aa7&1.isActive=false&1.balance=%242%2C394.87&1.picture=http%3A%2F%2Fplacehold.it%2F32x32&1.age=34&1.eyeColor=green&1.name=Lopez%20Phelps&1.gender=male&1.company=ACRUEX&1.email=lopezphelps%40acruex.com&1.phone=%2B1%20(962)%20540-3722&1.address=971%20Pitkin%20Avenue%2C%20Selma%2C%20Massachusetts%2C%20188&1.about=Laborum%20magna%20ex%20pariatur%20esse%20aliqua.%20Aliqua%20commodo%20est%20enim%20nostrud%20in%20dolor%20tempor%20elit%20voluptate%20voluptate%20incididunt%20laborum.%20Laboris%20cupidatat%20velit%20in%20aliqua%20do.%0D%0A&1.registered=2014-09-28T10%3A44%3A50%20%2B07%3A00&1.latitude=58.886759&1.longitude=-121.080578&1.tags_len=7&1.tags_json=%5B%22dolor%22%2C%22in%22%2C%22mollit%22%2C%22labore%22%2C%22duis%22%2C%22ea%22%2C%22non%22%5D&1.tags=non&1.tags=ea&1.tags=duis&1.tags=labore&1.tags=mollit&1.tags=in&1.tags=dolor&1.friends_len=3&1.friends_json=%5B%7B%22id%22%3A0%2C%22name%22%3A%22Amy%20Owens%22%7D%2C%7B%22id%22%3A1%2C%22name%22%3A%22Mcguire%20Rose%22%7D%2C%7B%22id%22%3A2%2C%22name%22%3A%22Roberts%20Gonzales%22%7D%5D&1.friends.id=2&1.friends.name=Roberts%20Gonzales&1.friends.id=1&1.friends.name=Mcguire%20Rose&1.friends.id=0&1.friends.name=Amy%20Owens&1.greeting=Hello%2C%20Lopez%20Phelps!%20You%20have%206%20unread%20messages.&1.favoriteFruit=apple&2._id=57586b1ecd70f275dd4f6ced&2.index=2&2.guid=559f157d-6c7d-4321-bf6c-5e069309ffdc&2.isActive=false&2.balance=%243%2C285.51&2.picture=http%3A%2F%2Fplacehold.it%2F32x32&2.age=30&2.eyeColor=green&2.name=Natasha%20Hickman&2.gender=female&2.company=ZERBINA&2.email=natashahickman%40zerbina.com&2.phone=%2B1%20(996)%20487-3507&2.address=344%20Surf%20Avenue%2C%20Gardners%2C%20New%20Hampshire%2C%207561&2.about=Ex%20id%20incididunt%20est%20consequat%20irure.%20Fugiat%20magna%20duis%20ut%20occaecat.%20Sit%20incididunt%20et%20nisi%20occaecat%20incididunt%20ea.%20Magna%20aliqua%20anim%20aliqua%20anim%20excepteur%20in%20officia%20aliquip%20labore%20ex.%20Mollit%20minim%20incididunt%20cillum%20cillum%20duis%20in%20fugiat%20cillum%20duis%20officia%20Lorem.%20Culpa%20consectetur%20sint%20ullamco%20magna%20deserunt%20ut%20ipsum%20velit%20Lorem.%20Consectetur%20anim%20eiusmod%20ipsum%20eiusmod%20sit%20exercitation%20sit%20tempor%20incididunt%20proident%20sit.%0D%0A&2.registered=2015-09-08T01%3A00%3A52%20%2B07%3A00&2.latitude=-41.388774&2.longitude=-125.41587&2.tags_len=7&2.tags_json=%5B%22dolor%22%2C%22minim%22%2C%22ullamco%22%2C%22incididunt%22%2C%22sint%22%2C%22nisi%22%2C%22aute%22%5D&2.tags=aute&2.tags=nisi&2.tags=sint&2.tags=incididunt&2.tags=ullamco&2.tags=minim&2.tags=dolor&2.friends_len=3&2.friends_json=%5B%7B%22id%22%3A0%2C%22name%22%3A%22Weber%20Wade%22%7D%2C%7B%22id%22%3A1%2C%22name%22%3A%22Hunt%20Delacruz%22%7D%2C%7B%22id%22%3A2%2C%22name%22%3A%22Terra%20Little%22%7D%5D&2.friends.id=2&2.friends.name=Terra%20Little&2.friends.id=1&2.friends.name=Hunt%20Delacruz&2.friends.id=0&2.friends.name=Weber%20Wade&2.greeting=Hello%2C%20Natasha%20Hickman!%20You%20have%203%20unread%20messages.&2.favoriteFruit=apple&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
-
-describe("verify that we can block all sends and then flush the queue to handle state aware entity lookup", function() {
-  var async1, count=0;
-
-  function testSend(done) {
-    jstag.send("streamname", {"test":"value1"}, function(opts){
-      async1 = opts;
-      count++;
-      if(count >= 1){
-        done();
-      }
     });
-  }
 
-  beforeEach(function (done) {
-      window.jstag.unblock();
+    it("should translate the array into key/value pairs", function() {
+      expect(async1.dataMsg.length).toBeGreaterThan(2000);
+      expect(async1.channelName).toEqual('Form');
+
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1['0._id']).toEqual(async1.data[0]._id);
+      expect(dataMsg1['0.index']).toEqualString(async1.data[0].index);
+      expect(dataMsg1['0.guid']).toEqual(async1.data[0].guid);
+      expect(dataMsg1['0.isActive']).toEqualString(async1.data[0].isActive);
+      expect(dataMsg1['0.balance']).toEqual(async1.data[0].balance);
+      expect(dataMsg1['0.picture']).toEqual(async1.data[0].picture);
+      expect(dataMsg1['0.age']).toEqualString(async1.data[0].age);
+      expect(dataMsg1['0.eyeColor']).toEqual(async1.data[0].eyeColor);
+      expect(dataMsg1['0.name']).toEqual(async1.data[0].name);
+      expect(dataMsg1['0.gender']).toEqual(async1.data[0].gender);
+      expect(dataMsg1['0.company']).toEqual(async1.data[0].company);
+      expect(dataMsg1['0.email']).toEqual(async1.data[0].email);
+      expect(dataMsg1['0.phone']).toEqual(async1.data[0].phone);
+      expect(dataMsg1['0.address']).toEqual(async1.data[0].address);
+      expect(dataMsg1['0.about']).toEqual(async1.data[0].about);
+      expect(dataMsg1['0.registered']).toEqual(async1.data[0].registered);
+      expect(dataMsg1['0.latitude']).toEqualString(async1.data[0].latitude);
+      expect(dataMsg1['0.longitude']).toEqualString(async1.data[0].longitude);
+      expect(dataMsg1['0.tags_len']).toEqualString(async1.data[0].tags.length);
+      expect(dataMsg1['0.tags_json']).toEqual(JSON.stringify(async1.data[0].tags));
+      expect(dataMsg1['0.tags']).toEqualUnordered(async1.data[0].tags);
+      expect(dataMsg1['0.friends_len']).toEqualString(async1.data[0].friends.length);
+      expect(dataMsg1['0.friends_json']).toEqual(JSON.stringify(async1.data[0].friends));
+      expect(dataMsg1['0.friends.id']).toEqualUnordered(map(mapBy(async1.data[0].friends, 'id'), String));
+      expect(dataMsg1['0.friends.name']).toEqualUnordered(map(mapBy(async1.data[0].friends, 'name'), String));
+      expect(dataMsg1['0.greeting']).toEqual(async1.data[0].greeting);
+      expect(dataMsg1['0.favoriteFruit']).toEqual(async1.data[0].favoriteFruit);
+
+      expect(dataMsg1['1._id']).toEqual(async1.data[1]._id);
+      expect(dataMsg1['1.index']).toEqualString(async1.data[1].index);
+      expect(dataMsg1['1.guid']).toEqual(async1.data[1].guid);
+      expect(dataMsg1['1.isActive']).toEqualString(async1.data[1].isActive);
+      expect(dataMsg1['1.balance']).toEqual(async1.data[1].balance);
+      expect(dataMsg1['1.picture']).toEqual(async1.data[1].picture);
+      expect(dataMsg1['1.age']).toEqualString(async1.data[1].age);
+      expect(dataMsg1['1.eyeColor']).toEqual(async1.data[1].eyeColor);
+      expect(dataMsg1['1.name']).toEqual(async1.data[1].name);
+      expect(dataMsg1['1.gender']).toEqual(async1.data[1].gender);
+      expect(dataMsg1['1.company']).toEqual(async1.data[1].company);
+      expect(dataMsg1['1.email']).toEqual(async1.data[1].email);
+      expect(dataMsg1['1.phone']).toEqual(async1.data[1].phone);
+      expect(dataMsg1['1.address']).toEqual(async1.data[1].address);
+      expect(dataMsg1['1.about']).toEqual(async1.data[1].about);
+      expect(dataMsg1['1.registered']).toEqual(async1.data[1].registered);
+      expect(dataMsg1['1.latitude']).toEqualString(async1.data[1].latitude);
+      expect(dataMsg1['1.longitude']).toEqualString(async1.data[1].longitude);
+      expect(dataMsg1['1.tags_len']).toEqualString(async1.data[1].tags.length);
+      expect(dataMsg1['1.tags_json']).toEqual(JSON.stringify(async1.data[1].tags));
+      expect(dataMsg1['1.tags']).toEqualUnordered(async1.data[1].tags);
+      expect(dataMsg1['1.friends_len']).toEqualString(async1.data[1].friends.length);
+      expect(dataMsg1['1.friends_json']).toEqual(JSON.stringify(async1.data[1].friends));
+      expect(dataMsg1['1.friends.id']).toEqualUnordered(map(mapBy(async1.data[1].friends, 'id'), String));
+      expect(dataMsg1['1.friends.name']).toEqualUnordered(map(mapBy(async1.data[1].friends, 'name'), String));
+      expect(dataMsg1['1.greeting']).toEqual(async1.data[1].greeting);
+      expect(dataMsg1['1.favoriteFruit']).toEqual(async1.data[1].favoriteFruit);
+    });
+  });
+
+  describe("verify that we can block all sends and then flush the queue to handle state aware entity lookup", function() {
+    var async1;
+    var count = 0;
+
+    function testSend(done) {
+      jstag.send("streamname", { "test":"value1" }, function(opts) {
+        async1 = opts;
+        count++;
+        if (count >= 1) {
+          done();
+        }
+      });
+    }
+
+    beforeEach(function(done) {
+      jstag.unblock();
       testSend(done);
+    });
+
+    it("should not fill up the queue when the block flag is set to false", function() {
+      expect(jstag.config.blockload).toBe(false);
+      expect(jstag.config.payloadQueue.length).toEqual(0);
+
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1.test).toEqual(async1.data.test);
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual(async1.data._nmob);
+      expect(dataMsg1._device).toEqual(async1.data._device);
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual(async1.data._if);
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._getid).toEqual(async1.data._getid);
+      expect(dataMsg1._v).toEqual(getIoVersion());
+    });
   });
 
-  it("should not fill up the queue when the block flag is set to false", function() {
-    expect(window.jstag.config.blockload).toBe(false);
-    expect(window.jstag.config.payloadQueue.length).toEqual(0);
-    expect(async1.dataMsg).toEqual('test=value1&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
+  describe("verify that events fire after they have been added to queue by block", function() {
+    var async1, async2;
+    var count = 0;
+
+    function testSend(done) {
+      jstag.block();
+
+      jstag.send("streamname", { "test":"value" }, function(opts) {
+        async1 = opts;
+        count++;
+        if (count >= 2) {
+          done();
+        }
+      });
+
+      jstag.send("streamname", { "test2":"value2" }, function(opts) {
+        async2 = opts;
+        count++;
+        if (count >= 2) {
+          done();
+        }
+      });
+
+      expect(jstag.config.blockload).toBe(true);
+      expect(jstag.config.payloadQueue.length).toEqual(2);
+
+      jstag.unblock();
+    }
+
+    beforeEach(function(done) {
+      testSend(done);
+    });
+
+    it("should receive outbound query params for previously blocked sends", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1.test).toEqual('value');
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual('t');
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._getid).toEqual('t');
+      expect(dataMsg1._v).toEqual(getIoVersion());
+
+      var dataMsg2 = parseQueryString(async2.dataMsg);
+
+      expect(dataMsg2.test2).toEqual('value2');
+      expect(dataMsg2._ts).toEqualString(async2.data._ts);
+      expect(dataMsg2._nmob).toEqual('t');
+      expect(dataMsg2._device).toEqual('desktop');
+      expect(dataMsg2.url).toEqual(getURL());
+      expect(dataMsg2._if).toEqual('t');
+      expect(dataMsg2._uid).toEqual(async2.data._uid);
+      expect(dataMsg2._getid).toEqual('t');
+      expect(dataMsg2._v).toEqual(getIoVersion());
+    });
   });
-});
 
-describe("verify that events fire after they have been added to queue by block", function() {
-  var async1, async2, count=0;
+  describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
+    var async1;
 
-  function testSend(done) {
-    jstag.block();
+    function testSend(done) {
+      jstag.block();
 
-    jstag.send("streamname", {"test":"value"}, function(opts){
-      async1 = opts;
-      count++;
-      if(count >= 2){
+      jstag.send("streamname", { "test":"value1" });
+      jstag.send("streamname", { "test2":"value2" });
+
+      expect(jstag.config.blockload).toBe(true);
+      expect(jstag.config.payloadQueue.length).toEqual(2);
+
+      jstag.mock("streamname", { "test3":"value3" }, function(opts) {
+        async1 = opts;
         done();
-      }
+      });
+    }
+
+    beforeEach(function(done) {
+      testSend(done);
     });
 
-    jstag.send("streamname", {"test2":"value2"}, function(opts){
-      async2 = opts;
-      count++;
-      if(count >= 2){
+    it("should merge the payload from the two blocked events and one mock event", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1.test).toEqual('value1');
+      expect(dataMsg1.test2).toEqual('value2');
+      expect(dataMsg1.test3).toEqual('value3');
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual('t');
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._getid).toEqual('t');
+      expect(dataMsg1._v).toEqual(getIoVersion());
+    });
+  });
+
+  describe("verify that we can get and set necessary cookies", function() {
+    xit("should have core lytics cookies: seerses and seerid", function() {
+      expect(jstag.ckieGet('seerses')).toBeTruthy();
+      expect(jstag.ckieGet('seerid')).toBeTruthy();
+    });
+
+    it("should be able to set cookies on the domain", function() {
+      jstag.ckieSet('testone', 'one');
+      jstag.ckieSet('testtwo', 'two');
+      expect(jstag.ckieGet('testone')).toEqual('one');
+      expect(jstag.ckieGet('testtwo')).toEqual('two');
+    });
+  });
+
+  describe("verify that our extend method works on multiple objects", function() {
+    it("should extend an empty object", function() {
+      var test = {};
+      var resp = jstag.extend({}, test, { "one":1, "two":2 });
+
+      expect(resp.one).toEqual(1);
+      expect(resp.two).toEqual(2);
+
+      // make sure we dont mutate
+      expect(test).toEqual({});
+    });
+
+    it("should extend an existing object", function() {
+      var test = { "one":"imgettingremoved", "three":3 };
+      var resp = jstag.extend({}, test, { "one":1, "two":2 });
+
+      expect(resp.one).toEqual(1);
+      expect(resp.two).toEqual(2);
+      expect(resp.three).toEqual(3);
+
+      // make sure we dont mutate
+      expect(test).toEqual({ "one":"imgettingremoved", "three":3 });
+    });
+
+    it("should accept multiple objects at once", function() {
+      var testa = { "one":"imgettingremoved", "two":2 };
+      var testb = { "one":"imheretostay", "two":"value1" };
+      var testc = { "two":"value2", "three":{ "a":"a", "b":"b" } };
+      var resp = jstag.extend({}, testa, testb, testc);
+
+      expect(resp.one).toEqual("imheretostay");
+      expect(resp.two).toEqual("value2");
+      expect(resp.three).toEqual({ "a":"a", "b":"b" });
+
+      // make sure we dont mutate
+      expect(testa).toEqual({ "one":"imgettingremoved", "two":2 });
+      expect(testb).toEqual({ "one":"imheretostay", "two":"value1" });
+      expect(testc).toEqual({ "two":"value2", "three":{ "a":"a", "b":"b" } });
+    });
+  });
+
+  describe("when the `seerid` cookie is already set", function() {
+    var async1;
+
+    beforeEach(function(done) {
+      jstag.ckieSet('seerid', 'lmnop');
+      jstag.send("streamname", { "test":"value1" }, function(opts) {
+        async1 = opts;
         done();
-      }
+      });
     });
 
-    expect(jstag.config.blockload).toBe(true);
-    expect(jstag.config.payloadQueue.length).toEqual(2);
+    it("should not set the `_getid` field", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
 
-    jstag.unblock();
-  }
+      expect(dataMsg1._getid).toBeUndefined();
 
-  beforeEach(function (done) {
-    testSend(done);
-  });
-
-  it("should receive outbound query params for previously blocked sends", function() {
-    expect(async1.dataMsg).toEqual('test=value&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-    expect(async2.dataMsg).toEqual('test2=value2&_ts=' + async2.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async2.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
-
-describe("verify that all blocked events in the queue are added the the payload of the mock call", function() {
-  var async1;
-
-  function testSend(done) {
-    jstag.block();
-
-    jstag.send("streamname", {"test":"value1"});
-    jstag.send("streamname", {"test2":"value2"});
-
-    expect(jstag.config.blockload).toBe(true);
-    expect(jstag.config.payloadQueue.length).toEqual(2);
-
-    jstag.mock("streamname", {"test3":"value3"}, function(opts){
-      async1 = opts;
-      done();
+      expect(dataMsg1.test).toEqual('value1');
+      expect(dataMsg1._ts).toEqualString(async1.data._ts);
+      expect(dataMsg1._nmob).toEqual('t');
+      expect(dataMsg1._device).toEqual('desktop');
+      expect(dataMsg1.url).toEqual(getURL());
+      expect(dataMsg1._if).toEqual('t');
+      expect(dataMsg1._uid).toEqual(async1.data._uid);
+      expect(dataMsg1._v).toEqual(getIoVersion());
     });
-  }
-
-  beforeEach(function (done) {
-    testSend(done);
   });
 
-  it("should merge the payload from the two blocked events and one mock event", function() {
-    expect(async1.dataMsg).toEqual('test=value1&test2=value2&test3=value3&_ts=' + async1.data._ts + '&_nmob=t&_device=desktop&url=localhost%3A9876%2Fcontext.html&_if=t&_uid=' + async1.data._uid + '&_getid=t&_v='+window.__karma__.config.ioversion+'&_ca=jstag1');
-  });
-});
+  describe("when the Google Analytics `__utma` cookie is already set", function() {
+    var async1;
 
-describe("verify that we can get and set necessary cookies", function() {
-  it("should have core lytics cookies: seerses and seerid", function() {
-    expect(jstag.ckieGet('seerses')).toBeTruthy();
-    expect(jstag.ckieGet('seerid')).toBeTruthy();
-  });
+    beforeEach(function(done) {
+      jstag.ckieSet('__utma', 'reallyLongStringWithA.DotInIt');
+      jstag.send(function(opts) {
+        async1 = opts;
+        done();
+      });
+    });
 
-  it("should be able to set cookies on the domain", function() {
-    jstag.ckieSet('testone', 'one');
-    jstag.ckieSet('testtwo', 'two');
-    expect(jstag.ckieGet('testone')).toEqual('one');
-    expect(jstag.ckieGet('testtwo')).toEqual('two');
-  });
-});
+    afterEach(function() {
+      jstag.ckieDel('__utma');
+    });
 
-describe("verify that our extend method works on multiple objects", function() {
-  it("should extend an empty object", function() {
-    var test = {}, resp = jstag.extend(test, {"one":1, "two":2});
-    expect(resp.one).toEqual(1);
-    expect(resp.two).toEqual(2);
+    it("should include an extracted bit of entropy `_ga` in the payload", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
 
-    // make sure we dont mutate
-    expect(test).toEqual({});
+      expect(dataMsg1._ga).toBe('reallyLongStringWithA');
+    });
   });
 
-  it("should extend an existing object", function() {
-    var test = {"one":"imgettingremoved", "three":3}, resp = jstag.extend(test, {"one":1, "two":2});
-    expect(resp.one).toEqual(1);
-    expect(resp.two).toEqual(2);
-    expect(resp.three).toEqual(3);
+  describe("when the Optimizely `optimizelyEndUserId` is already set", function() {
+    var async1;
 
-    // make sure we dont mutate
-    expect(test).toEqual({"one":"imgettingremoved", "three":3});
+    beforeEach(function(done) {
+      jstag.ckieSet('optimizelyEndUserId', '12345');
+      jstag.send(function(opts) {
+        async1 = opts;
+        done();
+      });
+    });
+
+    afterEach(function() {
+      jstag.ckieDel('optimizelyEndUserId');
+    });
+
+    it("should include the `optimizelyid` in the payload", function() {
+      var dataMsg1 = parseQueryString(async1.dataMsg);
+
+      expect(dataMsg1.optimizelyid).toBe('12345');
+    });
   });
 
-  it("should accept multiple objects at once", function() {
-    var testa = {"one":"imgettingremoved", "two":2},
-        testb = {"one":"imheretostay", "two":"value1"},
-        testc = {"two":"value2", "three":{"a":"a", "b":"b"}},
-        resp = jstag.extend(testa, testb, testc);
+  // TODO: this MUST be reenabled
+  describe("when the cookie is not called `seerid`", function() {
+    var async1, oldCookieName;
 
-    expect(resp.one).toEqual("imheretostay");
-    expect(resp.two).toEqual("value2");
-    expect(resp.three).toEqual({"a":"a", "b":"b"});
+    beforeEach(function(done) {
+      oldCookieName = jstag.config.cookie;
+      jstag.config.cookie = 'shakira';
+      jstag.send(function(opts) {
+        async1 = opts;
+        done();
+      });
+    });
 
-    // make sure we dont mutate
-    expect(testa).toEqual({"one":"imgettingremoved", "two":2});
-    expect(testb).toEqual({"one":"imheretostay", "two":"value1"});
-    expect(testc).toEqual({"two":"value2", "three":{"a":"a", "b":"b"}});
+    afterEach(function() {
+      jstag.config.cookie = oldCookieName;
+    });
+
+    it("should include the cookie name `_uidn` in the payload", function() {
+      var urlQuery = parseQueryString(async1.sendurl[0].split('?')[1]);
+
+      expect(urlQuery._uidn).toBe('shakira');
+    });
+  });
+
+  describe("when the `url` and `cid` are not set", function() {
+    var oldUrl, oldCid;
+
+    beforeEach(function() {
+      oldUrl = jstag.config.url;
+      oldCid = jstag.config.cid;
+      jstag.config.url = undefined;
+      jstag.config.cid = undefined;
+    });
+
+    afterEach(function() {
+      jstag.config.url = oldUrl;
+      jstag.config.cid = oldCid;
+    });
+
+    it("should throw an error", function() {
+      expect(function() {
+        jstag.send();
+      }).toThrow(new TypeError('Must have collection url and ProjectIds (cid)'));
+    });
+  });
+
+  describe("the stream config parameter", function() {
+    beforeEach(function() {
+      jstag.init({
+        url: '//c.lytics.io',
+        cid: 'gazump',
+        stream: 'combobulate',
+        min: true,
+        loadid: true
+      });
+    });
+
+    it("is used as the default stream name when none is passed", function(done) {
+      jstag.send(function(opts) {
+        expect(opts.stream).toBe('combobulate');
+        expect(opts.sendurl).toEqual([ '//c.lytics.io/c/gazump/combobulate' ]);
+        done();
+      });
+    });
+
+    it("can be overridden on a per-message basis", function(done) {
+      jstag.send('mugwump', function(opts) {
+        expect(opts.stream).toBe('mugwump');
+        expect(opts.sendurl).toEqual([ '//c.lytics.io/c/gazump/mugwump' ]);
+        done();
+      });
+    });
+  });
+
+  describe("when configured using a custom `loadid` option", function() {
+    beforeEach(function() {
+      jstag.init({
+        cid: '{{account.id}}',
+        url: '//c.lytics.io',
+        min: true,
+        loadid: true
+      });
+    });
+
+    it("works", function() {
+
+    });
   });
 });
