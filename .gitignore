@@ -2,7 +2,6 @@
 node_modules
 .env.json
 coverage
-out
 npm-debug.log
 static
 static-server.js
