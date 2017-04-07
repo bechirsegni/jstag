@@ -10,7 +10,6 @@ module.exports = function(config) {
     plugins: [
       'karma-jasmine',
       'karma-coverage',
-      'karma-coveralls',
       'karma-phantomjs-launcher',
       'karma-browserstack-launcher'
       // 'karma-chrome-launcher'
@@ -42,8 +41,7 @@ module.exports = function(config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: [
       'progress',
-      'coverage',
-      'coveralls'
+      'coverage'
     ],
 
     // web server port

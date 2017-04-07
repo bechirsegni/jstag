@@ -295,9 +295,6 @@ function karmaRun(library, files, done) {
       dir: 'coverage',
       type: 'lcov'
     },
-    coverallsReporter: {
-      repoToken: process.env.COVERALLS_REPO_TOKEN
-    },
     port: 9876
   });
 
