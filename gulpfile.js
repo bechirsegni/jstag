@@ -14,11 +14,12 @@ const sweet = require('gulp-sweetjs');
 const concat = require('gulp-concat');
 const filter = require('gulp-filter');
 const insert = require('gulp-insert');
+const rollup = require('rollup');
 const fs = require('fs');
 
 const TestServer = require('./tests/server');
 const tagRelease = require('./build/tag-release');
-const testOptimizations = require('./build/test-optimizations');
+const testDeadCodeElimination = require('./build/test-dead-code-elimination');
 
 const {
   JSTAG_DIST_DIR,
@@ -109,7 +110,7 @@ gulp.task('build:legacy', function() {
 gulp.task('build:stage', function() {
   const initobj = generateConfig('production');
 
-  return gulp.src([ 'src/async.js', 'src/io.js', 'src/emitter.js' ])
+  return gulp.src([ 'src/async.js', 'out/rollup/io.js', 'src/emitter.js' ])
     .pipe(replace('{{version}}', version))
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', asyncversion))
@@ -149,6 +150,7 @@ gulp.task('build:minify', function() {
   return gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*.js`)
     .pipe(filter([ '*', '!*.min.js' ]))
     .pipe(uglify({
+      mangle: false,
       compress: {
         unsafe: true,
         // TODO: audit truly pure functions. Note that higher order functions
@@ -171,10 +173,23 @@ gulp.task('build:library', series(
 ));
 
 gulp.task('build:production', series(
+  'build:rollup',
   'build:library',
   'build:compat',
-  'build:minify'
+  'build:minify',
+  'test:dead-code-elimination',
+  'build:mangle'
 ));
+
+// We mangle names so the file is maximally small on disk, and as a thin
+// obfuscatory layer, but we do so as a separate step, so we can first test
+// that dead code elimination optimizations were successful. NOTE: Name
+// mangling doesn't help much if at all with gzipped file size.
+gulp.task('build:mangle', function() {
+  gulp.src('out/latest/*.min.js')
+    .pipe(uglify({ mangle: true }))
+    .pipe(gulp.dest('out/latest'));
+});
 
 /*
 * testing tasks
@@ -234,7 +249,7 @@ gulp.task('test:io.js', function(done) {
   ], done);
 });
 
-gulp.task('test:optimizations', testOptimizations);
+gulp.task('test:dead-code-elimination', testDeadCodeElimination);
 
 gulp.task('publish-version', function() {
   return gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*`)
@@ -285,7 +300,7 @@ gulp.task('watch', function() {
 // builds for the development environment and runs all tests
 gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
 gulp.task('test:acceptance:compat', series('test:acceptance'));
-gulp.task('test', series('build:production', 'build:legacy', 'test:acceptance', 'test:optimizations'));
+gulp.task('test', series('build:production', 'build:legacy', 'test:acceptance'));
 
 gulp.task('release', series('test', 'publish-version'));
 
@@ -324,3 +339,12 @@ function karmaRun(library, files, done) {
 
   server.start();
 }
+
+
+// ROLLUP BELOW:
+
+gulp.task('build:rollup', () =>
+  rollup.rollup({ entry: './src/rollup/io.js' }).then(bundle => bundle.write({
+    format: 'iife',
+    dest: 'out/rollup/io.js',
+  })));
