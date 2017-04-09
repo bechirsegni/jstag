@@ -269,7 +269,7 @@ gulp.task('publish-version', () =>
 * code linting
 */
 gulp.task('lint', () =>
-  gulp.src([ /*'src/async.js', */'src/io.js', 'src/emitter.js' ])
+  gulp.src([ 'src/emitter.js', 'src/rollup/**/*.js' ])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError()));

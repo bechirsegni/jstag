@@ -26,7 +26,6 @@ import jsonp from '../dom/jsonp';
 import extend from '../util/extend';
 import noop from '../util/noop';
 import parseQueryString from '../util/parse-query-string';
-import stripProtocol from '../util/strip-protocol';
 
 /**
  * @private
