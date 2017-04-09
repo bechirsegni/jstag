@@ -97,57 +97,78 @@ function generateConfig(env) {
 * production: uses hard coded cid and url for templating purposes
 * development: uses .env.json if it exists for falls back to production settings
 */
-gulp.task('build:legacy', function() {
-  return gulp.src([ 'src/legacy/async.js', 'src/legacy/io.js' ])
+gulp.task('build:legacy', () =>
+  gulp.src([ 'src/legacy/async.js', 'src/legacy/io.js' ])
     .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR))
     .pipe(uglify())
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR));
-});
+    .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR)));
 
-gulp.task('build:stage', function() {
+// TODO: rename this task
+gulp.task('build:stage', () => {
   const initobj = generateConfig('production');
 
-  return gulp.src([ 'src/async.js', 'out/rollup/io.js', 'src/emitter.js' ])
+  return gulp.src([ 'src/async.js', 'src/emitter.js' ])
     .pipe(replace('{{version}}', version))
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', asyncversion))
     .pipe(replace('{{initobj}}', initobj))
     .pipe(replace('{{initcid}}', productionCid))
     .pipe(replace('{{initurl}}', productionUrl))
+    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR));
+});
+
+gulp.task('build:vendor', () =>
+  gulp.src('vendor/*.js')
+    .pipe(concat('vendor.js'))
+    .pipe(uglify())
+    .pipe(insert.prepend('/* istanbul ignore next */\n'))
+    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR)));
+
+gulp.task('build:io.js', () =>
+  rollup.rollup({ entry: './src/rollup/io.js' })
+    .then(bundle => bundle.write({
+      format: 'iife',
+      dest: `${JSTAG_DIST_DEV_DIR}/io.js`
+    })));
+
+gulp.task('build:optimize:argument-slice', () =>
+  gulp.src(`${JSTAG_DIST_DEV_DIR}/*.js`)
     .pipe(sweet({
       modules: [ 'sweet-array-slice' ],
       readableNames: true
     }))
-    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR));
-});
+    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR)));
 
-gulp.task('build:vendor', function() {
-  return gulp.src('vendor/*.js')
-    .pipe(concat('vendor.js'))
-    .pipe(uglify())
-    .pipe(insert.prepend('/* istanbul ignore next */\n'))
-    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR));
-});
-
-gulp.task('build:core', function() {
-  return gulp.src([
+gulp.task('build:core', () =>
+  gulp.src([
     `${JSTAG_DIST_DEV_DIR}/async.js`,
     `${JSTAG_DIST_DEV_DIR}/emitter.js`,
-    `${JSTAG_DIST_DEV_DIR}/io.js` ])
-    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR));
-});
+    `${JSTAG_DIST_DEV_DIR}/io.js`
+  ])
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
 
-gulp.task('build:compat', function() {
-  return gulp.src([ `${JSTAG_DIST_DEV_DIR}/vendor.js`, `${JSTAG_DIST_RELEASE_DIR}/io.js` ])
+gulp.task('build:library', series(
+  'lint',
+  'build:stage',
+  'build:vendor',
+  'build:io.js',
+  'build:optimize:argument-slice',
+  'build:core'
+));
+
+gulp.task('build:compat', () =>
+  gulp.src([
+    `${JSTAG_DIST_RELEASE_DIR}/vendor.js`,
+    `${JSTAG_DIST_RELEASE_DIR}/io.js`
+  ])
     .pipe(concat('io.compat.js'))
-    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR));
-});
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
 
-gulp.task('build:minify', function() {
-  return gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*.js`)
+gulp.task('build:minify', () =>
+  gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*.js`)
     .pipe(filter([ '*', '!*.min.js' ]))
     .pipe(uglify({
       mangle: false,
@@ -162,18 +183,18 @@ gulp.task('build:minify', function() {
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR));
-});
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
 
-gulp.task('build:library', series(
-  // 'lint',
-  'build:stage',
-  'build:vendor',
-  'build:core'
-));
+// We mangle names so the file is maximally small on disk, and as a thin
+// obfuscatory layer, but we do so as a separate step, so we can first test
+// that dead code elimination optimizations were successful. NOTE: Name
+// mangling doesn't help much if at all with gzipped file size.
+gulp.task('build:mangle', () =>
+  gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*.min.js`)
+    .pipe(uglify({ mangle: true }))
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
 
 gulp.task('build:production', series(
-  'build:rollup',
   'build:library',
   'build:compat',
   'build:minify',
@@ -181,21 +202,10 @@ gulp.task('build:production', series(
   'build:mangle'
 ));
 
-// We mangle names so the file is maximally small on disk, and as a thin
-// obfuscatory layer, but we do so as a separate step, so we can first test
-// that dead code elimination optimizations were successful. NOTE: Name
-// mangling doesn't help much if at all with gzipped file size.
-gulp.task('build:mangle', function() {
-  gulp.src('out/latest/*.min.js')
-    .pipe(uglify({ mangle: true }))
-    .pipe(gulp.dest('out/latest'));
-});
-
 /*
 * testing tasks
 */
-
-gulp.task('test:async.js', function(done) {
+gulp.task('test:async.js', done => {
   const library = `${JSTAG_DIST_RELEASE_DIR}/async.js`;
   const preprocessors = {};
 
@@ -220,7 +230,7 @@ gulp.task('test:async.js', function(done) {
     port: 9776
   });
 
-  server.on('run_complete', function(browsers, results) {
+  server.on('run_complete', (browsers, results) => {
     done(results.error ? 'There are test failures' : null);
   });
 
@@ -235,7 +245,7 @@ gulp.task('test:async.js', function(done) {
   gulp.task('test-server:stop', () => { testServer.close(); });
 }());
 
-gulp.task('test:io.js', function(done) {
+gulp.task('test:io.js', done =>
   karmaRun(`${JSTAG_DIST_RELEASE_DIR}/io.compat.js`, [
     'tests/add-meta-tag.js',
     `${JSTAG_DIST_RELEASE_DIR}/io.compat.js`,
@@ -246,56 +256,50 @@ gulp.task('test:io.js', function(done) {
     'tests/dualIoSpec.js',
     'tests/eventEmitterSpec.js',
 //    'tests/noConflictSpec.js'
-  ], done);
-});
+  ], done));
 
 gulp.task('test:dead-code-elimination', testDeadCodeElimination);
 
-gulp.task('publish-version', function() {
-  return gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*`)
+gulp.task('publish-version', () =>
+  gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*`)
     .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR))
-    .pipe(gulp.dest(`${JSTAG_DIST_DIR}/${version}`));
-});
+    .pipe(gulp.dest(`${JSTAG_DIST_DIR}/${version}`)));
 
 /*
 * code linting
 */
-gulp.task('lint', function() {
-  return gulp.src([ /*'src/async.js', */'src/io.js', 'src/emitter.js' ])
+gulp.task('lint', () =>
+  gulp.src([ /*'src/async.js', */'src/io.js', 'src/emitter.js' ])
     .pipe(eslint())
     .pipe(eslint.format())
-    .pipe(eslint.failAfterError());
-});
+    .pipe(eslint.failAfterError()));
 
 /*
 * docs
 */
-gulp.task('docs', function() {
-  return gulp.src([ `${JSTAG_DIST_RELEASE_DIR}/io.js` ])
+gulp.task('docs', () =>
+  gulp.src([ `${JSTAG_DIST_RELEASE_DIR}/*` ])
     .pipe(jsdoc2md({ template: fs.readFileSync('./docs/readme.hbs', 'utf8') }))
     .on('error', err => {
       gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
     })
     .pipe(rename(path => { path.extname = '.md'; }))
-    .pipe(gulp.dest('.'));
-});
+    .pipe(gulp.dest('.')));
 
 /*
 * supporting tasks
 */
-gulp.task('preview', function() {
+gulp.task('preview', () =>
   connect.server({
     port: 8080,
     root: './out/',
     livereload: true
-  });
-});
+  }));
 
 gulp.task('tag', tagRelease);
 
-gulp.task('watch', function() {
-  gulp.watch('src/*.js', series('builddev', 'lint'));
-});
+gulp.task('watch', () =>
+  gulp.watch('src/*.js', series('builddev', 'lint')));
 
 // builds for the development environment and runs all tests
 gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
@@ -333,18 +337,9 @@ function karmaRun(library, files, done) {
     port: 9876
   });
 
-  server.on('run_complete', function(browsers, results) {
+  server.on('run_complete', (browsers, results) => {
     done(results.error ? 'There are test failures' : null);
   });
 
   server.start();
 }
-
-
-// ROLLUP BELOW:
-
-gulp.task('build:rollup', () =>
-  rollup.rollup({ entry: './src/rollup/io.js' }).then(bundle => bundle.write({
-    format: 'iife',
-    dest: 'out/rollup/io.js',
-  })));
