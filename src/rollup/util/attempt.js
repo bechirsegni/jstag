@@ -1,3 +1,4 @@
+/** @module jstag/util/attempt */
 /**
  * Wrapper around try-catch to isolate deoptimization
  *

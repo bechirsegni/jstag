@@ -1,6 +1,8 @@
+/** @module jstag/util/now */
 /**
- * @private
- * @returns {Function} - The number of milliseconds since the UNIX epoch
+ * The number of milliseconds since the UNIX epoch
+ * @exports now
+ * @returns {Function}
  */
 export default function now() {
   return new Date().getTime();

@@ -1,3 +1,4 @@
+/** @module jstag/core/jstag */
 import getConfig from './get-config';
 
 import getid from './getid';
@@ -28,7 +29,7 @@ import noop from '../util/noop';
 import parseQueryString from '../util/parse-query-string';
 
 /**
- * @private
+ * @exports JSTag
  * @constructor JSTag
  * @param {Object} config
  * @todo document all config options

@@ -1,3 +1,4 @@
+/** @module jstag/config */
 var IO_VERSION = '2.1.0';
 
 var DEFAULT_COOKIE_NAME = 'seerid';

@@ -1,7 +1,8 @@
+/** @module jstag/util/for-each */
 /**
  * Call a fn for every item in a collection
  *
- * @public
+ * @exports forEach
  * @param {Array} collection - the collection to be iterated
  * @param {Function} callback - the fn to call for each item in the array
  */

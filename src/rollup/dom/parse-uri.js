@@ -1,3 +1,4 @@
+/** @module jstag/dom/parse-uri */
 import hyper from './hyper';
 import getUriOrigin from './get-uri-origin';
 import filter from '../util/filter';

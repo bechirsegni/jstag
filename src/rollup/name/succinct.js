@@ -1,3 +1,4 @@
+/** @module jstag/name/succinct */
 import document from '../dom/document';
 import arraySlice from '../util/array-slice';
 import filter from '../util/filter';

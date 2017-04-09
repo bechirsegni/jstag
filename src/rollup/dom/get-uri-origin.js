@@ -1,4 +1,6 @@
+/** @module jstag/dom/get-uri-origin */
 /**
+ * @exports getUriOrigin
  * @todo add a description
  */
 export default function getUriOrigin(uri) {

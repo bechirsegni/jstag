@@ -1,5 +1,6 @@
+/** @module jstag/util/is-boolean */
 /**
- * @private
+ * @export isBoolean
  * @param {any} it
  * @returns {boolean}
  */

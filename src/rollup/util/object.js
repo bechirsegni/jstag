@@ -1,9 +1,10 @@
+/** @module jstag/util/object */
 import reduce from './reduce';
 
 /**
  * Return an object from an array of arrays of key-value pairs
  *
- * @public
+ * @exports object
  * @param {Array.Array.<string>} an array of arrays of key-value pairs
  * @returns {Object} an object containing the specified keys and values
  */

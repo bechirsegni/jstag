@@ -1,8 +1,9 @@
+/** @module jstag/core/setid */
 import getCookie from '../cookie/get';
 import setCookie from '../cookie/set';
 
 /**
- * @public
+ * @exports setid
  * @method
  * @todo add a description
  */

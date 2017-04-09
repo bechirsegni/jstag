@@ -1,5 +1,6 @@
+/** @module jstag/util/is-object */
 /**
- * @private
+ * @exports isObject
  * @param {any} it
  * @returns {boolean}
  */

@@ -1,5 +1,6 @@
+/** @module jstag/util/is-array */
 /**
- * @private
+ * @exports isArray
  * @param {any} it
  * @returns {boolean}
  */

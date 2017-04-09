@@ -1,10 +1,11 @@
+/** @module jstag/timers/later */
 import arraySlice from '../util/array-slice';
 import timers from './timers';
 
 /**
  * Invoke a function after n milliseconds, and cache the timeout id
  *
- * @private
+ * @exports later
  * @param {Function} callback
  * @param {number} delay in milliseconds
  * @param {...any} additional params

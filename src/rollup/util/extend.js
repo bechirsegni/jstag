@@ -1,3 +1,4 @@
+/** @module jstag/util/extend */
 import arraySlice from './array-slice';
 import reduce from './reduce';
 import forEach from './for-each';
@@ -8,7 +9,7 @@ import isObject from './is-object';
 /**
  * Extend an object, optionally using a deep merge
  *
- * @private
+ * @exports extend
  * @param {boolean} [isDeep] - extend using deep-merge semantics
  * @param {Object} target - the object to copy params to
  * @param {...Object} sources - the objects to copy properties from

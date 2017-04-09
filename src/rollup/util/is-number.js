@@ -1,5 +1,6 @@
+/** @module jstag/util/is-number */
 /**
- * @private
+ * @exports isNumber
  * @param {any} it
  * @returns {boolean}
  */

@@ -1,8 +1,9 @@
+/** @module jstag/core/block */
 import isNumber from '../util/is-number';
 import later from '../timers/later';
 
 /**
- * @public
+ * @exports block
  * @method
  * @returns {JSTag} the instance
  * @todo add a description

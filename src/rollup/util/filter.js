@@ -1,7 +1,8 @@
+/** @module jstag/util/filter */
 import reduce from './reduce';
 
 /**
- * @public
+ * @exports filter
  * @param {Array.<any>} collection
  * @param {Function} predicate
  * @returns {Array.<any>} the collection filtered by the predicate

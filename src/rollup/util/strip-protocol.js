@@ -1,5 +1,6 @@
+/** @module jstag/util/strip-protocol */
 /**
- * @private
+ * @exports stripProtocol
  * @param {string} url
  * @returns {string} a string containing the URL with the protocol removed
  */

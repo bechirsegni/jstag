@@ -1,8 +1,9 @@
+/** @module jstag/io/get-transport */
 import FormTransport from './transports/form';
 import GifTransport from './transports/gif';
 
 /**
- * @private
+ * @exports ioGetTransport
  * @method
  * @param {Object} message
  * @param {string} url

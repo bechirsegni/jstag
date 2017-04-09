@@ -1,7 +1,8 @@
+/** @module jstag/util/trim */
 /**
  * Trim leading and trailing whitespace from a string
  *
- * @public
+ * @exports trim
  * @param {string} str - a string that may have leading or trailing whitespace
  * @returns {string} the string without leading or trailing whitespace
  */

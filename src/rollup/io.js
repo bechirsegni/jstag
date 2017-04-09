@@ -1,3 +1,4 @@
+/** @module jstag */
 import canonicalName from './name/canonical';
 import succinctName from './name/succinct';
 import JSTag from './core/jstag';

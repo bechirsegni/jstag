@@ -1,3 +1,4 @@
+/** @module jstag/dom/jsonp */
 import window from './window';
 import document from './document';
 import hyper from './hyper';
@@ -9,6 +10,7 @@ import uid from '../util/uid';
 /**
  * Make a JSONP request
  *
+ * @exports jsonp
  * @param {string} url
  * @param {Function} callback
  */

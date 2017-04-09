@@ -1,5 +1,6 @@
+/** @module jstag/util/once */
 /**
- * @private
+ * @exports once
  * @param {Function} callback
  * @returns {Function} a wrapper callback that will allow the original
  *     callback to be called, at most, one time.

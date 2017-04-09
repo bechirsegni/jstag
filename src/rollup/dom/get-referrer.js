@@ -1,10 +1,11 @@
+/** @module jstag/dom/get-referrer */
 import attempt from '../util/attempt';
 import top from './top';
 import parent from './parent';
 import document from './document';
 
 /**
- * @private
+ * @exports getReferrer
  * @returns {string} the referrer URL for the current document
  */
 export default function getReferrer() {

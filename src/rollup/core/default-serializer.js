@@ -1,3 +1,4 @@
+/** @module jstag/core/default-serializer */
 import encodeURIComponent from '../dom/encode-uri-component';
 import isObject from '../util/is-object';
 import isArray from '../util/is-array';
@@ -9,7 +10,7 @@ import keys from '../util/keys';
 /**
  * Prepare a message object for flight over the wire
  *
- * @private
+ * @exports defaultSerializer
  * @param {Object} message
  * @param {string} namespace
  */

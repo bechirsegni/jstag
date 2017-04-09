@@ -1,3 +1,4 @@
+/** @module jstag/io/transports/form */
 import document from '../../dom/document';
 import hyper from '../../dom/hyper';
 import asap from '../../timers/asap';
@@ -7,11 +8,11 @@ import isFunction from '../../util/is-function';
 import uid from '../../util/uid';
 
 /**
-   * @constructor transports.Form
-   * @private
-   * @todo fix documentation
-   * @todo add a description
-   */
+ * @exports FormTransport
+ * @constructor FormTransport
+ * @todo fix documentation
+ * @todo add a description
+ */
 export default function FormTransport(config) {
   return {
     name: 'Form',

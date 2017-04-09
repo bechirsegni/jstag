@@ -1,4 +1,6 @@
+/** @module jstag/util/deprecation */
 /**
+ * @exports deprecation
  * @todo add a description
  */
 export default function deprecation(message) {

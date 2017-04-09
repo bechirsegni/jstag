@@ -1,7 +1,8 @@
+/** @module jstag/core/unblock */
 import forEach from '../util/for-each';
 
 /**
- * @public
+ * @exports unblock
  * @method
  * @returns {JSTag} the instance
  * @todo add a description

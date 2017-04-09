@@ -1,5 +1,6 @@
+/** @module jstag/core/get-endpoint */
 /**
- * @private
+ * @exports getEndpoint
  * @param {Object} config - the JSTag configuration object
  * @param {string} config.url - the base URL for the endpoint
  * @param {string} cid - the cid for the collection endpoint

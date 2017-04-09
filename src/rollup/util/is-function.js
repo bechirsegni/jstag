@@ -1,5 +1,6 @@
+/** @module jstag/util/is-function */
 /**
- * @private
+ * @exports isFunction
  * @param {any} it
  * @returns {boolean}
  */

@@ -1,3 +1,4 @@
+/** @module jstag/core/get-config */
 import defaultSerializer from './default-serializer';
 import location from '../dom/location';
 import extend from '../util/extend';
@@ -8,6 +9,7 @@ import {
 } from '../config';
 
 /**
+ * @exports getConfig
  * @todo add a description
  */
 export default function getConfig(config) {

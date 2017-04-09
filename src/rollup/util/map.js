@@ -1,7 +1,8 @@
+/** @module jstag/util/map */
 import reduce from './reduce';
 
 /**
- * @public
+ * @exports map
  * @param {Array.<any>} collection
  * @param {Function} transform
  * @returns {Array.<any>} the collection mapped by the mapper

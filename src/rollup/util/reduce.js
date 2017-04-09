@@ -1,5 +1,6 @@
+/** @module jstag/util/reduce */
 /**
- * @public
+ * @exports reduce
  * @param {Array.<any>} collection
  * @param {Function} combine
  * @param {any} memo

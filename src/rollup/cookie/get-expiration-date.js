@@ -1,5 +1,6 @@
+/** @module jstag/cookie/get-cookie-expiration-date */
 /**
- * @private
+ * @exports getCookieExpirationDate
  * @param {number} seconds
  * @returns {Date} - a date object relative to now
  */

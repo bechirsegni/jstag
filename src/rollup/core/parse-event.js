@@ -1,8 +1,9 @@
+/** @module jstag/core/parse-event */
 import normalizeEventArguments from './normalize-event-arguments';
 import arraySlice from '../util/array-slice';
 
 /**
- * @public
+ * @exports parseEvent
  * @method
  * @param {string} [stream] - the Lytics stream name
  * @param {Object} [data] - the payload to collect

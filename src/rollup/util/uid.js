@@ -1,5 +1,6 @@
+/** @module jstag/util/uid */
 /**
- * @private
+ * @exports uid
  * @returns {string} a fairly unique identifier
  */
 export default function uid() {

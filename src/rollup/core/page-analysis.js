@@ -1,3 +1,4 @@
+/** @module jstag/core/page-analysis */
 import getCookie from '../cookie/get';
 import setCookie from '../cookie/set';
 import location from '../dom/location';
@@ -12,7 +13,7 @@ import startsWith from '../util/starts-with';
 import stripProtocol from '../util/strip-protocol';
 
 /**
- * @public
+ * @exports pageAnalysis
  * @method
  * @todo add a description
  */

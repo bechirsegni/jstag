@@ -1,9 +1,10 @@
+/** @module jstag/util/make-id */
 import uid from './uid';
 
 /**
  * Callback with a new ID
  *
- * @private
+ * @exports makeId
  * @param callback
  */
 export default function makeId(callback) {

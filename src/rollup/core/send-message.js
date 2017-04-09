@@ -1,3 +1,4 @@
+/** @module jstag/core/send-message */
 import collectIdentity from './collect-identity';
 import getEndpoint from './get-endpoint';
 import appendQuery from '../util/append-query';
@@ -9,7 +10,7 @@ import { DEFAULT_COOKIE_NAME } from '../config';
 /**
  * Send a message
  *
- * @private
+ * @exports sendMessage
  * @param {Object} the message to send
  * @param {boolean} isMock if passed, don't actually do any I/O
  * @throws {TypeError}

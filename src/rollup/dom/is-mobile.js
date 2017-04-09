@@ -1,3 +1,4 @@
+/** @module jstag/dom/is-mobile */
 import window from './window';
 import navigator from './navigator';
 
@@ -5,7 +6,7 @@ import navigator from './navigator';
  * Whether the current user agent is a mobile browser. Code borrowed from
  * detectmobilebrowsers.com
  *
- * @private
+ * @exports isMobile
  */
 export default function isMobile() {
   var a = navigator.userAgent || navigator.vendor || window.opera;

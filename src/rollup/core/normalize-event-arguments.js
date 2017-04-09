@@ -1,3 +1,4 @@
+/** @module jstag/core/normalize-event-arguments */
 import forEach from '../util/for-each';
 import deprecation from '../util/deprecation';
 
@@ -9,7 +10,7 @@ import deprecation from '../util/deprecation';
  *     of the parameters can be omitted, it ended up like this. Going forward,
  *     it would be good if we could remove this.
  *
- * @private
+ * @exports normalizeEventArguments
  * @param {string} [stream] - the Lytics stream name
  * @param {Object} [data] - the payload to collect
  * @param {boolean} [mock] - is it a mock send

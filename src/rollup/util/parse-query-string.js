@@ -1,10 +1,11 @@
+/** @module jstag/util/parse-query-string */
 import decodeURIComponent from '../dom/decode-uri-component';
 import forEach from './for-each';
 import isArray from './is-array';
 import trim from './trim';
 
 /**
- * @private
+ * @exports parseQueryString
  * @param {string} str - the query string to parse
  * @returns {Object} the parsed query string
  * @author Sindre Sorhus <sindresorhus@gmail.com>

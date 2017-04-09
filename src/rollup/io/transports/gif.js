@@ -1,10 +1,11 @@
+/** @module jstag/io/transports/gif */
 import once from '../../util/once';
 import appendQuery from '../../util/append-query';
 import later from '../../timers/later';
 
 /**
+ * @exports GifTransport
  * @constructor GifTransport
- * @private
  * @todo fix documentation
  * @todo add a description
  */

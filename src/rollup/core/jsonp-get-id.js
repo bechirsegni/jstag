@@ -1,9 +1,10 @@
+/** @module jstag/core/jsonp-get-id */
 import getEndpoint from './get-endpoint';
 
 /**
  * Retrieve an ID via JSONP
  *
- * @private
+ * @exports jsonpGetId
  * @param {JSTag} context
  * @param {Function} callback
  */

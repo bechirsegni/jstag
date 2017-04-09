@@ -1,9 +1,10 @@
+/** @module jstag/io/collect */
 import asap from '../timers/asap';
 import extend from '../util/extend';
 import isFunction from '../util/is-function';
 
 /**
- * @private
+ * @exports ioCollect
  * @method
  * @param {Object} message
  * @param {string} url

@@ -1,3 +1,4 @@
+/** @module jstag/core/collect-identity */
 import location from '../dom/location';
 import isMobile from '../dom/is-mobile';
 import isIFrame from '../dom/is-iframe';
@@ -7,6 +8,7 @@ import stripProtocol from '../util/strip-protocol';
 import { IO_VERSION } from '../config';
 
 /**
+ * @exports collectIdentity
  * @todo add a description
  */
 export default function collectIdentity(message, config, instance) {

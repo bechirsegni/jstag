@@ -1,5 +1,6 @@
+/** @module jstag/util/uncurry-this */
 /**
- * @private
+ * @export uncurryThis
  * @param method {Function} - method that uses `this`
  * @returns {Function} function that allows the method's `this` parameter to
  *     be passed as a normal function parameter

@@ -1,5 +1,6 @@
+/** @module jstag/util/is-string */
 /**
- * @private
+ * @exports isString
  * @param {any} it
  * @returns {boolean}
  */

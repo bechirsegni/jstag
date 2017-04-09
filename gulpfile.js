@@ -275,16 +275,16 @@ gulp.task('lint', () =>
     .pipe(eslint.failAfterError()));
 
 /*
-* docs
+* doc
 */
-gulp.task('docs', () =>
+gulp.task('doc', () =>
   gulp.src([ `${JSTAG_DIST_RELEASE_DIR}/*` ])
-    .pipe(jsdoc2md({ template: fs.readFileSync('./docs/readme.hbs', 'utf8') }))
+    .pipe(jsdoc2md())
     .on('error', err => {
       gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
     })
     .pipe(rename(path => { path.extname = '.md'; }))
-    .pipe(gulp.dest('.')));
+    .pipe(gulp.dest('out/doc')));
 
 /*
 * supporting tasks
@@ -299,7 +299,7 @@ gulp.task('preview', () =>
 gulp.task('tag', tagRelease);
 
 gulp.task('watch', () =>
-  gulp.watch('src/*.js', series('builddev', 'lint')));
+  gulp.watch('src/rollup/**/*.js', series('builddev', 'lint')));
 
 // builds for the development environment and runs all tests
 gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
