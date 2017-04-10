@@ -1,15 +1,20 @@
 (function () {
     'use strict';
-    var canonicalName = '__lytics__jstag__';
+    var
+    /** @module jstag/name/canonical */
+    canonicalName = '__lytics__jstag__';
     var
     /* global window */
+    /** @module jstag/dom/window */
+    /** @module jstag/dom/document */
     document = window.document;
     function uncurryThis(method) {
         return function func() {
             return method.apply(arguments[0], [].slice.call(arguments, 1));
         };
     }
-    var arraySlice = uncurryThis([].slice);
+    var /** @module jstag/util/array-slice */
+    arraySlice = uncurryThis([].slice);
     function reduce(collection, combine, memo) {
         var i = -1;
         var len = collection.length;
@@ -35,7 +40,8 @@
             return memo;
         }, []);
     }
-    var succinctName = function getSuccintGlobalName() {
+    var /** @module jstag/name/succinct */
+    succinctName = function getSuccintGlobalName() {
         var scriptsHostObject = document.getElementsByTagName('script');
         var length = scriptsHostObject.length;
         var scripts = new Array(length);
@@ -59,7 +65,8 @@
         }
         return 'jstag';
     }();
-    var encodeURIComponent = window.encodeURIComponent;
+    var /** @module jstag/dom/encode-uri-component */
+    encodeURIComponent = window.encodeURIComponent;
     function isObject(it) {
         return it && 'object' === typeof it;
     }
@@ -86,9 +93,10 @@
         /* eslint-enable guard-for-in */
         return result;
     }
-    var /**
+    var /** @module jstag/util/keys */
+    /**
  * A polyfill for Object.keys
- * @todo write docs
+ * @exports keys
  */
     keys = Object.keys || function keys$2(source) {
         return filter(allKeys(source), function (key) {
@@ -128,7 +136,8 @@
         }
         return result.join('&');
     }
-    var location = window.location;
+    var /** @module jstag/dom/location */
+    location = window.location;
     function isBoolean(it) {
         return 'boolean' === typeof it;
     }
@@ -157,7 +166,9 @@
             return target;
         });
     }
-    var IO_VERSION = '2.1.0';
+    var
+    /** @module jstag/config */
+    IO_VERSION = '2.1.0';
     var DEFAULT_COOKIE_NAME = 'seerid';
     var DEFAULT_SESSION_COOKIE_NAME = 'seerses';
     function getConfig(config) {
@@ -202,7 +213,10 @@
         var value = re.exec(decodeURIComponent(document.cookie));
         return value && value[1];
     }
-    var timers = [];
+    var
+    /** @module jstag/timers/timers */
+    /** The global timer registry */
+    timers = [];
     function later(callback, delay) {
         var length = arguments.length;
         var start = Math.min(2, length - 1);
@@ -389,7 +403,8 @@
         message.data = extend({ _e: 'pv' }, this.pageData, message.data);
         this.sendMessage(message);
     }
-    var navigator = window.navigator;
+    var /** @module jstag/dom/navigator */
+    navigator = window.navigator;
     function isMobile() {
         var a = navigator.userAgent || navigator.vendor || window.opera;
         return;
@@ -402,7 +417,8 @@
             return true;
         });
     }
-    var userAgent = navigator.userAgent;
+    var /** @module jstag/dom/user-agent */
+    userAgent = navigator.userAgent;
     function stripProtocol(url) {
         return url.replace(/^https?:\/\//, '');
     }
@@ -560,7 +576,8 @@
         this.config.payloadQueue.length = 0;
         return this;
     }
-    var screen = window.screen;
+    var /** @module jstag/dom/screen */
+    screen = window.screen;
     function pairs(source) {
         return reduce(keys(source), function (memo, key) {
             memo.push([
@@ -573,7 +590,8 @@
     function filterObject(source, predicate) {
         return object(filter(pairs(source), predicate));
     }
-    var decodeURIComponent$1 = window.decodeURIComponent;
+    var /** @module jstag/core/decode-uri-component */
+    decodeURIComponent$1 = window.decodeURIComponent;
     function trim(str) {
         return str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
     }
@@ -726,8 +744,10 @@
         }
         return new GifTransport(config);
     }
-    var top = window.top;
-    var parent = window.parent;
+    var /** @module jstag/dom/top */
+    top = window.top;
+    var /** @module jstag/dom/parent */
+    parent = window.parent;
     function getReferrer() {
         return attempt(function () {
             return top.document.referrer;
@@ -750,6 +770,10 @@
         });
         document.body.appendChild(script);
     }
+    /** @module jstag/util/noop */
+    /**
+ * @exports noop
+ */
     function noop() {
     }
     function JSTag(config) {
@@ -793,6 +817,7 @@
         forEach(timers, clearTimeout);
         timers.length = 0;
     }
+    /** @module jstag */
     window[canonicalName] || (window[canonicalName] = window[succinctName] || {});
     window[canonicalName].JSTag = JSTag;
     window[canonicalName].init = function facade() {
