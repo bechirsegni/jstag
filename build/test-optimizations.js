@@ -2,6 +2,7 @@
 
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
+const { JSTAG_DIST_RELEASE_DIR } = require('../config');
 
 module.exports = function testOptimizations() {
   return Promise.all([
@@ -30,7 +31,7 @@ module.exports = function testOptimizations() {
     //           configuration, and "unsafe" transformations must be enabled.
     //           This is actually safe because we know that `uncurryThis` is
     //           pure, i.e. has no side effects.
-    fs.readFileAsync('out/latest/io.min.js', 'utf-8')
+    fs.readFileAsync(`${JSTAG_DIST_RELEASE_DIR}/io.min.js`, 'utf-8')
       .then(artifact => {
         if (artifact.indexOf('uncurryThis') !== -1) {
           throw new Error('Optimization failed: `uncurryThis` was not eliminated by dead code elimination');

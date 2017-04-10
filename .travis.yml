@@ -6,6 +6,12 @@ env:
   - export GIT_USER_NAME="Shipit Squirrel"
   - export GIT_USER_EMAIL="squirrel@lytics.io"
   - export JSTAG_CI_MASTER_BRANCH=master
+  - export JSTAG_DIST_DIR=out
+  - export JSTAG_DIST_MODERN_DIR=$JSTAG_DIST_DIR/v3
+  - export JSTAG_DIST_RELEASE_DIR=$JSTAG_DIST_MODERN_DIR/latest
+  - export JSTAG_DIST_DEV_DIR=$JSTAG_DIST_MODERN_DIR/dev
+  - export JSTAG_COVERAGE_DIR=coverage
+  - export JSTAG_COVERAGE_ASYNC_DIR=$JSTAG_COVERAGE_DIR/async
   - secure: i9xUj+NKgLh11gXsYlDV9dDRObUvni98g6P02TKCYijCcqCO7iCDJF2hPs0ff42BpQacQUkR5dmsMpCee0jtlsA51giSyv4FGOdUpEBT/kPtvMT1H727c15OfK0TD31NKrml59nUz7rYdHagJ+VA3+GCuUQLINWhaJfh43cw5ks=
   - secure: UIffOSxb3d5Amq/sxz1VSoWDAVaIIIZ9EBEoaZiFLVpfPLmsSR48Z4jL9LtfXKW4/urvdwcjylQMihAA9FrTxTycJmuHJJj0KscDLXD59IMVJUhJ7EJsW+xr+Syb0Jg7bjtVc3LRKT8yGdcUCEgOK3IJF17wuk3H6XQB9RenUO8=
   - secure: TtOCyYBsZAlkvRVKq4gGPjHYGTTVJl9Qg7ecA7vrg5m+S5qpCc6Tge/QHIouuGHi3GGhouZdheDfTegH0bbaK2SX9e4iBXV6fPwNAh06P576ZTDJj71sz5HzE7Tr7pn81FCfd4m6TeoSmlFqsArNOcV6YnE/T9h2pqkWe3TJu0Y=
@@ -28,14 +34,14 @@ before_script:
   > ~/.ssh/known_hosts
 script: gulp release
 before_deploy:
-- cd out/latest && zip -r ../jstag.zip . && cd -
+- cd $JSTAG_DIST_RELEASE_DIR && zip -r ../jstag.zip . && cd -
 - git remote set-url origin git@github.com:lytics/jstag.git
 - git checkout -B travis
 - gulp tag
 deploy:
 - provider: gcs
   skip_cleanup: true
-  local_dir: out
+  local_dir: $JSTAG_DIST_DIR
   access_key_id: GOOGDGAEWNWX3SXOYPUI
   secret_access_key:
     secure: FQoimbN5Q3udVG/O1BY1+xfbVRZX8aKMnS+p/hEWp86gQzXZDTrht2F6JY81Kmr7JCUylB/5Ma+TeQxz6kgduuLECS0tSVnH/P+4TdwUw8AXrtLDnwZ7umOlT8F1DupNcbgleLKNXE+krI7+b1RJ9gUHkyvOOZ5zD8/gaDkw9Ls=
@@ -48,6 +54,9 @@ deploy:
   skip_cleanup: true
   api_key:
     secure: RP2fvnovaeumbf1zwCm400WVqNXLXO6LSPAvdnms1eNVWfoU34e1d1aLW9YJapKg4VZpZQR73PTL51IraxSMqadSC6lMEKrh2ydNu9D8cXW0mtphLypPeIv6/0gbJ+5IJHMyCKYMs8xoBOk0PeSqvLXUI/NQnavPNBTjbWuMjBc=
-  file: out/jstag.zip
+  file: $JSTAG_DIST_DIR/jstag.zip
   on:
     branch: $JSTAG_CI_MASTER_BRANCH
+notifications:
+  slack:
+    secure: Ey+VxU3OBb8OwaZxs0UuLW3y9ceQ+qiEMKFme1aoRPYmqPy0eUMSvVMrUwWvck1p9h0w3knTFnxotahbWxJnLvGqi+5mwzBW+qR2r3ZKl2k2KRVqRgHP8PvXfqKRzwq2+eHV3+64nmbl8Be6Zdp1/lk6WDsciLWT9wD639nIC74=
