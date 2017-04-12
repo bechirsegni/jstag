@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const { JSTAG_DIST_RELEASE_DIR } = require('../config');
 
-module.exports = function testOptimizations() {
+module.exports = function testDeadCodeElimination() {
   return Promise.all([
     // File size optimization: `uncurryThis` should be removed.
     //
