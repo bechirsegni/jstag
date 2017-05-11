@@ -1,0 +1,7 @@
+static
+out
+coverage
+vendor
+src/legacy
+src/initobj.js
+src/initobjwrapper.js

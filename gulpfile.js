@@ -1,66 +1,94 @@
-var gulp = require('gulp'),
-    uglify = require('gulp-uglify'),
-    rename = require('gulp-rename'),
-    connect = require('gulp-connect'),
-    replace = require('gulp-replace'),
-    env = require('gulp-env'),
-    open = require('gulp-open'),
-    karma = require('karma'),
-    fs = require("fs");
+/* eslint-env node */
+const gulp = require('gulp');
+const series = require('gulp-sequence');
+const uglify = require('gulp-uglify');
+const rename = require('gulp-rename');
+const connect = require('gulp-connect');
+const replace = require('gulp-replace');
+const env = require('gulp-env');
+const karma = require('karma');
+const eslint = require('gulp-eslint');
+const jsdoc2md = require('gulp-jsdoc-to-markdown');
+const gutil = require('gulp-util');
+const sweet = require('gulp-sweetjs');
+const concat = require('gulp-concat');
+const filter = require('gulp-filter');
+const insert = require('gulp-insert');
+const rollup = require('rollup');
+const fs = require('fs');
 
-var version,
-    ioversion,
-    asyncversion,
-    production_cid = "{{account.id}}",
-    production_url = "//c.lytics.io",
-    master_cid,
-    master_url;
+const TestServer = require('./tests/server');
+const tagRelease = require('./build/tag-release');
+const testDeadCodeElimination = require('./build/test-dead-code-elimination');
+
+const {
+  JSTAG_DIST_DIR,
+  JSTAG_DIST_LEGACY_DIR,
+  JSTAG_DIST_MODERN_DIR,
+  JSTAG_DIST_DEV_DIR,
+  JSTAG_DIST_RELEASE_DIR,
+
+  JSTAG_COVERAGE_DIR,
+  JSTAG_COVERAGE_ASYNC_DIR,
+
+  COVERALLS_REPO_TOKEN,
+} = require('./config');
+
+let version;
+let ioversion;
+let asyncversion;
+let productionCid = '{{account.id}}';
+let productionUrl = '//c.lytics.io';
+
+// Seems like an eslint bug is forcing me to make an exception for these:
+/* eslint-disable no-unused-vars */
+let masterCid;
+let masterUrl;
+/* eslint-enable no-unused-vars */
+
 
 /*
 * handles the cid and url overrides from the .env file
 */
 try {
   env({
-      file: '.env.json',
+    file: '.env.json'
   });
-  master_cid = process.env.cid || production_cid;
-  master_url = process.env.url || production_url;
+  masterCid = process.env.cid || productionCid;
+  masterUrl = process.env.url || productionUrl;
 } catch (error) {
-  master_cid = production_cid;
-  master_url = production_url;
+  masterCid = productionCid;
+  masterUrl = productionUrl;
 }
 
 /*
 * sets master version information
 */
-var setVersion = function(){
-  var obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
+(function setVersion() {
+  const obj = JSON.parse(fs.readFileSync('src/versioning.json', 'utf8'));
+  const package = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-  version = obj.version;
+  version = package.version;
   ioversion = obj.ioversion;
   asyncversion = obj.asyncversion;
 
-  if(version === "" || ioversion === "" || asyncversion === ""){
-    throw "invalid version files, can not be built";
+  if (version === '' || ioversion === '' || asyncversion === '') {
+    throw 'invalid version files, can not be built';
   }
-}
-setVersion();
+}());
 
 /*
 * generates the master config used in async init
 */
-var generateConfig = function(env){
-  var obj = JSON.parse(fs.readFileSync('src/initobj.json', 'utf8'));
+function generateConfig(env) {
+  const config = fs.readFileSync('src/initobj.js', 'utf8');
 
-  if(env == "development"){
-    obj.cid = master_cid;
-    obj.url = master_url;
-  }else{
-    obj.cid = production_cid;
-    obj.url = production_url;
+  if (env !== 'development') {
+    masterCid = productionCid;
+    masterCid = productionUrl;
   }
 
-  return obj;
+  return config;
 }
 
 /*
@@ -69,171 +97,249 @@ var generateConfig = function(env){
 * production: uses hard coded cid and url for templating purposes
 * development: uses .env.json if it exists for falls back to production settings
 */
-gulp.task('build:legacy', function (done) {
-  gulp.src(['src/legacy/async.js', 'src/legacy/io.js'])
-    .pipe(gulp.dest('out/'))
+gulp.task('build:legacy', () =>
+  gulp.src([ 'src/legacy/async.js', 'src/legacy/io.js' ])
+    .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR))
     .pipe(uglify())
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest('out/'))
-  done();
-});
+    .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR)));
 
-gulp.task('build:production', function (done) {
-  var initobj = generateConfig('production');
+// TODO: rename this task
+gulp.task('build:stage', () => {
+  const initobj = generateConfig('production');
 
-  gulp.src(['src/async.js', 'src/io.js'])
+  return gulp.src([ 'src/async.js', 'src/emitter.js' ])
     .pipe(replace('{{version}}', version))
     .pipe(replace('{{asyncversion}}', asyncversion))
     .pipe(replace('{{ioversion}}', asyncversion))
-    .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-    .pipe(gulp.dest('out/'+version))
+    .pipe(replace('{{initobj}}', initobj))
+    .pipe(replace('{{initcid}}', productionCid))
+    .pipe(replace('{{initurl}}', productionUrl))
+    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR));
+});
+
+gulp.task('build:vendor', () =>
+  gulp.src('vendor/*.js')
+    .pipe(concat('vendor.js'))
     .pipe(uglify())
+    .pipe(insert.prepend('/* istanbul ignore next */\n'))
+    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR)));
+
+gulp.task('build:io.js', () =>
+  rollup.rollup({ entry: './src/rollup/io.js' })
+    .then(bundle => bundle.write({
+      format: 'iife',
+      dest: `${JSTAG_DIST_DEV_DIR}/io.js`
+    })));
+
+gulp.task('build:optimize:argument-slice', () =>
+  gulp.src(`${JSTAG_DIST_DEV_DIR}/*.js`)
+    .pipe(sweet({
+      modules: [ 'sweet-array-slice' ],
+      readableNames: true
+    }))
+    .pipe(gulp.dest(JSTAG_DIST_DEV_DIR)));
+
+gulp.task('build:core', () =>
+  gulp.src([
+    `${JSTAG_DIST_DEV_DIR}/async.js`,
+    `${JSTAG_DIST_DEV_DIR}/emitter.js`,
+    `${JSTAG_DIST_DEV_DIR}/io.js`
+  ])
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
+
+gulp.task('build:library', series(
+  'lint',
+  'build:stage',
+  'build:vendor',
+  'build:io.js',
+  'build:optimize:argument-slice',
+  'build:core'
+));
+
+gulp.task('build:compat', () =>
+  gulp.src([
+    `${JSTAG_DIST_RELEASE_DIR}/vendor.js`,
+    `${JSTAG_DIST_RELEASE_DIR}/io.js`
+  ])
+    .pipe(concat('io.compat.js'))
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
+
+gulp.task('build:minify', () =>
+  gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*.js`)
+    .pipe(filter([ '*', '!*.min.js' ]))
+    .pipe(uglify({
+      mangle: false,
+      compress: {
+        unsafe: true,
+        // TODO: audit truly pure functions. Note that higher order functions
+        //     cannot be considered pure functions because the functions they
+        //     operate on may not be pure.
+        pure_funcs: [ 'uncurryThis', 'noop' ]
+      }
+    }))
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest('out/'+version))
-  done();
-});
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
 
-gulp.task('build:development', function (done) {
-  var initobj = generateConfig('development');
+// We mangle names so the file is maximally small on disk, and as a thin
+// obfuscatory layer, but we do so as a separate step, so we can first test
+// that dead code elimination optimizations were successful. NOTE: Name
+// mangling doesn't help much if at all with gzipped file size.
+gulp.task('build:mangle', () =>
+  gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*.min.js`)
+    .pipe(uglify({ mangle: true }))
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR)));
 
-  gulp.src(['src/async.js', 'src/io.js'])
-    .pipe(replace('{{version}}', version))
-    .pipe(replace('{{asyncversion}}', asyncversion))
-    .pipe(replace('{{ioversion}}', ioversion))
-    .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-    .pipe(gulp.dest('out/'+version))
-    .pipe(uglify())
-    .pipe(rename({
-      suffix: '.min'
-    }))
-    .pipe(gulp.dest('out/'+version))
-  done();
-});
+gulp.task('build:production', series(
+  'build:library',
+  'build:compat',
+  'build:minify',
+  'test:dead-code-elimination',
+  'build:mangle'
+));
 
 /*
 * testing tasks
 */
-gulp.task('fixtures:test', function (done) {
-  var initobj = generateConfig('test');
+gulp.task('test:async.js', done => {
+  const library = `${JSTAG_DIST_RELEASE_DIR}/async.js`;
+  const preprocessors = {};
 
-  gulp.src(['src/initobjwrapper.js'])
-    .pipe(replace('{{initobj}}', JSON.stringify(initobj, null, 2)))
-    .pipe(gulp.dest('tests/fixtures'))
-  done();
-});
+  preprocessors[library] = 'coverage';
 
-gulp.task('asynctest', function (done) {
-  new karma.Server({
+  const server = new karma.Server({
     configFile: __dirname + '/karma.conf.js',
     client: {
       asyncversion: asyncversion,
-      ioversion: ioversion,
+      ioversion: ioversion
     },
     singleRun: true,
     files: [
-      'out/'+version+'/async.min.js',
-      'tests/fixtures/initobjwrapper.js',
+      library,
       'tests/coreAsyncSpec.js'
     ],
-    port: 9776,
-  }, done).start();
+    preprocessors: preprocessors,
+    coverageReporter: {
+      type : 'html',
+      dir : JSTAG_COVERAGE_ASYNC_DIR
+    },
+    port: 9776
+  });
+
+  server.on('run_complete', (browsers, results) => {
+    done(results.error ? 'There are test failures' : null);
+  });
+
+  server.start();
 });
 
-gulp.task('iotest', function (done) {
-  new karma.Server({
-    configFile: __dirname + '/karma.conf.js',
-    client: {
-      asyncversion: asyncversion,
-      ioversion: ioversion,
-    },
-    singleRun: true,
-    files: [
-      'out/'+version+'/async.min.js',
-      'tests/fixtures/initobjwrapper.js',
-      'out/'+version+'/io.js',
-      'tests/coreIoSpec.js'
-    ],
-    port: 9876,
-  }, done).start();
-});
+(function testServer() {
+  const testServer = new TestServer(3002);
 
-gulp.task('dualsendtest', function (done) {
-  new karma.Server({
-    configFile: __dirname + '/karma.conf.js',
-    client: {
-      asyncversion: asyncversion,
-      ioversion: ioversion,
-    },
-    singleRun: true,
-    files: [
-      'out/'+version+'/async.min.js',
-      'tests/fixtures/dualinitobj.js',
-      'out/'+version+'/io.js',
-      'tests/dualIoSpec.js'
-    ],
-    port: 9976,
-  }, done).start();
-});
+  gulp.task('test-server:start', done => { testServer.open(done); });
+
+  gulp.task('test-server:stop', () => { testServer.close(); });
+}());
+
+gulp.task('test:io.js', done =>
+  karmaRun(`${JSTAG_DIST_RELEASE_DIR}/io.compat.js`, [
+    'tests/add-meta-tag.js',
+    `${JSTAG_DIST_RELEASE_DIR}/io.compat.js`,
+    `${JSTAG_DIST_RELEASE_DIR}/emitter.js`,
+    'util/test-helpers.js',
+    'tests/utilSpec.js',
+    'tests/coreIoSpec.js',
+    'tests/dualIoSpec.js',
+    'tests/eventEmitterSpec.js',
+//    'tests/noConflictSpec.js'
+  ], done));
+
+gulp.task('test:dead-code-elimination', testDeadCodeElimination);
+
+gulp.task('publish-version', () =>
+  gulp.src(`${JSTAG_DIST_RELEASE_DIR}/*`)
+    .pipe(gulp.dest(JSTAG_DIST_RELEASE_DIR))
+    .pipe(gulp.dest(`${JSTAG_DIST_DIR}/${version}`)));
+
+/*
+* code linting
+*/
+gulp.task('lint', () =>
+  gulp.src([ 'src/emitter.js', 'src/rollup/**/*.js' ])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError()));
+
+/*
+* doc
+*/
+gulp.task('doc', () =>
+  gulp.src([ `${JSTAG_DIST_RELEASE_DIR}/*` ])
+    .pipe(jsdoc2md())
+    .on('error', err => {
+      gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
+    })
+    .pipe(rename(path => { path.extname = '.md'; }))
+    .pipe(gulp.dest('out/doc')));
 
 /*
 * supporting tasks
 */
-gulp.task('preview', function (done) {
+gulp.task('preview', () =>
   connect.server({
-    port: 8080 ,
+    port: 8080,
     root: './out/',
     livereload: true
-  });
-  done();
-});
+  }));
 
-gulp.task('watch', function () {
-  gulp.watch('src/*.js', gulp.series('builddev'));
-});
+gulp.task('tag', tagRelease);
 
-// leaving this out for now but will turn back on eventually
-// gulp.task('unit:coverage', function(done) {
-//   return new karma.Server({
-//     configFile:  __dirname + '/karma.conf.js',
-//     action: 'run',
-//     singleRun: true,
-//     preprocessors: {
-//       'out/io.js': ['coverage']
-//     },
-//     files: [
-//       'out/io.js',
-//       'out/async.js'
-//     ],
-//     reporters: ['progress', 'coverage'],
-//     coverageReporter: {
-//       type : 'html',
-//       dir : 'coverage/',
-//       subdir: '.'
-//     }
-//   }, function(){
-//     done();
-//   }).on('error', function(err) {
-//     throw err;
-//   }).start();
-// });
-
-// gulp.task('coverage', gulp.series('unit:coverage'), function() {
-//   return gulp.src('./coverage/index.html')
-//     .pipe(open());
-// });
+gulp.task('watch', () =>
+  gulp.watch('src/rollup/**/*.js', series('builddev', 'lint')));
 
 // builds for the development environment and runs all tests
-gulp.task('test', gulp.series('fixtures:test', 'build:production', 'build:legacy', 'asynctest', 'iotest', 'dualsendtest'));
+gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
+gulp.task('test:acceptance:compat', series('test:acceptance'));
+gulp.task('test', series('build:production', 'build:legacy', 'test:acceptance'));
+
+gulp.task('release', series('test', 'publish-version'));
 
 // builds for production using hard coded cid and url
-gulp.task('buildprod', gulp.series('build:production', 'build:legacy'));
+// gulp.task('buildprod', series('build:production', 'build:legacy'));
 
-// builds for development, uses .env.json file or fallsback to production
-gulp.task('builddev', gulp.series('build:development', 'build:legacy'));
+gulp.task('default', [ 'build:production' ]);
 
-// default local server using development build settings
-gulp.task('default', gulp.series('build:development', 'build:legacy', 'preview', 'watch'));
+function karmaRun(library, files, done) {
+  const preprocessors = {};
+
+  preprocessors[library] = 'coverage';
+
+  const server = new karma.Server({
+    configFile: __dirname + '/karma.conf.js',
+    client: {
+      asyncversion: asyncversion,
+      ioversion: ioversion
+    },
+    singleRun: true,
+    files: files,
+    preprocessors: preprocessors,
+    coverageReporter: {
+      dir: JSTAG_COVERAGE_DIR,
+      type: 'lcov'
+    },
+    coverallsReporter: {
+      repoToken: COVERALLS_REPO_TOKEN
+    },
+    port: 9876
+  });
+
+  server.on('run_complete', (browsers, results) => {
+    done(results.error ? 'There are test failures' : null);
+  });
+
+  server.start();
+}
