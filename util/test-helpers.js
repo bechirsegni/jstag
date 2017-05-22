@@ -47,5 +47,14 @@ var jasmineMatchers = {
         };
       }
     };
-  }
+  },
+  toStartWith: function toStartWith() {
+    return {
+      compare: function compare(actual, expected) {
+        return {
+          pass: actual.indexOf(expected) === 0
+        };
+      }
+    };
+  },
 };
