@@ -204,9 +204,25 @@
         return '' + config.url + config[pathKey || 'path'] + cid;
     }
     function jsonpGetId(context, callback) {
-        var config = context.config;
-        var idUri = getEndpoint(config, config.cid[0], 'idpath');
-        context.jsonp(idUri, callback);
+        if (context._pendingGetId) {
+            context._pendingGetId.push(callback);
+        } else {
+            context._pendingGetId = [callback];
+            var config = context.config;
+            var idUri = getEndpoint(config, config.cid[0], 'idpath');
+            context.jsonp(idUri, function () {
+                var length = arguments.length;
+                var args = new Array(length);
+                for (var i = 0; i < length; i++) {
+                    args[i] = arguments[i];
+                }
+                var pending = context._pendingGetId;
+                context._pendingGetId = null;
+                forEach(pending, function (pendingCallback) {
+                    pendingCallback.apply(context, args);
+                });
+            });
+        }
     }
     function getCookie(name) {
         var re = new RegExp(name + '=([^;]+)');

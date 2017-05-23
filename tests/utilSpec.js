@@ -5,6 +5,7 @@ describe("util", function() {
 
   beforeEach(function() {
     instance = new JSTag();
+    jasmine.addMatchers(jasmineMatchers);
   });
 
   describe("the extend method", function() {
@@ -138,9 +139,22 @@ describe("util", function() {
 
       it("should make a jsonp request to the specified endpoint", function(done) {
         instance.getid(function(id) {
-          expect(id).toBe('dummy'); // "dummy" is hardcoded in the test server
+          expect(id).toStartWith('dummy'); // "dummy" is hardcoded in the test server
           done();
         });
+      });
+
+      it("should only make one request to the getid endpoint", function(done) {
+        var ids = [];
+
+        for (var i = 0; i < 5; i++) {
+          instance.getid(function(id) {
+            if (ids.push(id) === 5) {
+              expect(ids).toEqual([ ids[0], ids[0], ids[0], ids[0], ids[0] ]);
+              done();
+            }
+          });
+        }
       });
     });
   });

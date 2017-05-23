@@ -1,7 +1,7 @@
 JSTag - Javascript Analytics Collector Tag
 ===============================================
 
-![Build Status](https://travis-ci.org/lytics/jstag.svg?branch=spec) [![Coverage Status](https://coveralls.io/repos/github/lytics/jstag/badge.svg?branch=spec)](https://coveralls.io/github/lytics/jstag?branch=spec)
+[![Build Status](https://travis-ci.org/lytics/jstag.svg?branch=develop)](https://travis-ci.org/lytics/jstag) [![Coverage Status](https://coveralls.io/repos/github/lytics/jstag/badge.svg?branch=spec)](https://coveralls.io/github/lytics/jstag?branch=spec)
 
 A very simple open-source javascript tag for collecting events from a browser to send to a server.  (like google analytics, but name/value pairs defined by you)
 
