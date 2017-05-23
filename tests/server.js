@@ -15,11 +15,14 @@ module.exports = class Server {
     this.server = null;
     this.debugMode = debugMode || false;
 
+    var accountIdCounter = 0;
     // This is the endpoint used for the `getid` request
     this.app.get('/cid/:account_id', (req, res) => {
       this.log(`serving a dummy id`);
 
-      res.jsonp('dummy');
+      setTimeout(function() {
+        res.jsonp('dummy' + accountIdCounter++);
+      }, 100);
     });
 
     // This is the endpoint used to handle the `Gif` transport with or without a stream ID
