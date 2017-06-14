@@ -168,7 +168,7 @@
     }
     var
     /** @module jstag/config */
-    IO_VERSION = '2.1.0';
+    IO_VERSION = '3.0.2';
     var DEFAULT_COOKIE_NAME = 'seerid';
     var DEFAULT_SESSION_COOKIE_NAME = 'seerses';
     function getConfig(config) {
