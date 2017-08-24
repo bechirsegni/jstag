@@ -1,5 +1,4 @@
-/* jshint laxcomma:true, sub:true, asi:true */
-// v1.31 JS Library for data collection. MIT License.
+// v2.0.0 JS Library for data collection. MIT License.
 // https://github.com/lytics/jstag
 (function(win,doc,nav) {
   var dloc = doc.location
@@ -7,7 +6,7 @@
     , jstag = win.jstag || {}
     , config = jstag.config || {}
     , l = 'length'
-    , ioVersion = "1.31"
+    , ioVersion = "2.0.0"
     , cache = {}
     , uidv
     , changeId
@@ -19,24 +18,26 @@
     , sesCkieVal = undefined
     , isSesStart = false
     , pageData = {}
-
   win['jstag'] = jstag;
   jstag.isLoaded = true;
+  jstag.isSendable = false;
 
   if (!win.console){
     win.console = {log:function(){}};
   }
 
   jstag.config = extend({
-    url:''
+    url: ''
     , Q:[]
+    , payloadQueue:[]
     , id: undefined
     , cid : undefined
     , getid : makeid
     , loadid: undefined
-    , serializer:toString
+    , serializer: toString
     , pipeline:['identity','analyze']
-    , delay:2000
+    , delay: 2000
+    , blockload: false
     , path: '/c/'
     , idpath: '/cid/'
     , cookie:"seerid"
@@ -98,6 +99,7 @@
 
     return extended;
   }
+  jstag["extend"] = extend;
 
   /*
     parseUri 1.2.1
@@ -131,7 +133,6 @@
     });
     return uri;
   }
-
   jstag["parseUri"] = parseUri;
 
   function s16() {
@@ -211,6 +212,7 @@
     }
     return r
   }
+
   /**
    * The connect/init function accepts config object
    */
@@ -219,6 +221,9 @@
     if (config.loadid) {
       config.getid = jqgetid;
     }
+
+    jstag.config = config;
+
     pageAnalysis();
     return jstag
   }
@@ -306,6 +311,7 @@
       bind.apply(jstag,[q[0]].concat(as.call(q[1])))
     }
   }
+
   function replaceTempQ(){
     // check for any temp events
     if ("_q" in jstag && isArray(jstag._q)){
@@ -320,6 +326,10 @@
    * Get a cookie
    */
   function ckieGet(name){
+    // refresh from the document so we can get cookies that have just been set
+    ckie = doc.cookie;
+
+    // get the cookie
     if (ckie[l] > 0) {
       var begin = ckie.indexOf(name+"="), end;
       if (begin != -1) {
@@ -369,7 +379,6 @@
     return url + n + '=' + v
   }
 
-
   /**
    * @Object available channels
   */
@@ -400,7 +409,9 @@
             this.images.push(img);
             if (arguments.length === 2 && o && isFn(o.callback)){
               o.callback.hasRun=false;
-              if (img.onload) img.onload = onFinish();
+              if(img.onload){
+                img.onload = onFinish();
+              }
               win.setTimeout(function(){onFinish({timeout:true})}, jstag.config.delay);
             }
             img.src=this.getUrl(data);
@@ -436,6 +447,7 @@
         };
       return {
         send: function(data,o){
+
           try {
             var iframe = doc.createElement("iframe")
               , form
@@ -487,6 +499,7 @@
     }
     return false
   }
+
   function pageAnalysis(){
       sesCkieVal = ckieGet(jstag.config.sesname)
       var ref
@@ -495,8 +508,9 @@
           pageData[k] = uri.qs[k];
         }
       }
+
       if (jstag.config.qsargs && isArray(jstag.config.qsargs)) {
-        var qsa = null
+        var qsa = null;
         for (var i = jstag.config.qsargs.length - 1; i >= 0; i--) {
           qsa = jstag.config.qsargs[i]
           if (qsa in uri.qs){
@@ -530,6 +544,7 @@
         pageData["_sz"] = screen.width + "x" + screen.height;
       }
   }
+
   // the core page analysis functions, an array of options
   var pipeline = {
     analyze: function(o){
@@ -597,6 +612,7 @@
       if (!("_v" in o.data)) o.data["_v"] =  ioVersion;
     }
   }
+
   // make sure we only run once
   pipeline.analyze.onetime = true;
 
@@ -669,77 +685,198 @@
   jstag['Io'] = Io;
 
   /**
-   * @Function jstag.send
-   * public function for send, note this send will overwrite
-   * the temporary one in the async function
+   * @Function jstag.parseEvent
+   * public function for parsing out the raw event into data, stream, callback, etc
    * @param stream:  (string) optional name of stream to send to
    * @param data:  the javascript object to be sent
    * @param callback (optional):  the function to be called upon triggering elsewhere.
+   * @param mock (optional):  the boolean to determine if event should be sent or just mocked for testing / entity get
   */
-  function send(){
-    var stream,data,cb, args=arguments
-    if (isString(args[0])){
-      stream = args[0]
-      data = args[1]
-      if (args.length===3) cb = args[2]
-    } else {
-      data = args[0]
-      if (args.length===2) cb = args[1]
+  function parseEvent(payload){
+    var stream,data,cb,mock;
+
+    /** since the following is true, just loop all arguments and assign
+    * the only stand alone string as an argument must be the stream
+    * the only object allowed as an argument must be the data
+    * the only function allowed as an argument must be the callback
+    * the only boolean allowed as an argument must be the mock flag
+    * by default
+    */
+    mock = false;
+
+    for (var i in arguments) {
+      switch (typeof arguments[i]) {
+        case 'string':
+          stream = arguments[i];
+          break;
+        case 'boolean':
+          mock = arguments[i];
+          break;
+        case 'function':
+          cb = arguments[i];
+          break;
+        case 'object': // just a note, this can be either an array or an object as of 1.31
+          data = arguments[i];
+          break;
+        default:
+          console.warn("unable to process jstag.send event: unknown value type (" + typeof arguments[i] + ")");
+          break;
+      }
+    }
+
+    if(data === undefined || data === null){
+      data = {};
+    }
+
+    return {
+      data: data,
+      callback: cb,
+      stream: stream,
+      mock: mock
+    }
+  }
+  jstag['parseEvent'] = parseEvent;
+
+  /**
+   * @Function jstag.block
+   * public function to prevent events from being processed through to collections
+   * @param timeout:  (int) optional delay time before automatically unblocking
+  */
+  function block(timeout){
+    jstag.config.blockload = true;
+
+    // never allow events to be permanently blocked
+    if(typeof timeout !== 'number'){
+      timeout = 2000;
+    }
+
+    setTimeout(function() {
+      jstag.unblock();
+    }, timeout)
+  }
+  jstag['block'] = block;
+
+  /**
+   * @Function jstag.unblock
+   * public function to restart event processed through to collections
+  */
+  function unblock(){
+    // status changed to false, process the payloadQueue
+    jstag.config.blockload = false;
+
+    for (var i = 0; i < jstag.config.payloadQueue.length; i++) {
+      sendHandler(jstag.config.payloadQueue[i]);
+    }
+
+    jstag.config.payloadQueue.length = 0;
+  }
+  jstag['unblock'] = unblock;
+
+  /**
+   * @Function jstag.sendHandler
+   * private function for handling sends of all types
+   * @param payload:  (obj) prepped payload
+  */
+  function sendHandler(payload){
+    // if we are blocking the sends add them to the queue
+    if(jstag.config.blockload && !payload.mock){
+      jstag.config.payloadQueue.push(payload);
+      return;
+    }
+
+    if(payload.mock){
+      var tempqdata = {};
+
+      for (var mq = 0, mqlen = jstag.config.payloadQueue.length; mq < mqlen; mq++){
+        tempqdata = extend(tempqdata, jstag.config.payloadQueue[mq].data);
+      }
+
+      payload.data = extend(tempqdata, payload.data);
     }
 
     if ('io' in cache && isArray(cache['io'])){
       // it is possible to create more than 1 sender, send events multiple locations
       for (var i = cache['io'].length - 1; i >= 0; i--) {
-        cache['io'][i].send(data,cb,stream);
+        return cache['io'][i].send(payload);
       }
     } else {
       var io = new Io();// this will auto-cache
-      io.send(data,cb,stream);
+      io.send(payload);
     }
+  }
+
+  /**
+   * @Function jstag.send
+   * public function for send, note this send will overwrite
+   * the temporary one in the async function
+   * @param stream:  (string) optional name of stream to send to
+   * @param data:  the javascript object to be sent
+   * @param callback (optional):  the function to be called upon triggering elsewhere
+   * @param mock (optional):  should the data being processed be mocked or sent through to lytics
+  */
+  function send(){
+    var payload;
+
+    // handle the event parsing
+    payload = parseEvent.apply(this, arguments);
+
+    // send the event
+    sendHandler(payload)
   }
   jstag['send'] = send
 
-  function pageView(){
-    var stream = "default",data,cb, args=arguments
-    if (isString(args[0])){
-      stream = args[0]
-      data = args[1]
-      if (args.length===3) cb = args[2]
-    } else {
-      data = args[0]
-      if (args.length===2) cb = args[1]
-    }
-    if (!(isObject(data))){
-      data = {}
-    }
-    if (!("_e" in data)) data["_e"] = "pv";
-    for (var k in pageData) {
-      data[k] = pageData[k];
-    }
-    send(data,cb,stream)
+  /**
+   * @Function jstag.mock
+   * public function wraps send function and adds mock param by default
+   * @param stream:  (string) optional name of stream to send to
+   * @param data:  the javascript object to be sent
+   * @param callback (optional):  the function to be called upon triggering elsewhere.
+   * @param mock (optional):  should the data being processed be mocked or sent through to lytics
+  */
+  function mock(){
+    // when mocking we pass true as the final argument to prevent sending data
+    var args = [].slice.call(arguments);
+    args.push(true);
+    jstag.send.apply(jstag, args);
   }
-  jstag['pageView'] = pageView
+  jstag['mock'] = mock
+
+  function pageView(){
+    var payload;
+
+    // handle the event parsing
+    payload = parseEvent.apply(this, arguments);
+
+    if (!("_e" in payload.data)) payload.data["_e"] = "pv";
+    for (var k in pageData) {
+      payload.data[k] = pageData[k];
+    }
+
+    // send the event
+    sendHandler(payload)
+  }
+  jstag['pageView'] = pageView;
 
   // Used to identify a user when you have a strong
   //   identity, aka logging in, etc
   //
-  // identify(userId, data)
+  // identify(stream, data)
   //  @userId = strong identity, email, hashed email, user_id from db
   //  @data = object of key:value properties to collect
   function identify(){
-    var uid = "", stream="default",data={},cb, args=arguments;
-    uid = args[0]
-    if (isString(args[1])){
-      stream = args[1]
-      data = args[2]
-      if (args.length===4) cb = args[3]
-    } else {
-      data = args[1]
-      if (args.length===3) cb = args[2]
-    }
-    if (!data) data = {};
-    data["user_id"] = uid;
-    send(data,cb,stream)
+    var payload;
+
+    // handle the event parsing
+    payload = parseEvent.apply(this, arguments);
+
+    // in a near future version we will be setting a stream globally for all identifies
+    // so that we can better manage keys. for now just migrate to the same format as a
+    // traditional send or pageView call, once we spec this we can add validation and formatting
+    // of the payload
+    // payload.stream = "default";
+
+    // send the event
+    sendHandler(payload)
   }
   jstag['identify'] = identify
 
@@ -750,11 +887,11 @@
       , o = null
       , pitem = null;
 
-
     return {
       init: function(opts){
         self = this
         o = config
+
         if (!o.url || o.url === ''){
           var tagel = doc.getElementById(o.tagid), elu = null;
           if (tagel) {
@@ -762,7 +899,13 @@
             o.url = "//" + elu.authority
           }
         }
-        if (!o.url || !o.cid) throw new Error("Must have collection url and ProjectIds (cid)");
+
+        if (!o.url || !o.cid){
+          throw new Error("Must have collection url and ProjectIds (cid)");
+        }
+
+        jstag.config.url = o.url;
+
         if ('cid' in o) {
           if (isArray(o.cid)) {
             jstag.config.cid = o.cid;
@@ -805,7 +948,7 @@
         }
         jstag.emit("io.ready",this)
       },
-      collect:function(opts,cb){
+      collect:function(opts){
         var self = this, dataout = {}, o = config, dataMsg;
 
         jstag.emit("send.before", opts)
@@ -813,47 +956,65 @@
         opts.data['_ca'] = "jstag1";
 
         dataout = extend(config.pagedata, opts.data);
-
         dataMsg = this.serializer(dataout);
+
+        // enrich the callback payload
+        if(!opts.sendurl){
+          opts.sendurl = [];
+        }
+        opts.sendurl.push(o.sendurl);
+        opts.dataMsg = dataMsg;
+        opts.channelName = o.channel;
+
+        // handle mock callback before sending
+        if(opts.mock){
+          if(isFn(opts.callback)){
+            opts.callback(opts,self);
+          }
+          return;
+        }
 
         var currentChannel = this.channel;
         // uri max length = ~2000
         if (isString(dataMsg) && (dataMsg.length + o.sendurl.length) > 2000) {
           currentChannel = new jstag.channels['Form'](o);
+          opts.channelName = 'Form';
         }
 
-        // now send
         currentChannel.send(dataMsg,{callback:function(to){
           opts.returndata = to
-          if (isFn(cb)){
-            cb(opts,self);
+          if (isFn(opts.callback)){
+            opts.callback(opts,self);
           }
           jstag.emit("send.finished",opts,self)
         }});
       },
-      send : function(data,cb,stream) {
+      send : function(payload) {
         if (isArray(config.cid)) {
           for (var i = config.cid.length - 1; i >= 0; i--) {
-            this.sendcid(config.cid[i], data,cb,stream);
+            this.sendcid(config.cid[i], payload);
           }
         } else {
-          this.sendcid(config.cid, data,cb,stream);
+          this.sendcid(config.cid, payload);
         }
       },
-      sendcid : function(cid, payload, cb, stream) {
-        var data = extend(data, payload) || {};
+      sendcid : function(cid, opts) {
+        var data = extend(data, opts.data) || {};
+        opts.data = data;
 
-        data["_ts"] = new Date().getTime();
-        // todo, support json or n/v serializer?
-        var opts = {data:data,callback:cb,config:this.config}
-          , self = this
+        // add the config and timestamp
+        opts.config = this.config;
+        opts.data["_ts"] = new Date().getTime();
+
+        var self = this
           , url = o.url + o.path + cid
           , pipeNew = [];
-        stream = stream || jstag.config.stream;
-        o.sendurl = stream ? url + "/" + stream  : url
+        o.stream = opts.stream || jstag.config.stream;
+        o.sendurl = o.stream ? url + "/" + o.stream  : url
         if (o.sendurl.indexOf("_uidn=") == -1 && config.cookie != "seerid") {
           o.sendurl = addQs(o.sendurl, "_uidn", config.cookie)
         }
+
         // run pre-work
         for (var i = _pipe.length - 1; i >= 0; i--) {
           _pipe[i](opts)
@@ -862,25 +1023,28 @@
           }
         }
 
-        _pipe = pipeNew
+        // if we are mocking we dont want to adjust the pipe if we
+        // beat the initial send in the race
+        if( !opts.mock && _pipe.length > 1 ){
+          _pipe = pipeNew
+        }
 
         // now for the actual collection
         if (uidv) {
-          self.collect(opts,cb)
+          return self.collect(opts);
         } else if (config.getid && isFn(config.getid)) {
           config.getid(function(id){
-            if (id && !(data['_uid'])) {
-              data['_uid']=id
+            if (id && !(opts.data['_uid'])) {
+              opts.data['_uid']=id
               didGetId = "t"
-              data["_getid"] = "t"
+              opts.data["_getid"] = "t"
               uidv = id
             }
-            self.collect(opts,cb)
+            self.collect(opts);
           })
         } else {
-          self.collect(opts,cb)
+          self.collect(opts);
         }
-
       },
       debug:function(){
         return "<table><tr><th>field</th><th>value</th></tr>" + oToS(this.data) +
@@ -903,21 +1067,21 @@
     return s
   }
 
-
   if (win && 'jstagAsyncInit' in win && isFn(win.jstagAsyncInit)){
     win.jstagAsyncInit();
   }
-
 
   if (!("ready" in jstag)){
     jstag.ready = function(){}
   }
 
-  jstag['load'] = function() {return this};
+  // determine if we should be blocking
+  if(win.jstag._c && win.jstag._c.blockload){
+    win.jstag.block();
+  }
 
+  jstag['load'] = function() {return this};
   replaceTempQ();
   jstag.emit("ready")
 
-
 }(window,document,window.navigator));
-
