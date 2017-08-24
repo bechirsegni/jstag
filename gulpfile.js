@@ -23,7 +23,8 @@ const testDeadCodeElimination = require('./build/test-dead-code-elimination');
 
 const {
   JSTAG_DIST_DIR,
-  JSTAG_DIST_LEGACY_DIR,
+  JSTAG_DIST_DEPRECATED_V1_DIR,
+  JSTAG_DIST_DEPRECATED_V2_DIR,
   JSTAG_DIST_MODERN_DIR,
   JSTAG_DIST_DEV_DIR,
   JSTAG_DIST_RELEASE_DIR,
@@ -93,18 +94,27 @@ function generateConfig(env) {
 
 /*
 * primary build tasks
-* legacy: minifies legacy files, to be removed entirely in near future
+* legacyv1, legacyv2: minifies legacy files, to be removed entirely in near future
 * production: uses hard coded cid and url for templating purposes
 * development: uses .env.json if it exists for falls back to production settings
 */
-gulp.task('build:legacy', () =>
-  gulp.src([ 'src/legacy/async.js', 'src/legacy/io.js' ])
-    .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR))
+gulp.task('build:legacyv1', () =>
+  gulp.src([ 'src/legacy/v1/async.js', 'src/legacy/v1/io.js' ])
+    .pipe(gulp.dest(JSTAG_DIST_DEPRECATED_V1_DIR))
     .pipe(uglify())
     .pipe(rename({
       suffix: '.min'
     }))
-    .pipe(gulp.dest(JSTAG_DIST_LEGACY_DIR)));
+    .pipe(gulp.dest(JSTAG_DIST_DEPRECATED_V1_DIR)));
+
+gulp.task('build:legacyv2', () =>
+  gulp.src([ 'src/legacy/v2/async.js', 'src/legacy/v2/io.js' ])
+    .pipe(gulp.dest(JSTAG_DIST_DEPRECATED_V2_DIR))
+    .pipe(uglify())
+    .pipe(rename({
+      suffix: '.min'
+    }))
+    .pipe(gulp.dest(JSTAG_DIST_DEPRECATED_V2_DIR)));
 
 // TODO: rename this task
 gulp.task('build:stage', () => {
@@ -304,12 +314,13 @@ gulp.task('watch', () =>
 // builds for the development environment and runs all tests
 gulp.task('test:acceptance', series('test-server:start', 'test:io.js', 'test-server:stop'));
 gulp.task('test:acceptance:compat', series('test:acceptance'));
-gulp.task('test', series('build:production', 'build:legacy', 'test:acceptance'));
+gulp.task('test', series('build:production', 'build:legacyv1', 'build:legacyv2', 'test:acceptance'));
 
 gulp.task('release', series('test', 'publish-version'));
 
 // builds for production using hard coded cid and url
-// gulp.task('buildprod', series('build:production', 'build:legacy'));
+// gulp.task('buildprod', series('build:production', 'build:legacyv1', 'build:legacyv2'));
+gulp.task('build:all', series('build:production', 'build:legacyv1', 'build:legacyv2', 'test:acceptance'));
 
 gulp.task('default', [ 'build:production' ]);
 

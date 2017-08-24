@@ -1,5 +1,5 @@
 {
-  "version": "v2",
+  "version": "v3",
   "asyncversion": "2.0.0",
-  "ioversion": "2.1.0"
+  "ioversion": "3.0.2"
 }
