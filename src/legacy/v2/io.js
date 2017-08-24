@@ -150,13 +150,14 @@
    * @param cb = callback function (mandatory)
   */
   function jqgetid(cb){
-    if (!jQuery) {
+    if (typeof window.jQuery == 'undefined') {
       jstag.setid(s16())
       return
     }
-    if (jQuery && jQuery.ajax && isFn(jQuery.ajax)) {
+
+    if (typeof window.jQuery !== 'undefined' && window.jQuery.ajax && isFn(window.jQuery.ajax)) {
       var idurl = config.url + config.idpath + config.cid[0];
-      jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
+      window.jQuery.ajax({url: idurl,dataType: 'jsonp',success: function(json){
         jstag.setid(json)
         didGetId = "t"
         cb(json)
