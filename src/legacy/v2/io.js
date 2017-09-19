@@ -313,13 +313,17 @@
     }
   }
 
-  function replaceTempQ(){
+  function replaceTempQ(callback){
     // check for any temp events
     if ("_q" in jstag && isArray(jstag._q)){
       for (var i = jstag._q.length - 1; i >= 0; i--) {
         handleQitem(jstag._q[i])
       }
       // don't emit ready here, tooooo soon
+    }
+
+    if(typeof callback !== 'undefined'){
+      callback();
     }
   }
 
@@ -1082,7 +1086,10 @@
   }
 
   jstag['load'] = function() {return this};
-  replaceTempQ();
-  jstag.emit("ready")
+
+  // replace the temporary q and then emit ready to ensure we send all queued events with stateful entity request
+  replaceTempQ(function(){
+    jstag.emit("ready")
+  });
 
 }(window,document,window.navigator));

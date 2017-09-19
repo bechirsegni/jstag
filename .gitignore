@@ -5,3 +5,4 @@ coverage
 npm-debug.log
 static
 static-server.js
+package-lock.json
